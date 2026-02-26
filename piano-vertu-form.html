@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Piano Vertu — Enregistrement</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init("yJlzhbDnT4L72MyLn");</script>
+<style>
+:root {
+  --navy:#0d1f3c; --navy-mid:#162b50; --navy-light:#1e3a6e;
+  --ivory:#f8f6f1; --cream:#f0eee9; --gold:#c9a84c; --gold-light:#e2c06a;
+  --muted:#5a6e8a; --border:#d0d9e8; --success:#1f6b4a;
+  --warn:#b45309; --warn-bg:#fffbeb; --warn-border:#fcd34d;
+  --ph-color: #b0bcc8;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);min-height:100vh}
+
+/* HEADER */
+header{background:var(--navy);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid rgba(201,168,76,0.4);position:sticky;top:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold);letter-spacing:.06em}
+.logo span{color:rgba(200,216,240,0.4);font-size:9px;font-family:'DM Sans',sans-serif;font-weight:300;display:block;letter-spacing:.16em;text-transform:uppercase;margin-top:1px}
+.lang-switcher{display:flex;gap:4px}
+.lang-btn{padding:5px 9px;border-radius:16px;border:1px solid rgba(200,216,240,0.15);background:transparent;color:rgba(200,216,240,0.45);font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.lang-btn.active{background:rgba(201,168,76,0.18);border-color:rgba(201,168,76,0.6);color:var(--gold-light)}
+
+/* PROGRESS */
+.prog-wrap{background:var(--navy);padding:9px 18px;position:sticky;top:54px;z-index:99;border-bottom:1px solid rgba(200,216,240,0.08)}
+.prog-segs{display:flex;gap:3px;margin-bottom:5px}
+.pseg{flex:1;height:3px;border-radius:2px;background:rgba(200,216,240,0.12);transition:background .4s}
+.pseg.done{background:var(--gold)}
+.pseg.active{background:rgba(201,168,76,0.5)}
+.prog-label{font-size:10px;color:rgba(200,216,240,0.4);letter-spacing:.07em;text-transform:uppercase}
+.prog-label b{color:var(--gold-light);font-weight:500}
+
+/* HERO */
+.hero{background:var(--navy-mid);text-align:center;padding:22px 18px 18px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(201,168,76,0.07) 0%,transparent 60%);pointer-events:none}
+.hero-eye{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.hero h1{font-family:'Playfair Display',serif;font-size:20px;color:#f0f4fa;font-weight:400;line-height:1.3;margin-bottom:4px}
+.hero h1 em{color:var(--gold-light);font-style:italic}
+.hero-sub{color:rgba(200,216,240,0.45);font-size:12px;font-weight:300;line-height:1.6}
+
+/* CONTAINER */
+.container{padding:13px 13px 90px;max-width:560px;margin:0 auto}
+
+/* QR BANNER */
+.qr-banner{background:rgba(201,168,76,0.09);border:1px solid rgba(201,168,76,0.28);border-radius:8px;padding:9px 12px;display:flex;align-items:flex-start;gap:8px;margin-bottom:10px}
+.qr-banner svg{color:var(--gold);flex-shrink:0;margin-top:1px}
+.qr-text strong{display:block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-bottom:1px}
+.qr-text span{font-size:12px;color:var(--navy);line-height:1.4}
+
+/* CARD */
+.card{background:white;border-radius:12px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden;box-shadow:0 2px 10px rgba(13,31,60,0.05)}
+.card-hd{padding:11px 15px;background:var(--navy);display:flex;align-items:center;gap:9px}
+.card-ico{width:25px;height:25px;border-radius:6px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-hd h3{font-family:'Playfair Display',serif;font-size:13px;font-weight:400;color:white;flex:1}
+.card-hd .sn{font-size:10px;color:rgba(200,216,240,0.3);font-weight:500}
+.card-bd{padding:13px 15px;display:flex;flex-direction:column;gap:11px}
+
+/* STAFF CARD */
+.card.staff-card .card-hd{background:#1a1a2e}
+.card.staff-card{border-color:#c4b5e0}
+
+/* FIELDS */
+.field{display:flex;flex-direction:column;gap:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.lbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--navy);background:var(--cream);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;outline:none;transition:all .2s;width:100%;-webkit-appearance:none}
+input::placeholder,textarea::placeholder{color:var(--ph-color)}
+input:focus,select:focus,textarea:focus{border-color:var(--navy-light);background:white;box-shadow:0 0 0 3px rgba(13,31,60,0.06)}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6e8a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select option:first-child{color:var(--ph-color)}
+textarea{resize:none;min-height:72px;font-size:14px}
+
+/* CHECKBOX — custom styled */
+.cb-group{display:flex;flex-direction:column;gap:7px}
+.cb-item{display:flex;align-items:center;gap:12px;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;background:var(--cream);transition:all .2s}
+.cb-item input[type=checkbox]{display:none}
+.cb-icon{width:22px;height:22px;border:2px solid var(--border);border-radius:5px;background:white;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;line-height:1}
+.cb-item.checked{border-color:var(--navy-light);background:rgba(13,31,60,0.04)}
+.cb-item.checked .cb-icon{background:var(--navy);border-color:var(--navy);color:white}
+.cb-label{font-size:14px;color:var(--navy);line-height:1.3}
+
+/* ACC GRID checkboxes */
+.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.acc-item{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;background:var(--cream);transition:all .2s}
+.acc-item input[type=checkbox]{display:none}
+.acc-icon{width:20px;height:20px;border:2px solid var(--border);border-radius:4px;background:white;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;line-height:1}
+.acc-item.checked{border-color:var(--gold);background:rgba(201,168,76,0.06)}
+.acc-item.checked .acc-icon{background:var(--gold);border-color:var(--gold);color:white}
+.acc-label{font-size:13px;color:var(--navy);line-height:1.3}
+
+/* YN TOGGLE */
+.yn{display:flex;gap:7px}
+.yn label{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;background:var(--cream);transition:all .2s;font-size:14px;color:var(--navy);font-weight:500;position:relative}
+.yn label.selected{border-color:var(--navy-light);background:rgba(13,31,60,0.05)}
+.yn input{display:none}
+.yn-icon{font-size:13px;min-width:13px}
+
+/* STEPPER */
+.stepper{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--cream)}
+.step-btn{width:44px;height:44px;background:transparent;border:none;font-size:20px;color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;user-select:none;transition:background .15s}
+.step-btn:active{background:rgba(13,31,60,0.1)}
+.step-val{flex:1;text-align:center;font-size:18px;font-weight:500;color:var(--navy);pointer-events:none}
+.step-unit{font-size:11px;color:var(--muted);padding-right:11px}
+
+/* SURCHARGE */
+.surcharge{display:none;background:var(--warn-bg);border:1.5px solid var(--warn-border);border-radius:8px;padding:11px 12px;gap:9px;align-items:flex-start}
+.surcharge.on{display:flex}
+.surcharge svg{flex-shrink:0;color:var(--warn);margin-top:1px}
+.surcharge-text{font-size:13px;color:var(--warn);line-height:1.5}
+.surcharge-text strong{display:block;margin-bottom:2px;font-weight:600}
+
+/* HUMIDITY */
+.hum-box{background:var(--warn-bg);border:1.5px solid var(--warn-border);border-radius:8px;padding:11px 12px;font-size:12.5px;color:var(--warn);line-height:1.6;display:flex;gap:8px;align-items:flex-start}
+
+/* DATE DISPLAY */
+.date-disp{background:rgba(13,31,60,0.04);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;display:flex;align-items:center;justify-content:space-between}
+.date-disp b{color:var(--navy);font-weight:500}
+
+/* SEC DIVIDER */
+.sec-div{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-bottom:5px;border-bottom:1px solid var(--border)}
+
+/* PDF GATE */
+.pdf-gate{border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+.pdf-hd{background:var(--navy);padding:10px 13px;display:flex;align-items:center;gap:9px}
+.pdf-hd svg{color:var(--gold);flex-shrink:0}
+.pdf-name{font-size:12px;color:rgba(200,216,240,0.8);font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdf-badge{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:10px;background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.35);color:var(--gold-light);white-space:nowrap;transition:all .4s;flex-shrink:0}
+.pdf-badge.read{background:rgba(31,107,74,0.2);border-color:rgba(31,107,74,0.4);color:#4ade80}
+.pdf-wrap{height:340px;position:relative;background:#e0e0e0}
+.pdf-iframe{width:100%;height:100%;border:none}
+.pdf-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(13,31,60,0.93),rgba(22,43,80,0.89));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:5;padding:20px;text-align:center;transition:opacity .4s}
+.pdf-overlay.gone{opacity:0;pointer-events:none}
+.pdf-overlay p{font-size:13px;color:rgba(200,216,240,0.75);line-height:1.6}
+.pdf-open-btn{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:11px 24px;background:var(--gold);color:var(--navy);border:none;border-radius:8px;cursor:pointer}
+.pdf-bar{height:3px;background:rgba(13,31,60,0.1)}
+.pdf-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width .3s}
+.pdf-status{padding:8px 13px;background:var(--ivory);display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.pdf-status.done{color:#16a34a}
+
+/* SIGNATURE */
+.sig-lock{position:relative}
+.sig-overlay{position:absolute;inset:0;z-index:10;background:rgba(240,238,233,0.87);backdrop-filter:blur(2px);border-radius:8px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13px;color:var(--muted);transition:opacity .4s,visibility .4s}
+.sig-overlay.open{opacity:0;visibility:hidden;pointer-events:none}
+.sig-wrap{border:1.5px dashed var(--border);border-radius:8px;background:white;position:relative;overflow:hidden;margin-bottom:8px}
+.sig-wrap canvas{display:block;width:100%;height:140px;touch-action:none;cursor:crosshair}
+.sig-line{position:absolute;bottom:34px;left:5%;right:5%;height:1px;background:rgba(90,110,138,0.15);pointer-events:none}
+.sig-wm{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);font-family:'Playfair Display',serif;font-size:10px;color:rgba(90,110,138,0.2);pointer-events:none;white-space:nowrap}
+.sig-btns{display:flex;gap:8px;margin-bottom:10px}
+.btn-ghost{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:7px 13px;border:1.5px solid var(--border);background:transparent;color:var(--muted);border-radius:8px;cursor:pointer}
+#typedNameRow{display:none;margin-bottom:10px}
+#typedName{font-family:'Playfair Display',serif;font-size:20px;font-style:italic}
+
+/* AGREE CHECKBOX */
+.agree-row{display:flex;align-items:flex-start;gap:11px;padding:12px 13px;background:rgba(13,31,60,0.03);border-radius:8px;border:1.5px solid var(--border);cursor:pointer;position:relative}
+.agree-row input[type=checkbox]{display:none}
+.agree-icon{width:22px;height:22px;border:2px solid var(--border);border-radius:5px;background:white;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;line-height:1}
+.agree-row.checked .agree-icon{background:var(--navy);border-color:var(--navy);color:white}
+.agree-text{font-size:12px;color:var(--muted);line-height:1.6}
+.agree-text a{color:var(--navy-light)}
+
+/* STAFF SEPARATOR */
+.staff-sep{display:flex;align-items:center;gap:12px;margin:6px 0}
+.staff-sep-line{flex:1;height:1px;background:var(--border)}
+.staff-sep-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;padding:4px 10px;border:1px solid var(--border);border-radius:10px;background:var(--cream)}
+
+/* SUBMIT */
+.btn-primary{width:100%;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;padding:14px;background:var(--navy);color:white;border:none;border-radius:10px;cursor:pointer;transition:all .2s;letter-spacing:.03em;margin-top:4px}
+.btn-primary:hover{background:var(--navy-light)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ERROR */
+.err{background:rgba(220,38,38,0.05);border:1.5px solid rgba(220,38,38,0.2);color:#b91c1c;font-size:13px;padding:11px 13px;border-radius:8px;display:none;margin-bottom:8px}
+
+/* SUCCESS */
+.success-screen{display:none;text-align:center;padding:52px 20px 80px}
+.success-icon{width:62px;height:62px;background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.success-screen h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;margin-bottom:10px}
+.success-screen p{font-size:14px;color:var(--muted);line-height:1.7;max-width:300px;margin:0 auto 6px}
+.doc-ref{display:inline-block;background:rgba(13,31,60,0.05);border:1px solid var(--border);border-radius:6px;padding:7px 15px;font-family:'Courier New',monospace;font-size:12px;color:var(--muted);margin-top:14px}
+
+/* REVEAL */
+.reveal{display:none;margin-top:8px}
+.reveal.on{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Piano Vertu<span id="logoSub">Spécialistes du Piano</span></div>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">🇨🇦 EN</button>
+    <button class="lang-btn" onclick="setLang('zh')" id="btn-zh">🇨🇳 中文</button>
+  </div>
+</header>
+
+<div class="prog-wrap">
+  <div class="prog-segs">
+    <div class="pseg active" id="ps1"></div>
+    <div class="pseg" id="ps2"></div>
+    <div class="pseg" id="ps3"></div>
+    <div class="pseg" id="ps4"></div>
+    <div class="pseg" id="ps5"></div>
+  </div>
+  <div class="prog-label"><b id="progStep">Étape 1 / 5</b> — <span id="progName">Renseignements client</span></div>
+</div>
+
+<div class="hero">
+  <p class="hero-eye" id="heroEye">Enregistrement d'achat</p>
+  <h1 id="heroTitle">Bienvenue chez<br><em>Piano Vertu</em></h1>
+  <p class="hero-sub" id="heroSub">Veuillez compléter ce formulaire pour enregistrer votre piano et organiser la livraison.</p>
+</div>
+
+<div class="container" id="mainForm">
+
+  <div class="qr-banner" id="qrBanner" style="display:none">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14h3M14 17v3"/></svg>
+    <div class="qr-text"><strong id="qrLabel">Piano scanné</strong><span id="qrDetail">Informations pré-remplies. Vous pouvez les modifier si nécessaire.</span></div>
+  </div>
+
+  <!-- ── 1: CLIENT ── -->
+  <div class="card" id="c1">
+    <div class="card-hd">
+      <div class="card-ico"><svg width="13" height="13" fill="none" stroke="#c9a84c" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <h3 id="t1">Renseignements client</h3><span class="sn">1/5</span>
+    </div>
+    <div class="card-bd">
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-ln">Nom</label><input id="lastName" type="text" placeholder="Tremblay" autocomplete="family-name"></div>
+        <div class="field"><label class="lbl" id="l-fn">Prénom</label><input id="firstName" type="text" placeholder="Marie" autocomplete="given-name"></div>
+      </div>
+      <div class="field"><label class="lbl" id="l-em">Courriel</label><input id="email" type="email" placeholder="marie@exemple.com" autocomplete="email"></div>
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-p1">Téléphone 1</label><input id="phone1" type="tel" placeholder="+1 (514) 000-0000"></div>
+        <div class="field"><label class="lbl" id="l-p2">Téléphone 2</label><input id="phone2" type="tel" placeholder="Optionnel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2: LIVRAISON ── -->
+  <div class="card" id="c2">
+    <div class="card-hd">
+      <div class="card-ico"><svg width="13" height="13" fill="none" stroke="#c9a84c" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <h3 id="t2">Info livraison</h3><span class="sn">2/5</span>
+    </div>
+    <div class="card-bd">
+      <div class="field"><label class="lbl" id="l-addr">Adresse</label><input id="street" type="text" placeholder="123 Rue Sainte-Catherine" autocomplete="street-address"></div>
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-apt">App. / Unité</label><input id="apt" type="text" placeholder="ex. 4B"></div>
+        <div class="field"><label class="lbl" id="l-city">Ville</label><input id="city" type="text" placeholder="Montréal" autocomplete="address-level2"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-prov">Province</label>
+          <select id="province">
+            <option value="">Sélectionner…</option>
+            <option value="QC" selected>Québec</option>
+            <option value="ON">Ontario</option>
+            <option value="BC">Colombie-Britannique</option>
+            <option value="AB">Alberta</option>
+            <option value="MB">Manitoba</option>
+            <option value="Other">Autre</option>
+          </select>
+        </div>
+        <div class="field"><label class="lbl" id="l-postal">Code postal</label><input id="postal" type="text" placeholder="H2X 1Y6" maxlength="7"></div>
+      </div>
+
+      <div class="sec-div" id="sd1">Détails de livraison</div>
+
+      <div class="field"><label class="lbl" id="l-floor">Étage / Niveau</label><input id="floorText" type="text" placeholder="ex. 3e étage, sous-sol, rez-de-chaussée"></div>
+
+      <div class="field">
+        <label class="lbl" id="l-elev">Ascenseur disponible</label>
+        <div class="yn">
+          <label><input type="radio" name="elevator" value="yes" onchange="calcSurcharge()"><span id="yn-yes">Oui</span></label>
+          <label><input type="radio" name="elevator" value="no" checked onchange="calcSurcharge()"><span id="yn-no">Non</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" id="l-sout">Marches extérieures</label>
+        <div class="stepper"><button class="step-btn" type="button" onclick="step('sout',-1)">−</button><span class="step-val" id="v-sout">0</span><span class="step-unit" id="u-sout">marches</span><button class="step-btn" type="button" onclick="step('sout',1)">+</button></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" id="l-sin">Marches intérieures</label>
+        <div class="stepper"><button class="step-btn" type="button" onclick="step('sin',-1)">−</button><span class="step-val" id="v-sin">0</span><span class="step-unit" id="u-sin">marches</span><button class="step-btn" type="button" onclick="step('sin',1)">+</button></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" id="l-turns">Virages dans l'escalier</label>
+        <div class="stepper"><button class="step-btn" type="button" onclick="step('turns',-1)">−</button><span class="step-val" id="v-turns">0</span><span class="step-unit" id="u-turns">virages</span><button class="step-btn" type="button" onclick="step('turns',1)">+</button></div>
+      </div>
+
+      <div class="sec-div" id="sd2">Éléments supplémentaires</div>
+
+      <div class="field">
+        <label class="lbl" id="l-collect">Piano à reprendre <span style="color:var(--warn);font-size:9px">(EXTRA $)</span></label>
+        <div class="yn">
+          <label><input type="radio" name="collect" value="yes" onchange="revealEl('collectDetail',true);calcSurcharge()"><span id="yn-cy">Oui</span></label>
+          <label><input type="radio" name="collect" value="no" checked onchange="revealEl('collectDetail',false);calcSurcharge()"><span id="yn-cn">Non</span></label>
+        </div>
+        <div class="reveal" id="collectDetail"><input id="collectDesc" type="text" placeholder="Marque, modèle du piano à reprendre…"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" id="l-recycle">Piano à recycler <span style="color:var(--warn);font-size:9px">(EXTRA $)</span></label>
+        <div class="yn">
+          <label><input type="radio" name="recycle" value="yes" onchange="revealEl('recycleDetail',true);calcSurcharge()"><span id="yn-ry">Oui</span></label>
+          <label><input type="radio" name="recycle" value="no" checked onchange="revealEl('recycleDetail',false);calcSurcharge()"><span id="yn-rn">Non</span></label>
+        </div>
+        <div class="reveal" id="recycleDetail"><input id="recycleDesc" type="text" placeholder="Marque, modèle du piano à recycler…"></div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" id="l-crane">Grue nécessaire <span style="color:var(--warn);font-size:9px">(EXTRA $)</span></label>
+        <div class="yn">
+          <label><input type="radio" name="crane" value="yes" onchange="calcSurcharge()"><span id="yn-cry">Oui</span></label>
+          <label><input type="radio" name="crane" value="no" checked onchange="calcSurcharge()"><span id="yn-crn">Non</span></label>
+        </div>
+      </div>
+
+      <div class="field"><label class="lbl" id="l-notes">Notes pour les déménageurs</label><textarea id="moverNotes" placeholder="ex. chien sur les lieux, couloir étroit, stationnement limité…"></textarea></div>
+      <div class="field"><label class="lbl" id="l-deldate">Date de livraison souhaitée</label><input id="deliveryDate" type="date"></div>
+
+      <div class="surcharge" id="surchargeWarn">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div class="surcharge-text"><strong id="wt">Supplément de livraison possible</strong><span id="wb">Notre équipe vous contactera avant la livraison pour discuter de tout frais supplémentaire.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3: PIANO ── -->
+  <div class="card" id="c3">
+    <div class="card-hd">
+      <div class="card-ico"><svg width="13" height="13" fill="none" stroke="#c9a84c" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 6v12M10 6v12"/></svg></div>
+      <h3 id="t3">Détails du piano</h3><span class="sn">3/5</span>
+    </div>
+    <div class="card-bd">
+      <div class="field">
+        <label class="lbl" id="l-make">Marque</label>
+        <select id="make">
+          <option value="" id="opt-make-ph">Sélectionner…</option>
+          <option>Kawai</option>
+          <option>Yamaha</option>
+          <option>Steinway &amp; Sons</option>
+          <option>Bösendorfer</option>
+          <option>Fazioli</option>
+          <option>Baldwin</option>
+          <option>Bechstein</option>
+          <option>Blüthner</option>
+          <option>Petrof</option>
+          <option>Sauter</option>
+          <option id="opt-other">Autre</option>
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-model">Modèle</label><input id="model" type="text" placeholder="ex. K-300"></div>
+        <div class="field"><label class="lbl" id="l-serial">N° de série</label><input id="serial" type="text" placeholder="SN-XXXX"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-color">Couleur / Fini</label><input id="color" type="text" placeholder="ex. Noir laqué"></div>
+        <div class="field">
+          <label class="lbl" id="l-ptype">Type de piano</label>
+          <select id="pianoType">
+            <option value="" id="opt-ph">Sélectionner…</option>
+            <option id="opt-baby">Piano à queue</option>
+            <option id="opt-upright">Piano droit</option>
+            <option id="opt-player">Piano mécanique</option>
+            <option id="opt-digital">Piano numérique</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" id="l-pdate">Date d'achat</label>
+        <div class="date-disp"><b id="dateDisp">—</b><svg width="14" height="14" fill="none" stroke="var(--muted)" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <input type="hidden" id="purchaseDate">
+      </div>
+
+      <div class="sec-div" id="sd-acc">Accessoires</div>
+      <div class="acc-grid">
+        <label class="acc-item" id="acc-item-assembly"><input type="checkbox" id="acc-assembly"><div class="acc-icon"></div><span class="acc-label" id="a-assembly">Assemblage</span></label>
+        <label class="acc-item" id="acc-item-bench"><input type="checkbox" id="acc-bench"><div class="acc-icon"></div><span class="acc-label" id="a-bench">Banc</span></label>
+        <label class="acc-item" id="acc-item-dampp"><input type="checkbox" id="acc-dampp"><div class="acc-icon"></div><span class="acc-label" id="a-dampp">Dampp-Chaser</span></label>
+        <label class="acc-item" id="acc-item-adapter"><input type="checkbox" id="acc-adapter"><div class="acc-icon"></div><span class="acc-label" id="a-adapter">Adaptateur élec.</span></label>
+        <label class="acc-item" id="acc-item-headphones"><input type="checkbox" id="acc-headphones"><div class="acc-icon"></div><span class="acc-label" id="a-headphones">Écouteurs</span></label>
+        <label class="acc-item" id="acc-item-casters"><input type="checkbox" id="acc-casters"><div class="acc-icon"></div><span class="acc-label" id="a-casters">Patins / Roulettes</span></label>
+        <label class="acc-item" id="acc-item-liquid"><input type="checkbox" id="acc-liquid"><div class="acc-icon"></div><span class="acc-label" id="a-liquid">Solution D-C</span></label>
+        <label class="acc-item" id="acc-item-cover"><input type="checkbox" id="acc-cover"><div class="acc-icon"></div><span class="acc-label" id="a-cover">Housse</span></label>
+      </div>
+      <div class="reveal" id="benchTypeRow"><div class="field"><label class="lbl" id="l-benchtype">Type de banc</label><input id="benchType" type="text" placeholder="ex. ajustable, duet, standard…"></div></div>
+      <div class="field"><label class="lbl" id="l-pianoNotes">Notes (piano)</label><textarea id="pianoNotes" placeholder="Remarques sur l'état, caractéristiques spéciales…"></textarea></div>
+    </div>
+  </div>
+
+  <!-- ── 4: HUMIDITÉ ── -->
+  <div class="card" id="c4">
+    <div class="card-hd">
+      <div class="card-ico"><svg width="13" height="13" fill="none" stroke="#c9a84c" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg></div>
+      <h3 id="t4">Avis d'humidité</h3><span class="sn">4/5</span>
+    </div>
+    <div class="card-bd">
+      <div class="hum-box">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="humNote">Le piano doit être gardé en tout temps à un taux d'humidité entre <b>40 % et 55 %</b> et une température entre <b>18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.</span>
+      </div>
+      <label class="cb-item" id="humItem">
+        <input type="checkbox" id="humCheck">
+        <div class="cb-icon"></div>
+        <span class="cb-label" id="humLabel">Je comprends et m'engage à maintenir les conditions d'humidité et de température requises pour préserver la validité de la garantie.</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- ── 5: GARANTIE ── -->
+  <div class="card" id="c5">
+    <div class="card-hd">
+      <div class="card-ico"><svg width="13" height="13" fill="none" stroke="#c9a84c" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <h3 id="t5">Garantie &amp; Consentement</h3><span class="sn">5/5</span>
+    </div>
+    <div class="card-bd">
+
+      <!-- PDF GATE -->
+      <div class="pdf-gate">
+        <div class="pdf-hd">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+          <span class="pdf-name" id="pdfName">Garantie_Piano_Vertu_FR.pdf</span>
+          <div class="pdf-badge" id="pdfBadge">Lire d'abord</div>
+        </div>
+        <div class="pdf-wrap">
+          <iframe id="pdfFrame" src="Garantie_Piano_Vertu_FR.pdf" class="pdf-iframe"></iframe>
+          <div class="pdf-overlay" id="pdfOverlay">
+            <svg width="30" height="30" fill="none" stroke="#c9a84c" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+            <p id="pdfOverlayText">Veuillez ouvrir et lire le document de garantie avant de signer</p>
+            <button class="pdf-open-btn" onclick="openPdf()" id="pdfOpenBtn">Ouvrir le document</button>
+          </div>
+          <div class="pdf-bar"><div class="pdf-fill" id="pdfFill"></div></div>
+        </div>
+        <div class="pdf-status" id="pdfStatus">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <span id="pdfStatusTxt">Faites défiler le document pour déverrouiller la signature</span>
+        </div>
+      </div>
+
+      <!-- SIGNATURE -->
+      <div class="sig-lock" style="margin-top:12px">
+        <div class="sig-overlay" id="sigLock">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <span id="sigLockMsg">Lisez d'abord le document de garantie</span>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label class="lbl" id="l-sig">Signature du client</label>
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:8px;line-height:1.6" id="sigInstr">En signant, vous acceptez les conditions de la Garantie Limitée Piano Vertu et confirmez l'exactitude de toutes les informations fournies.</p>
+          <div class="sig-wrap"><canvas id="sigCanvas"></canvas><div class="sig-line"></div><div class="sig-wm" id="sigWm">Signez au-dessus de cette ligne</div></div>
+          <div class="sig-btns">
+            <button class="btn-ghost" onclick="clearSig()" id="clearBtn">↺ Effacer</button>
+            <button class="btn-ghost" onclick="toggleType()" id="typeToggle">⌨ Saisir le nom</button>
+          </div>
+          <div id="typedNameRow"><div class="field"><label class="lbl" id="l-tname">Nom légal complet</label><input id="typedName" type="text" placeholder="Marie Tremblay"></div></div>
+        </div>
+        <label class="agree-row" id="agreeRow" style="margin-bottom:12px">
+          <input type="checkbox" id="agreeCheck">
+          <div class="agree-icon"></div>
+          <span class="agree-text" id="agreeText">J'ai lu et j'accepte les <a href="#" onclick="return false">Conditions de Garantie</a>. Je consens à la signature électronique. Je confirme l'exactitude de toutes les informations.</span>
+        </label>
+        <div class="err" id="errMsg"></div>
+        <button class="btn-primary" id="submitBtn" onclick="doSubmit()" id="sbtn">Finaliser l'enregistrement</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STAFF SECTION ── -->
+  <div class="staff-sep">
+    <div class="staff-sep-line"></div>
+    <div class="staff-sep-label" id="staffSepLabel">— Section staff —</div>
+    <div class="staff-sep-line"></div>
+  </div>
+
+  <div class="card staff-card" id="cStaff">
+    <div class="card-hd">
+      <div class="card-ico"><svg width="13" height="13" fill="none" stroke="#c9a84c" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <h3 id="tStaff">À remplir par le personnel</h3>
+    </div>
+    <div class="card-bd">
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-invoice">Facture #</label><input id="invoiceNum" type="text" placeholder="ex. INV-2024-0142"></div>
+        <div class="field"><label class="lbl" id="l-from">Provenance</label>
+          <select id="fromLocation">
+            <option value="">Sélectionner…</option>
+            <option>Piano Vertu – 5193</option>
+            <option>Piano Vertu – 5223</option>
+            <option>Piano Vertu – Warehouse / Entrepôt</option>
+            <option>Client pick up / Collecte par client</option>
+          </select></div>
+      </div>
+      <div class="field"><label class="lbl" id="l-oldpiano">Destination ancien piano</label>
+          <select id="oldPianoDest">
+            <option value="">Sélectionner…</option>
+            <option>Piano Vertu – 5193</option>
+            <option>Piano Vertu – 5223</option>
+            <option>Piano Vertu – Warehouse / Entrepôt</option>
+            <option>Recycle / Éco-Centre</option>
+            <option>Second delivery / Deuxième livraison</option>
+          </select></div>
+      <div class="field"><label class="lbl" id="l-surcharge">Montant supplément ($)</label><input id="surchargeAmount" type="number" placeholder="0.00" min="0" step="0.01"></div>
+
+      <div class="sec-div" id="sd-staff2">Suivi</div>
+
+      <div class="field">
+        <label class="lbl" id="l-cheque">Chèque à récupérer</label>
+        <div class="yn">
+          <label><input type="radio" name="cheque" value="yes"><span id="yn-chq-yes">Oui</span></label>
+          <label><input type="radio" name="cheque" value="no" checked><span id="yn-chq-no">Non</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" id="l-review">Google review demandé</label>
+        <div class="yn">
+          <label><input type="radio" name="review" value="yes"><span id="yn-rev-yes">Oui</span></label>
+          <label><input type="radio" name="review" value="no" checked><span id="yn-rev-no">Non</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" id="l-paid">Entièrement payé</label>
+        <div class="yn">
+          <label><input type="radio" name="paid" value="yes"><span id="yn-paid-yes">Oui</span></label>
+          <label><input type="radio" name="paid" value="no" checked><span id="yn-paid-no">Non</span></label>
+        </div>
+      </div>
+      <div class="field"><label class="lbl" id="l-staffnotes">Notes staff</label><textarea id="staffNotes" placeholder="Remarques internes, instructions spéciales…"></textarea></div>
+    </div>
+  </div>
+
+</div><!-- /mainForm -->
+
+<!-- SUCCESS -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon"><svg width="26" height="26" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+  <h2 id="sTitle">Enregistrement complété</h2>
+  <p id="sMsg1">Merci ! Votre enregistrement Piano Vertu a été soumis avec succès.</p>
+  <p id="sMsg2">Notre équipe examinera vos informations et vous contactera sous peu.</p>
+  <div class="doc-ref" id="docRef"></div>
+</div>
+
+<script>
+// ── EMAILJS CONFIG ────────────────────────────
+const EMAILJS_SERVICE  = 'service_bmg9k6m';
+const EMAILJS_TEMPLATE = 'template_8dmr44f';
+const SHEETS_URL       = 'YOUR_GOOGLE_SHEETS_WEBHOOK_URL'; // replace when ready
+
+// ── DATE ──────────────────────────────────────
+const today = new Date();
+const todayISO = today.toISOString().split('T')[0];
+document.getElementById('purchaseDate').value = todayISO;
+const tmr = new Date(today); tmr.setDate(tmr.getDate()+1);
+document.getElementById('deliveryDate').min = tmr.toISOString().split('T')[0];
+
+// ── QR PARAMS ─────────────────────────────────
+const qp = new URLSearchParams(location.search);
+let qrOn = false;
+[['make','make'],['model','model'],['serial','serial'],['color','color'],['type','pianoType']].forEach(([p,id])=>{
+  const v=qp.get(p); if(v){const el=document.getElementById(id);if(el)el.value=decodeURIComponent(v);qrOn=true;}
+});
+if(qrOn) document.getElementById('qrBanner').style.display='flex';
+
+// ── STEPPERS ──────────────────────────────────
+const cnts={sout:0,sin:0,turns:0};
+function step(k,d){cnts[k]=Math.max(0,Math.min(50,cnts[k]+d));document.getElementById('v-'+k).textContent=cnts[k];calcSurcharge();}
+function revealEl(id,on){const el=document.getElementById(id);if(el)el.classList.toggle('on',on);}
+
+// ── SURCHARGE ─────────────────────────────────
+const STEP_T=10;
+function calcSurcharge(){
+  const elev=document.querySelector('input[name=elevator]:checked')?.value;
+  const crane=document.querySelector('input[name=crane]:checked')?.value;
+  const coll=document.querySelector('input[name=collect]:checked')?.value;
+  const rec=document.querySelector('input[name=recycle]:checked')?.value;
+  const show=elev==='no'||cnts.sout>STEP_T||cnts.sin>STEP_T||cnts.turns>=3||crane==='yes'||coll==='yes'||rec==='yes';
+  document.getElementById('surchargeWarn').classList.toggle('on',show);
+}
+
+// ── PDF FILES ─────────────────────────────────
+const PDF={fr:'Garantie_Piano_Vertu_FR.pdf',en:'Warranty_Piano_Vertu_EN.pdf',zh:'保修条款_Piano_Vertu_ZH.pdf'};
+
+// ── PDF GATE ──────────────────────────────────
+let pdfRead=false,pdfOpened=false;
+function openPdf(){
+  if(pdfOpened)return; pdfOpened=true;
+  document.getElementById('pdfOverlay').classList.add('gone');
+  const fill=document.getElementById('pdfFill');
+  let elapsed=0; const REQ=20000;
+  const t=setInterval(()=>{
+    elapsed+=200;
+    fill.style.width=Math.min((elapsed/REQ)*100,100)+'%';
+    if(elapsed>=REQ){clearInterval(t);markRead();}
+  },200);
+}
+function markRead(){
+  if(pdfRead)return;pdfRead=true;
+  const t=L[lang];
+  document.getElementById('pdfFill').style.cssText='width:100%;background:#4ade80';
+  const b=document.getElementById('pdfBadge');b.textContent='✓ '+t.pdfDone;b.classList.add('read');
+  const s=document.getElementById('pdfStatus');s.classList.add('done');
+  s.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> <span>'+t.pdfReadDone+'</span>';
+  document.getElementById('sigLock').classList.add('open');
+  setTimeout(()=>document.getElementById('sigLock').closest('.sig-lock').scrollIntoView({behavior:'smooth',block:'start'}),400);
+}
+
+// ── SIGNATURE ─────────────────────────────────
+const cv=document.getElementById('sigCanvas'),ctx=cv.getContext('2d');
+let drawing=false,hasSig=false;
+function resizeCv(){
+  const w=cv.offsetWidth,h=140;
+  cv.width=w*devicePixelRatio;cv.height=h*devicePixelRatio;
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  cv.style.width=w+'px';cv.style.height=h+'px';
+  ctx.strokeStyle='#0d1f3c';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+}
+resizeCv();window.addEventListener('resize',resizeCv);
+function gp(e){const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+cv.addEventListener('mousedown',e=>{drawing=true;const p=gp(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+cv.addEventListener('mousemove',e=>{if(!drawing)return;hasSig=true;const p=gp(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+cv.addEventListener('mouseup',()=>drawing=false);
+cv.addEventListener('mouseleave',()=>drawing=false);
+cv.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=gp(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;hasSig=true;const p=gp(e);ctx.lineTo(p.x,p.y);ctx.stroke();},{passive:false});
+cv.addEventListener('touchend',()=>drawing=false);
+function clearSig(){ctx.clearRect(0,0,cv.width,cv.height);hasSig=false;}
+let typeMode=false;
+function toggleType(){
+  typeMode=!typeMode;
+  document.getElementById('typedNameRow').style.display=typeMode?'block':'none';
+  document.querySelector('.sig-wrap').style.display=typeMode?'none':'block';
+  document.getElementById('typeToggle').textContent=typeMode?L[lang].drawMode:L[lang].typeMode;
+}
+
+// ── PROGRESS ──────────────────────────────────
+const SEC_NAMES={
+  fr:['Renseignements client','Info livraison','Détails du piano','Avis d\'humidité','Garantie & Consentement'],
+  en:['Customer Info','Delivery Info','Piano Details','Humidity Notice','Warranty & Consent'],
+  zh:['客户信息','送货信息','钢琴详情','湿度须知','保修与同意']
+};
+function updateProgress(){
+  let active=0;
+  ['c1','c2','c3','c4','c5'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    const r=el.getBoundingClientRect();
+    const seg=document.getElementById('ps'+(i+1));
+    if(r.bottom<0)seg.className='pseg done';
+    else if(r.top<window.innerHeight*.5){seg.className='pseg active';active=i;}
+    else seg.className='pseg';
+  });
+  const nm=SEC_NAMES[lang]||SEC_NAMES.fr;
+  document.getElementById('progStep').textContent=(lang==='zh'?'第':'Étape')+' '+(active+1)+' / 5';
+  document.getElementById('progName').textContent=nm[active];
+}
+window.addEventListener('scroll',updateProgress);
+
+// ── HELPERS ───────────────────────────────────
+const g=id=>document.getElementById(id)?.value?.trim()||'';
+const rb=name=>document.querySelector(`input[name=${name}]:checked`)?.value||'';
+function accList(){
+  const items=[];
+  if(document.getElementById('acc-assembly').checked)items.push('Assemblage');
+  if(document.getElementById('acc-bench').checked)items.push('Banc'+(g('benchType')?' ('+g('benchType')+')':''));
+  if(document.getElementById('acc-dampp').checked)items.push('Dampp-Chaser');
+  if(document.getElementById('acc-adapter').checked)items.push('Adaptateur élec.');
+  if(document.getElementById('acc-headphones').checked)items.push('Écouteurs');
+  if(document.getElementById('acc-casters').checked)items.push('Patins/Roulettes');
+  if(document.getElementById('acc-liquid').checked)items.push('Solution D-C');
+  if(document.getElementById('acc-cover').checked)items.push('Housse');
+  return items.join(', ')||'Aucun';
+}
+
+// ── SUBMIT ────────────────────────────────────
+async function doSubmit(){
+  const t=L[lang];
+  document.getElementById('errMsg').style.display='none';
+  if(!g('lastName')||!g('firstName'))return showErr(t.eName);
+  if(!g('email')||!g('email').includes('@'))return showErr(t.eEmail);
+  if(!g('street'))return showErr(t.eStreet);
+  if(!g('make'))return showErr(t.eMake);
+  if(!g('serial'))return showErr(t.eSerial);
+  if(!g('deliveryDate'))return showErr(t.eDelDate);
+  if(!document.getElementById('humCheck').checked)return showErr(t.eHum);
+  if(!pdfRead)return showErr(t.eNotRead);
+  if(!document.getElementById('agreeCheck').checked)return showErr(t.eAgree);
+  if(typeMode&&!g('typedName'))return showErr(t.eTyped);
+  if(!typeMode&&!hasSig)return showErr(t.eDraw);
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>'+t.submitting;
+
+  const ref='PV-'+Date.now();
+  const surcharge=document.getElementById('surchargeWarn').classList.contains('on');
+
+  const params={
+    ref_id: ref,
+    customer_name: g('firstName')+' '+g('lastName'),
+    customer_email: g('email'),
+    customer_phone1: g('phone1')||'—',
+    customer_phone2: g('phone2')||'—',
+    delivery_address: g('street')+(g('apt')?' #'+g('apt'):'')+', '+g('city')+', '+g('province')+' '+g('postal'),
+    delivery_date: g('deliveryDate'),
+    delivery_floor: g('floorText')||'—',
+    delivery_elevator: rb('elevator')==='yes'?'Oui':'Non',
+    steps_out: cnts.sout,
+    steps_in: cnts.sin,
+    turns: cnts.turns,
+    mover_notes: g('moverNotes')||'—',
+    collect_piano: rb('collect')==='yes'?'Oui'+(g('collectDesc')?' — '+g('collectDesc'):''):'Non',
+    recycle_piano: rb('recycle')==='yes'?'Oui'+(g('recycleDesc')?' — '+g('recycleDesc'):''):'Non',
+    crane: rb('crane')==='yes'?'Oui':'Non',
+    surcharge_flag: surcharge?'⚠ OUI':'Non',
+    piano_make: g('make'),
+    piano_model: g('model')||'—',
+    piano_serial: g('serial'),
+    piano_color: g('color')||'—',
+    piano_type: g('pianoType')||'—',
+    purchase_date: today.toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'}),
+    piano_notes: g('pianoNotes')||'—',
+    accessories: accList(),
+    signature_type: typeMode?'Nom tapé: '+g('typedName'):'Signature dessinée',
+    language: lang.toUpperCase(),
+    invoice_number: g('invoiceNum')||'—',
+    from_location: g('fromLocation')||'—',
+    old_piano_dest: g('oldPianoDest')||'—',
+    surcharge_amount: g('surchargeAmount')||'0',
+    cheque_pickup: rb('cheque')==='yes'?'Oui':'Non',
+    google_review: rb('review')==='yes'?'Oui':'Non',
+    fully_paid: rb('paid')==='yes'?'Oui':'Non',
+    staff_notes: g('staffNotes')||'—',
+  };
+
+  try {
+    await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, params);
+  } catch(e) {
+    console.warn('EmailJS error:', e);
+  }
+
+  // Google Sheets (non-blocking)
+  if(SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEBHOOK_URL'){
+    fetch(SHEETS_URL,{method:'POST',body:JSON.stringify(params)}).catch(()=>{});
+  }
+
+  document.getElementById('docRef').textContent='Réf : '+ref;
+  document.getElementById('mainForm').style.display='none';
+  document.getElementById('successScreen').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showErr(msg){const el=document.getElementById('errMsg');el.textContent='⚠ '+msg;el.style.display='block';el.scrollIntoView({behavior:'smooth',block:'nearest'});}
+
+// ── TRANSLATIONS ──────────────────────────────
+const L={
+fr:{
+  logoSub:'Spécialistes du Piano',heroEye:'Enregistrement d\'achat',
+  heroTitle:'Bienvenue chez<br><em>Piano Vertu</em>',heroSub:'Veuillez compléter ce formulaire pour enregistrer votre piano et organiser la livraison.',
+  qrLabel:'Piano scanné',qrDetail:'Informations pré-remplies. Vous pouvez les modifier si nécessaire.',
+  t1:'Renseignements client',t2:'Info livraison',t3:'Détails du piano',t4:'Avis d\'humidité',t5:'Garantie & Consentement',tStaff:'À remplir par le personnel',
+  l_ln:'Nom',l_fn:'Prénom',l_em:'Courriel',l_p1:'Téléphone 1',l_p2:'Téléphone 2',
+  l_addr:'Adresse',l_apt:'App. / Unité',l_city:'Ville',l_prov:'Province',l_postal:'Code postal',
+  sd1:'Détails de livraison',l_floor:'Étage / Niveau',l_elev:'Ascenseur disponible',yn_yes:'Oui',yn_no:'Non',
+  l_sout:'Marches extérieures',u_sout:'marches',l_sin:'Marches intérieures',u_sin:'marches',l_turns:'Virages dans l\'escalier',u_turns:'virages',
+  sd2:'Éléments supplémentaires',
+  l_collect:'Piano à reprendre',yn_cy:'Oui',yn_cn:'Non',l_recycle:'Piano à recycler',yn_ry:'Oui',yn_rn:'Non',
+  l_crane:'Grue nécessaire',yn_cry:'Oui',yn_crn:'Non',
+  l_notes:'Notes pour les déménageurs',l_deldate:'Date de livraison souhaitée',
+  wt:'Supplément de livraison possible',wb:'Notre équipe vous contactera avant la livraison pour discuter de tout frais supplémentaire.',
+  l_make:'Marque',opt_make_ph:'Sélectionner…',opt_other:'Autre',l_model:'Modèle',l_serial:'N° de série',l_color:'Couleur / Fini',l_ptype:'Type de piano',
+  opt_ph:'Sélectionner…',opt_baby:'Piano à queue',opt_upright:'Piano droit',opt_player:'Piano mécanique',opt_digital:'Piano numérique',
+  l_pdate:'Date d\'achat',sd_acc:'Accessoires',
+  a_assembly:'Assemblage',a_bench:'Banc',a_dampp:'Dampp-Chaser',a_adapter:'Adaptateur élec.',a_headphones:'Écouteurs',a_casters:'Patins / Roulettes',a_liquid:'Solution D-C',a_cover:'Housse',
+  l_benchtype:'Type de banc',l_pianoNotes:'Notes (piano)',
+  humNote:'Le piano doit être gardé en tout temps à un taux d\'humidité entre <b>40 % et 55 %</b> et une température entre <b>18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.',
+  humLabel:'Je comprends et m\'engage à maintenir les conditions requises pour préserver la validité de la garantie.',
+  pdfFile:'Garantie_Piano_Vertu_FR.pdf',pdfBadge:'Lire d\'abord',pdfDone:'Lu',
+  pdfOverlay:'Veuillez ouvrir et lire le document de garantie avant de signer',pdfOpenBtn:'Ouvrir le document',
+  pdfPending:'Faites défiler le document pour déverrouiller la signature',pdfReadDone:'Document lu — vous pouvez signer',
+  sigLockMsg:'Lisez d\'abord le document de garantie',
+  sigInstr:'En signant, vous acceptez les conditions de la Garantie Limitée Piano Vertu et confirmez l\'exactitude de toutes les informations.',
+  sigWm:'Signez au-dessus de cette ligne',typeMode:'⌨ Saisir le nom',drawMode:'✍ Dessiner',l_tname:'Nom légal complet',
+  agreeText:'J\'ai lu et j\'accepte les <a href="#" onclick="return false">Conditions de Garantie</a>. Je consens à la signature électronique. Je confirme l\'exactitude de toutes les informations.',
+  submitBtn:'Finaliser l\'enregistrement',submitting:'Envoi en cours…',
+  staffSep:'— Section staff —',l_invoice:'Facture #',l_from:'Provenance',l_oldpiano:'Destination ancien piano',l_surcharge:'Montant supplément ($)',
+  sd_staff2:'Suivi',l_cheque:'Chèque à récupérer',yn_chq_yes:'Oui',yn_chq_no:'Non',l_review:'Google review demandé',yn_rev_yes:'Oui',yn_rev_no:'Non',
+  l_paid:'Entièrement payé',yn_paid_yes:'Oui',yn_paid_no:'Non',l_staffnotes:'Notes staff',
+  sTitle:'Enregistrement complété',sMsg1:'Merci ! Votre enregistrement Piano Vertu a été soumis.',sMsg2:'Notre équipe vous contactera sous peu.',
+  eName:'Veuillez entrer votre nom complet.',eEmail:'Veuillez entrer un courriel valide.',eStreet:'Veuillez entrer l\'adresse de livraison.',
+  eMake:'Veuillez sélectionner la marque du piano.',eSerial:'Veuillez entrer le numéro de série.',eDelDate:'Veuillez sélectionner une date de livraison.',
+  eHum:'Veuillez confirmer les conditions d\'humidité.',eNotRead:'Veuillez lire le document de garantie avant de signer.',
+  eAgree:'Veuillez accepter les conditions.',eTyped:'Veuillez saisir votre nom légal.',eDraw:'Veuillez dessiner votre signature.',
+},
+en:{
+  logoSub:'Grand Piano Specialists',heroEye:'Purchase Registration',
+  heroTitle:'Welcome to<br><em>Piano Vertu</em>',heroSub:'Please complete this form to register your piano and arrange delivery.',
+  qrLabel:'Piano scanned',qrDetail:'Information pre-filled from QR code. You may edit if needed.',
+  t1:'Customer Information',t2:'Delivery Info',t3:'Piano Details',t4:'Humidity Notice',t5:'Warranty & Consent',tStaff:'Staff Section',
+  l_ln:'Last Name',l_fn:'First Name',l_em:'Email',l_p1:'Phone 1',l_p2:'Phone 2',
+  l_addr:'Street Address',l_apt:'Apt / Unit',l_city:'City',l_prov:'Province',l_postal:'Postal Code',
+  sd1:'Delivery Details',l_floor:'Floor / Level',l_elev:'Elevator available',yn_yes:'Yes',yn_no:'No',
+  l_sout:'Steps outside',u_sout:'steps',l_sin:'Steps inside',u_sin:'steps',l_turns:'Turns in staircase',u_turns:'turns',
+  sd2:'Extra charge items',
+  l_collect:'Piano to collect',yn_cy:'Yes',yn_cn:'No',l_recycle:'Piano to recycle',yn_ry:'Yes',yn_rn:'No',
+  l_crane:'Crane required',yn_cry:'Yes',yn_crn:'No',
+  l_notes:'Notes for movers',l_deldate:'Preferred delivery date',
+  wt:'Delivery surcharge may apply',wb:'Our team will contact you before delivery to discuss any additional costs.',
+  l_make:'Brand',opt_make_ph:'Select…',opt_other:'Other',l_model:'Model',l_serial:'Serial No.',l_color:'Colour / Finish',l_ptype:'Piano type',
+  opt_ph:'Select…',opt_baby:'Baby Grand',opt_upright:'Upright',opt_player:'Player Piano',opt_digital:'Digital Grand',
+  l_pdate:'Purchase date',sd_acc:'Accessories',
+  a_assembly:'Assembly',a_bench:'Bench',a_dampp:'Dampp-Chaser',a_adapter:'Electric adapter',a_headphones:'Headphones',a_casters:'Caster cups',a_liquid:'D-C liquid',a_cover:'Piano cover',
+  l_benchtype:'Bench type',l_pianoNotes:'Notes (piano)',
+  humNote:'The piano must be kept between <b>40% and 55% humidity</b> and <b>18°C and 26°C</b> at all times. Failure to do so may void the warranty.',
+  humLabel:'I understand and commit to maintaining the required conditions to preserve the warranty.',
+  pdfFile:'Warranty_Piano_Vertu_EN.pdf',pdfBadge:'Read first',pdfDone:'Read',
+  pdfOverlay:'Please open and read the warranty document before signing',pdfOpenBtn:'Open Document',
+  pdfPending:'Scroll through the document to unlock the signature',pdfReadDone:'Document read — you may now sign',
+  sigLockMsg:'Read the warranty document first',
+  sigInstr:'By signing, you agree to the Piano Vertu Limited Warranty and confirm all information is accurate.',
+  sigWm:'Sign above this line',typeMode:'⌨ Type Instead',drawMode:'✍ Draw Instead',l_tname:'Full legal name',
+  agreeText:'I have read and agree to the <a href="#" onclick="return false">Warranty Terms</a>. I consent to electronic signatures. I confirm all information is accurate.',
+  submitBtn:'Complete Registration',submitting:'Submitting…',
+  staffSep:'— Staff Section —',l_invoice:'Invoice #',l_from:'From location',l_oldpiano:'Old piano destination',l_surcharge:'Surcharge amount ($)',
+  sd_staff2:'Follow-up',l_cheque:'Cheque to collect',yn_chq_yes:'Yes',yn_chq_no:'No',l_review:'Google review requested',yn_rev_yes:'Yes',yn_rev_no:'No',
+  l_paid:'Fully paid',yn_paid_yes:'Yes',yn_paid_no:'No',l_staffnotes:'Staff notes',
+  sTitle:'Registration Complete',sMsg1:'Thank you! Your Piano Vertu registration has been submitted.',sMsg2:'Our team will be in touch shortly.',
+  eName:'Please enter your full name.',eEmail:'Please enter a valid email.',eStreet:'Please enter the delivery address.',
+  eMake:'Please select the piano brand.',eSerial:'Please enter the serial number.',eDelDate:'Please select a delivery date.',
+  eHum:'Please confirm the humidity conditions.',eNotRead:'Please read the warranty document before signing.',
+  eAgree:'Please accept the warranty terms.',eTyped:'Please type your full legal name.',eDraw:'Please draw your signature.',
+},
+zh:{
+  logoSub:'大型三角钢琴专家',heroEye:'购买注册',
+  heroTitle:'欢迎来到<br><em>Piano Vertu</em>',heroSub:'请填写此表格以注册您的钢琴并安排送货。',
+  qrLabel:'已扫描钢琴',qrDetail:'信息已从 QR 码预填。如需要可以修改。',
+  t1:'客户信息',t2:'送货信息',t3:'钢琴详情',t4:'湿度须知',t5:'保修与同意',tStaff:'员工填写',
+  l_ln:'姓',l_fn:'名',l_em:'电子邮箱',l_p1:'电话 1',l_p2:'电话 2',
+  l_addr:'街道地址',l_apt:'公寓/单元',l_city:'城市',l_prov:'省份',l_postal:'邮政编码',
+  sd1:'送货详情',l_floor:'楼层',l_elev:'有电梯',yn_yes:'是',yn_no:'否',
+  l_sout:'室外台阶数',u_sout:'级',l_sin:'室内台阶数',u_sin:'级',l_turns:'楼梯转弯数',u_turns:'个转弯',
+  sd2:'额外收费项目',
+  l_collect:'需要回收旧钢琴',yn_cy:'是',yn_cn:'否',l_recycle:'需要处理旧钢琴',yn_ry:'是',yn_rn:'否',
+  l_crane:'需要起重机',yn_cry:'是',yn_crn:'否',
+  l_notes:'搬运工附加说明',l_deldate:'期望送货日期',
+  wt:'可能需要额外送货费',wb:'我们的团队将在送货前与您联系讨论任何额外费用。',
+  l_make:'品牌',opt_make_ph:'选择…',opt_other:'其他',l_model:'型号',l_serial:'序列号',l_color:'颜色/饰面',l_ptype:'钢琴类型',
+  opt_ph:'选择…',opt_baby:'三角钢琴',opt_upright:'立式钢琴',opt_player:'自动钢琴',opt_digital:'数字钢琴',
+  l_pdate:'购买日期',sd_acc:'配件',
+  a_assembly:'组装',a_bench:'琴凳',a_dampp:'Dampp-Chaser',a_adapter:'电源适配器',a_headphones:'耳机',a_casters:'脚轮垫',a_liquid:'D-C液体',a_cover:'钢琴罩',
+  l_benchtype:'琴凳类型',l_pianoNotes:'备注（钢琴）',
+  humNote:'钢琴必须始终保持在 <b>40% 至 55% 湿度</b> 和 <b>18°C 至 26°C</b> 之间。否则可能导致保修失效。',
+  humLabel:'我理解并承诺保持所需条件以保持保修的有效性。',
+  pdfFile:'保修条款_Piano_Vertu_ZH.pdf',pdfBadge:'请先阅读',pdfDone:'已读',
+  pdfOverlay:'请打开并阅读保修文件后再签名',pdfOpenBtn:'打开文件',
+  pdfPending:'请滚动阅读文件以解锁签名',pdfReadDone:'文件已阅读 — 您现在可以签名',
+  sigLockMsg:'请先阅读保修文件',
+  sigInstr:'签名即表示您同意Piano Vertu有限保修条款并确认所有信息准确。',
+  sigWm:'请在此线上方签名',typeMode:'⌨ 输入姓名',drawMode:'✍ 手写签名',l_tname:'完整法定姓名',
+  agreeText:'我已阅读并同意<a href="#" onclick="return false">保修条款</a>。我同意电子签名具有法律约束力。我确认所有信息准确。',
+  submitBtn:'完成注册',submitting:'提交中…',
+  staffSep:'— 员工填写 —',l_invoice:'发票编号',l_from:'来源地点',l_oldpiano:'旧钢琴去向',l_surcharge:'附加费金额 ($)',
+  sd_staff2:'跟进',l_cheque:'需要收取支票',yn_chq_yes:'是',yn_chq_no:'否',l_review:'已请求Google评价',yn_rev_yes:'是',yn_rev_no:'否',
+  l_paid:'已全额付款',yn_paid_yes:'是',yn_paid_no:'否',l_staffnotes:'员工备注',
+  sTitle:'注册完成',sMsg1:'谢谢！您的Piano Vertu注册已提交。',sMsg2:'我们的团队将尽快与您联系。',
+  eName:'请输入您的全名。',eEmail:'请输入有效电子邮箱。',eStreet:'请输入送货地址。',
+  eMake:'请选择钢琴品牌。',eSerial:'请输入序列号。',eDelDate:'请选择送货日期。',
+  eHum:'请确认湿度条件。',eNotRead:'请在签名前阅读保修文件。',
+  eAgree:'请接受保修条款。',eTyped:'请输入完整法定姓名。',eDraw:'请绘制您的签名。',
+}
+};
+
+let lang='fr';
+const s=(id,v,html=false)=>{const el=document.getElementById(id);if(el)html?el.innerHTML=v:el.textContent=v;};
+
+function setLang(l){
+  lang=l;
+  const t=L[l];
+  document.documentElement.lang=l==='zh'?'zh-Hans':l;
+  document.body.style.fontFamily=l==='zh'?"'Noto Serif SC','DM Sans',sans-serif":"'DM Sans',sans-serif";
+  ['fr','en','zh'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('active',x===l));
+  s('logoSub',t.logoSub);
+  document.getElementById('heroTitle').innerHTML=t.heroTitle;
+  s('heroEye',t.heroEye);s('heroSub',t.heroSub);
+  s('qrLabel',t.qrLabel);s('qrDetail',t.qrDetail);
+  s('t1',t.t1);s('t2',t.t2);s('t3',t.t3);s('t4',t.t4);s('t5',t.t5);s('tStaff',t.tStaff);
+  s('l-ln',t.l_ln);s('l-fn',t.l_fn);s('l-em',t.l_em);s('l-p1',t.l_p1);s('l-p2',t.l_p2);
+  s('l-addr',t.l_addr);s('l-apt',t.l_apt);s('l-city',t.l_city);s('l-prov',t.l_prov);s('l-postal',t.l_postal);
+  s('sd1',t.sd1);s('l-floor',t.l_floor);s('l-elev',t.l_elev);
+  s('yn-yes',t.yn_yes);s('yn-no',t.yn_no);
+  s('l-sout',t.l_sout);s('u-sout',t.u_sout);s('l-sin',t.l_sin);s('u-sin',t.u_sin);s('l-turns',t.l_turns);s('u-turns',t.u_turns);
+  s('sd2',t.sd2);
+  s('l-collect',t.l_collect);s('yn-cy',t.yn_cy);s('yn-cn',t.yn_cn);
+  s('l-recycle',t.l_recycle);s('yn-ry',t.yn_ry);s('yn-rn',t.yn_rn);
+  s('l-crane',t.l_crane);s('yn-cry',t.yn_cry);s('yn-crn',t.yn_crn);
+  s('l-notes',t.l_notes);s('l-deldate',t.l_deldate);
+  s('wt',t.wt);s('wb',t.wb);
+  s('l-make',t.l_make);s('opt-make-ph',t.opt_make_ph);s('opt-other',t.opt_other);
+  s('l-model',t.l_model);s('l-serial',t.l_serial);s('l-color',t.l_color);s('l-ptype',t.l_ptype);
+  s('opt-ph',t.opt_ph);s('opt-baby',t.opt_baby);s('opt-upright',t.opt_upright);s('opt-player',t.opt_player);s('opt-digital',t.opt_digital);
+  s('l-pdate',t.l_pdate);s('sd-acc',t.sd_acc);
+  s('a-assembly',t.a_assembly);s('a-bench',t.a_bench);s('a-dampp',t.a_dampp);s('a-adapter',t.a_adapter);
+  s('a-headphones',t.a_headphones);s('a-casters',t.a_casters);s('a-liquid',t.a_liquid);s('a-cover',t.a_cover);
+  s('l-benchtype',t.l_benchtype);s('l-pianoNotes',t.l_pianoNotes);
+  s('humNote',t.humNote,true);s('humLabel',t.humLabel);
+  s('pdfName',t.pdfFile);
+  if(!pdfRead){
+    pdfOpened=false;
+    document.getElementById('pdfFrame').src=t.pdfFile;
+    document.getElementById('pdfOverlay').classList.remove('gone');
+    document.getElementById('pdfFill').style.width='0%';
+    document.getElementById('pdfBadge').textContent=t.pdfBadge;
+    document.getElementById('pdfBadge').classList.remove('read');
+    s('pdfOverlayText',t.pdfOverlay);s('pdfOpenBtn',t.pdfOpenBtn);
+    document.getElementById('pdfStatus').classList.remove('done');
+    document.getElementById('pdfStatus').innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> <span>'+t.pdfPending+'</span>';
+    document.getElementById('sigLock').classList.remove('open');
+  }else{document.getElementById('pdfBadge').textContent='✓ '+t.pdfDone;}
+  s('sigLockMsg',t.sigLockMsg);s('sigInstr',t.sigInstr);s('sigWm',t.sigWm);
+  document.getElementById('typeToggle').textContent=typeMode?t.drawMode:t.typeMode;
+  s('l-tname',t.l_tname);
+  s('agreeText',t.agreeText,true);
+  s('submitBtn',t.submitBtn);
+  s('staffSepLabel',t.staffSep);
+  s('l-invoice',t.l_invoice);s('l-from',t.l_from);s('l-oldpiano',t.l_oldpiano);s('l-surcharge',t.l_surcharge);
+  s('sd-staff2',t.sd_staff2);
+  s('l-cheque',t.l_cheque);s('yn-chq-yes',t.yn_chq_yes);s('yn-chq-no',t.yn_chq_no);
+  s('l-review',t.l_review);s('yn-rev-yes',t.yn_rev_yes);s('yn-rev-no',t.yn_rev_no);
+  s('l-paid',t.l_paid);s('yn-paid-yes',t.yn_paid_yes);s('yn-paid-no',t.yn_paid_no);
+  s('l-staffnotes',t.l_staffnotes);
+  s('sTitle',t.sTitle);s('sMsg1',t.sMsg1);s('sMsg2',t.sMsg2);
+  document.getElementById('dateDisp').textContent=today.toLocaleDateString(
+    l==='fr'?'fr-CA':l==='zh'?'zh-CN':'en-CA',{year:'numeric',month:'long',day:'numeric'}
+  );
+  updateProgress();
+}
+
+
+// ── CHECKBOX HANDLER ─────────────────────────
+function initCheckboxes(){
+  document.querySelectorAll('.cb-item, .acc-item, .agree-row').forEach(item => {
+    const inp = item.querySelector('input[type=checkbox]');
+    const icon = item.querySelector('.cb-icon, .acc-icon, .agree-icon');
+    if(!inp || !icon) return;
+    const update = () => {
+      item.classList.toggle('checked', inp.checked);
+      icon.textContent = inp.checked ? '✕' : '';
+      if(inp.id === 'acc-bench') revealEl('benchTypeRow', inp.checked);
+    };
+    inp.addEventListener('change', update);
+    update(); // set initial state
+  });
+}
+initCheckboxes();
+
+// ── RADIO HANDLER ─────────────────────────────
+function initRadios(){
+  document.querySelectorAll('.yn').forEach(group => {
+    const labels = group.querySelectorAll('label');
+    labels.forEach(lbl => {
+      const inp = lbl.querySelector('input[type=radio]');
+      if(!inp) return;
+      // only add icon once
+      if(!lbl.querySelector('.yn-icon')){
+        const icon = document.createElement('span');
+        icon.className = 'yn-icon';
+        icon.textContent = '';
+        lbl.insertBefore(icon, lbl.firstChild);
+      }
+      inp.addEventListener('change', () => {
+        labels.forEach(l => {
+          const li = l.querySelector('.yn-icon');
+          const checked = l.querySelector('input').checked;
+          l.classList.toggle('selected', checked);
+          if(li) li.textContent = checked ? '✕' : '';
+        });
+      });
+    });
+    // set initial state
+    const checked = group.querySelector('input:checked');
+    if(checked){
+      const lbl = checked.closest('label');
+      lbl.classList.add('selected');
+      const icon = lbl.querySelector('.yn-icon');
+      if(icon) icon.textContent = '✕';
+    }
+  });
+}
+initRadios();
+
+// Init date
+document.getElementById('dateDisp').textContent=today.toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
+</script>
+</body>
+</html>

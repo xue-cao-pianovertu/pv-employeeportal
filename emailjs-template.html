@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f0eee9;font-family:'Helvetica Neue',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0eee9;padding:24px 0">
+  <tr><td align="center">
+  <table width="600" cellpadding="0" cellspacing="0" style="background:white;border-radius:10px;overflow:hidden;border:1px solid #d0d9e8;max-width:600px;width:100%">
+
+    <!-- HEADER -->
+    <tr><td style="background:#0d1f3c;padding:22px 28px;border-bottom:3px solid #c9a84c">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td><span style="font-family:Georgia,serif;font-size:20px;color:#c9a84c;letter-spacing:0.06em">Piano Vertu</span><br>
+          <span style="font-size:10px;color:rgba(200,216,240,0.5);letter-spacing:0.15em;text-transform:uppercase">Montréal</span></td>
+          <td align="right"><span style="font-size:11px;color:rgba(200,216,240,0.5);letter-spacing:0.1em;text-transform:uppercase">Nouvel enregistrement</span><br>
+          <span style="font-size:13px;color:#e2c06a;font-weight:500">Réf : {{ref_id}}</span></td>
+        </tr>
+      </table>
+    </td></tr>
+
+    <!-- PIANO BANNER -->
+    <tr><td style="background:#162b50;padding:16px 28px">
+      <span style="font-family:Georgia,serif;font-size:17px;color:white">{{piano_make}} {{piano_model}}</span><br>
+      <span style="font-size:12px;color:rgba(200,216,240,0.6)">{{piano_type}} &nbsp;·&nbsp; Série : {{piano_serial}} &nbsp;·&nbsp; {{piano_color}} &nbsp;·&nbsp; Acheté le : {{purchase_date}}</span>
+    </td></tr>
+
+    <tr><td style="padding:24px 28px">
+
+      <!-- CUSTOMER -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+        <tr><td colspan="2" style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#5a6e8a;padding-bottom:8px;border-bottom:1px solid #d0d9e8;margin-bottom:10px">
+          👤 &nbsp;Renseignements client
+        </td></tr>
+        <tr height="8"><td></td></tr>
+        <tr>
+          <td width="50%" style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Nom</span><br><span style="font-size:14px;color:#0d1f3c;font-weight:500">{{customer_name}}</span></td>
+          <td width="50%" style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Courriel</span><br><span style="font-size:14px;color:#0d1f3c">{{customer_email}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Téléphone 1</span><br><span style="font-size:14px;color:#0d1f3c">{{customer_phone1}}</span></td>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Téléphone 2</span><br><span style="font-size:14px;color:#0d1f3c">{{customer_phone2}}</span></td>
+        </tr>
+      </table>
+
+      <!-- DELIVERY -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+        <tr><td colspan="2" style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#5a6e8a;padding-bottom:8px;border-bottom:1px solid #d0d9e8">
+          🚚 &nbsp;Info livraison
+        </td></tr>
+        <tr height="8"><td></td></tr>
+        <tr>
+          <td colspan="2" style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Adresse</span><br><span style="font-size:14px;color:#0d1f3c">{{delivery_address}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Date souhaitée</span><br><span style="font-size:14px;color:#0d1f3c;font-weight:500">{{delivery_date}}</span></td>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Étage</span><br><span style="font-size:14px;color:#0d1f3c">{{delivery_floor}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Ascenseur</span><br><span style="font-size:14px;color:#0d1f3c">{{delivery_elevator}}</span></td>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Marches ext. / int.</span><br><span style="font-size:14px;color:#0d1f3c">{{steps_out}} / {{steps_in}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Virages</span><br><span style="font-size:14px;color:#0d1f3c">{{turns}}</span></td>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Notes déménageurs</span><br><span style="font-size:14px;color:#0d1f3c">{{mover_notes}}</span></td>
+        </tr>
+      </table>
+
+      <!-- SURCHARGE FLAG -->
+      {{#surcharge_flag}}
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px">
+        <tr><td style="padding:12px 16px;font-size:13px;color:#b45309">
+          ⚠ &nbsp;<strong>Supplément de livraison possible</strong> — Piano à reprendre : {{collect_piano}} &nbsp;·&nbsp; Piano à recycler : {{recycle_piano}} &nbsp;·&nbsp; Grue : {{crane}}
+        </td></tr>
+      </table>
+      {{/surcharge_flag}}
+
+      <!-- PIANO -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+        <tr><td colspan="2" style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#5a6e8a;padding-bottom:8px;border-bottom:1px solid #d0d9e8">
+          🎹 &nbsp;Détails du piano
+        </td></tr>
+        <tr height="8"><td></td></tr>
+        <tr>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Marque</span><br><span style="font-size:14px;color:#0d1f3c;font-weight:500">{{piano_make}}</span></td>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Modèle</span><br><span style="font-size:14px;color:#0d1f3c">{{piano_model}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">N° de série</span><br><span style="font-size:14px;color:#0d1f3c">{{piano_serial}}</span></td>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Couleur / Fini</span><br><span style="font-size:14px;color:#0d1f3c">{{piano_color}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Type</span><br><span style="font-size:14px;color:#0d1f3c">{{piano_type}}</span></td>
+          <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Date d'achat</span><br><span style="font-size:14px;color:#0d1f3c">{{purchase_date}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td colspan="2" style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Notes</span><br><span style="font-size:14px;color:#0d1f3c">{{piano_notes}}</span></td>
+        </tr>
+        <tr height="10"><td></td></tr>
+        <tr>
+          <td colspan="2" style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Accessoires</span><br><span style="font-size:14px;color:#0d1f3c">{{accessories}}</span></td>
+        </tr>
+      </table>
+
+      <!-- STAFF SECTION -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;background:#f8f6f1;border:1px solid #d0d9e8;border-radius:8px">
+        <tr><td style="padding:14px 16px">
+          <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#5a6e8a;margin-bottom:10px">🔧 &nbsp;Section staff</div>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td width="50%" style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Facture #</span><br><span style="font-size:14px;color:#0d1f3c">{{invoice_number}}</span></td>
+              <td width="50%" style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Provenance</span><br><span style="font-size:14px;color:#0d1f3c">{{from_location}}</span></td>
+            </tr>
+            <tr height="10"><td></td></tr>
+            <tr>
+              <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Destination ancien piano</span><br><span style="font-size:14px;color:#0d1f3c">{{old_piano_dest}}</span></td>
+              <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Supplément ($)</span><br><span style="font-size:14px;color:#0d1f3c">{{surcharge_amount}}</span></td>
+            </tr>
+            <tr height="10"><td></td></tr>
+            <tr>
+              <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Chèque à récupérer</span><br><span style="font-size:14px;color:#0d1f3c">{{cheque_pickup}}</span></td>
+              <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Google review</span><br><span style="font-size:14px;color:#0d1f3c">{{google_review}}</span></td>
+            </tr>
+            <tr height="10"><td></td></tr>
+            <tr>
+              <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Entièrement payé</span><br><span style="font-size:14px;color:#0d1f3c">{{fully_paid}}</span></td>
+              <td style="padding:4px 0"><span style="font-size:10px;color:#5a6e8a;text-transform:uppercase;letter-spacing:0.06em">Notes staff</span><br><span style="font-size:14px;color:#0d1f3c">{{staff_notes}}</span></td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+
+      <!-- SIGNATURE -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px">
+        <tr><td style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#5a6e8a;padding-bottom:8px;border-bottom:1px solid #d0d9e8">
+          ✍ &nbsp;Signature
+        </td></tr>
+        <tr height="8"><td></td></tr>
+        <tr><td style="font-size:13px;color:#5a6e8a">Type : {{signature_type}} &nbsp;·&nbsp; Langue : {{language}}</td></tr>
+      </table>
+
+    </td></tr>
+
+    <!-- FOOTER -->
+    <tr><td style="background:#0d1f3c;padding:14px 28px;text-align:center">
+      <span style="font-size:11px;color:rgba(200,216,240,0.4);letter-spacing:0.08em">Piano Vertu Montréal &nbsp;·&nbsp; pianovertu.com &nbsp;·&nbsp; Réf : {{ref_id}}</span>
+    </td></tr>
+
+  </table>
+  </td></tr>
+</table>
+</body>
+</html>
