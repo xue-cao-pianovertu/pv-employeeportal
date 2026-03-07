@@ -18,21 +18,17 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);min-height:100vh}
-.print-btn{position:fixed;bottom:20px;left:20px;z-index:999;background:var(--navy);color:white;border:none;padding:10px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;gap:7px}
-@media print{
-  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
-  .print-btn,.lang-switcher,.prog-wrap{display:none !important;}
-
-  .pdf-wrap,.pdf-gate,.sig-wrap canvas{page-break-inside:avoid;}
-}
 
 /* HEADER */
-.lang-switcher{display:flex;gap:6px;justify-content:flex-end;margin-bottom:14px}
+header{background:var(--navy);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid rgba(201,168,76,0.4);position:sticky;top:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold);letter-spacing:.06em}
+.logo span{color:rgba(200,216,240,0.4);font-size:9px;font-family:'DM Sans',sans-serif;font-weight:300;display:block;letter-spacing:.16em;text-transform:uppercase;margin-top:1px}
+.lang-switcher{display:flex;gap:4px}
 .lang-btn{padding:5px 9px;border-radius:16px;border:1px solid rgba(200,216,240,0.15);background:transparent;color:rgba(200,216,240,0.45);font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
 .lang-btn.active{background:rgba(201,168,76,0.18);border-color:rgba(201,168,76,0.6);color:var(--gold-light)}
 
 /* PROGRESS */
-.prog-wrap{background:var(--navy);padding:9px 18px;position:sticky;top:0;z-index:99;border-bottom:1px solid rgba(200,216,240,0.08)}
+.prog-wrap{background:var(--navy);padding:9px 18px;position:sticky;top:54px;z-index:99;border-bottom:1px solid rgba(200,216,240,0.08)}
 .prog-segs{display:flex;gap:3px;margin-bottom:5px}
 .pseg{flex:1;height:3px;border-radius:2px;background:rgba(200,216,240,0.12);transition:background .4s}
 .pseg.done{background:var(--gold)}
@@ -41,7 +37,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--navy);
 .prog-label b{color:var(--gold-light);font-weight:500}
 
 /* HERO */
-.hero{background:var(--navy-mid);text-align:center;padding:16px 18px 18px;position:relative;overflow:hidden}
+.hero{background:var(--navy-mid);text-align:center;padding:22px 18px 18px;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(201,168,76,0.07) 0%,transparent 60%);pointer-events:none}
 .hero-eye{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
 .hero h1{font-family:'Playfair Display',serif;font-size:20px;color:#f0f4fa;font-weight:400;line-height:1.3;margin-bottom:4px}
@@ -197,6 +193,15 @@ textarea{resize:none;min-height:72px;font-size:14px}
 </head>
 <body>
 
+<header>
+  <div class="logo">Piano Vertu<span id="logoSub">Spécialistes du Piano</span></div>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('fr')" id="btn-fr">🇫🇷 FR</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">🇨🇦 EN</button>
+    <button class="lang-btn" onclick="setLang('zh')" id="btn-zh">🇨🇳 中文</button>
+  </div>
+</header>
+
 <div class="prog-wrap">
   <div class="prog-segs">
     <div class="pseg active" id="ps1"></div>
@@ -209,13 +214,8 @@ textarea{resize:none;min-height:72px;font-size:14px}
 </div>
 
 <div class="hero">
-  <div class="lang-switcher">
-    <button class="lang-btn active" onclick="setLang('fr')" id="btn-fr">🇫🇷 FR</button>
-    <button class="lang-btn" onclick="setLang('en')" id="btn-en">🇨🇦 EN</button>
-    <button class="lang-btn" onclick="setLang('zh')" id="btn-zh">🇨🇳 中文</button>
-  </div>
-  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAwUAAAPoCAYAAACPv1IlAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAA1pElEQVR4nO3d27raupIG0Mn+8v6vTF8k9CLEgCXrUCWNcbW7VybIsizV7xM/PwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB/uf8xux0AxPC/2Q0AYKznMCAYAPDzIxQAbOUoBAgGAAgFAJv4VPwLBgB7EwoAAGBzQgHABs5cCXC1AGBfQgHA4hT7AHwjFADw/wQIgD0JBQAAsDmhAGBhzvwDcIZQAMBfBAmA/QgFAACwudvsBgDQTo+z/LfbzVoBsDgTPcACRtzyIxwArMsED5Dc6GcAhAOA9XimACCxGQ8FexAZYD1CAUBSM4tzwQBgLUIBAABsTigAAIDNCQUAALA5oQAAADYnFAAAwOaEAoCkZv5egN8qAFiLUACQ2FFxfvujxWe/+/yrnw1ALEIBwKKuFO8Kf4C9CAUAyY0s4IUFgDWZ3AEWV/rrwwp/gP24UgAAAJsTCgAAYHNCAcDCSm8dqv0bAHITCgAWpbgH4CyhAIB/CBQAexEKAPiHNxAB7MWkD7A4ryQF4BtXCgAAYHPOBgEspNezAK4eAKzNJA+wgJEPBgsIAOsxsQN08ijU3xXR3/57yWfMcKZNn/7Nle0GoC2TLUBjR4X6a3H7+m+Oit9ZBf/tdru1+u5v23V2u4UDgL48aAxQ6P5H6d+c/e81n//O7GK6ZLvP/PvXf9uyrwB29mt2AwCyeFfAtiq8Wxe3te163NrTqj09ivbe+wJgN0IBwCDZHgZuGQw+caYfYD6hANjau4I08xnn57ZfLbgfn5W5cF9xHwO0JhQA25p9e0zL4v3181rr8fBx6fMDNd/16e++vQEJYCcmQ2Bb3wrNVm8E+lZ49gwELQJLq88889lXPr92fwkGAK4UAJxSUqieff1o9KsDn77zStuPXkn66RWtZ7/LmX+AeiZPYFst75Mf/eNiZ4vfK99/5jt6Pmtw9UrNmfAiRAD85koBsKzer6mcVVCOCAQlbZn5VqVvzwzUfo9XnAK7MdkByyl928yVW4Nq21Jj9HfP3Nbe3186FoQDYHV+0RhYSo8zx7cn9S2rN+u7S/trZh+1+P5eVx0AMnD7ELCtlvebHz3kOvNB4plFbK/fNjh7S8+Zh5Rrbg/yIDOwMpMbsIzW79Ef+Z1X2nBkRl/0bMeRlvvp7LMRQgGwKpMbsJTeb9tp9V0t23Fk5rMMPdvyamSAEwiAlXmmANje7Hvhn0VpR0s9+7f04eIV+xegBaEASOn+x+v/v7Twi1IktixYoz4UG6mvS//90d+8G4MAGYWYoAHOKnll5KeCLdItOq2L5R6Fass2Zrm1yWtLgZ24UgCkUfLKyF0DQQaRtvlTW472sdeWAqsSCoDlCATxtbxVqucDxG4RAnax7YIE5DPj7TFR3pxzVuQ3Ih2J1L8tXlu6c9ADcnOlAOCNSAUr5Wp+kbnl5wFkIhQAaVwppCMV4ZHaMlvvvmgdDHr9LcBsQgGQSk3hpViLLdv+OWpvtm0AePVrdgMASr0WYL0fLG4pWnv4l2cHgB25UgCk5j5vRjPmgBUJBcCyop3NjdaeSHr1Te3neugY2I3bh4DQPv16bO/CbMR30M+oEOYXjoEVuFIAhDX712MFgr2duVowe4wCtCIUACHN+KEyaE0wALIQCgAAYHNCAQAhuLoDMI9QAAAAmxMKgJCcNWYFxjGQhVeSAmE9CqoVHtZUHK7raJza30A2Ji0gnbMhoUVh1jKQjCgUewWojG0ftf8FAGAFbh8CWETPKyrf3skfjUIdoIzbhwASG12oP75P0f2f+/1+1x9AdkIBkEamM9VH3rW/tqCc2R9XwkH2/XhEMACyEwoAJqt5QDVjYZ2xzQC78EwBwAejz/5mK5zPtjfbdgHsRigA0nB7xm/ZCuxs7a1hbALZCQXAsloUozMK2pWK6MzbkrntAKWEAiCV0jOyVwo7ReE5Efvp6n4v+XtXCYAVCAVAOiOCQcRClzIj9rtAAKxCKABSUozFEXlf9Ax3kbcboJRQAKTVqyhzlYBvBAJgNX6nAEjtdrvdzhTxn/6NAm8vV0Of8QKsyJUCIL2rRVrpg6Ut3P4Y+Z3RjNr+x76dsZ8Bsth6QQLW0arYO3vl4ep3PP/fR9/3rWB+/Zujf9/rjHjpLzB/274R/d1yfLT4HIBoXCkAltCqWItwJvnMtrT6N6V/26J/Xj+7d6EtEAB8JxQAy1C0/atnn5z97BX2ywrbAPCJUAAsJXvxVtL+XrfgtLpt6Mxnvn4uAHMIBcByogeDo+cBah88nrGttd+Z9eHqjG0GKOWVpADJtS5a7/f7/egzdyyOd9xmYE+uFABLUszVG9l3kW8dMoaAnQgFwLIUdXVFt/f5GzvAfkx6wPKiF7i9CtDIv9y76z4BiMqkB2whchFaUoCW/tDZle0u/a2Cs9sReV/8/AgEwJ7cPgRsIXKhd6ZI/nRLT48iu+bHy6IX+2dEHicAPZn8gG1ELVq/FaJR2/1O1u0RCICdmQCBrUQtSJlLIAB25/YhAADYnFAAbMUZYQD4l1AAwNYERQChAAAAticUAADA5oQCYDtuF+HBWAD4zWQIbM9rSvciCAD8y5UCYHuKRAB2JxQAsA0BEOCYUAAAAJsTCgAAYHMuowLb86DxftxGBPA3VwqArQkEe7LfAf4mFADbUhgCwG9CAQAAbM49lQAHXEVYh+cHAL5zpQCAZQkEAOcIBQAAsDmhAAAANicUAADA5oQCAADYnFAAAACbEwoADnhrDQA7EQoA3hAMcrP/AM4TCgBYjkAAUEYoAACAzQkFAACwOaEAAAA2JxQAsJz7/X6f3QaATIQCAADYnFAAwHK8fQigjFAA8IHiEoAdWOwATnCPeg5CHEAdkydAIQEhHmEA4BqTKEAl4WAuQQCgHRMqQEeCQ53b7Xa73+93hT8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAFbfZDQDWc7/f77PbACu53W7Wa6Cr/81uALAWgQAA8hEKgKac0QSAfIQCAADYnFAAAACbEwoAAGBzQgEAAGxOKAAAgM0JBQAAsDmhAAAANvdrdgOAfdX+pkGPH0h7bsv9fr+XtK11e85+95nvbflZpWZ+99nvX3G7AWq4UgBs77WI8wNs183uw9nff0aGNgL7EAoAAGBzQgEAAGxOKAAAgM0JBQAAsDmhAAAANicUAADA5oQCAADYnFAAAACbEwoAAGBzQgEAAGxOKAAAgM0JBQAAsDmhAAAANicUAADA5oQCAADYnFAAAACbEwoAAGBzQgEAAGxOKAAAgM0JBQAAsDmhAAAANicUAADA5oQCAADYnFAAAACbEwoAAGBzQgEAAGxOKAAAgM0JBQAAsDmhAAAANicUAADA5oQCAADYnFAAAACbEwoAAGBzQgEAAGxOKAAAgM0JBQAAsDmhAAAANicUAADA5oQCAADYnFAAAACbEwoAAGBzv2Y3AFZwv9/vz//37Xa7zWoLAEApoQC+eC34W/yN0AAARCIUwJOaANDie4QEAGAmoYDtjQoCZ9ogHAAAMwgFbCtCGHglHAAAMwgFbCViEDgiHAAAIwkFbCFLGHh1v9/vggGwiitzsbkQ+hIKWFrWMPBMMAAyaj3/vvs88yO0IRSwpBXCwDO3E/3tdrvdVtvHsIIZx6W3uUEbDhyWs3qxmGHBO7sPWm/Lme8d1X8j+qD19r5elRq5H2d+91Fbar675qrezO1sKeq8G73fIJL/zW4AtHL/o+Zvb3+0blMPURdf/pZlPD2raXOr7czYX69W2IZSV+bdEaK3DyJx+xBLqJn0a85KAutze9o5mfrILZjwnVBAeiUL09Hl/vYt6s/Dx8BMmefOnx/hAI4IBaS1Yxh4JhgAo60wd/78CAdwRCggpSsP562yqAGMtOLcKRzAfzxozLKOrg5EXtRqFqXI2wOsI/pcc/VlEdG3D0YQCkin5jWMGSb82tuBMmwbQE+Pkz63J7Wf0aN9kIFQQCqrBoKH50VtdlsAfn7yzaHPtwTVzKeZthdaEgpIo/aHmrIV2DX3uFrEgB6yzi33Jz8/5bcXZd1uuEIoYBmfJvzbi5HtquHhN2C2VQrj5+0oWQNW2X44SygghW+Tc2nxnCEglJ7hsoABraw2n7xuj3kV/iUUkN7Vwj5yOHg9wzWzLQCfRJ+jjh4kFgzgP0IB/BF1QStZkCxewFWl88jjxEqW+UcwgGNCAeGNnIwjXzX4+YkbXIA9Peak7EWzYABCAcn1KpKjFd9uIwJGKCl8swWCb8+SmVvZnVAAb0S7anA2GGRZoIG8sgSC0pdKfPt30bcXrhAK4ItI4cCCBPRy9rdgMgSCK/N2lPkeRhMK4KRorzF1tQCYJeocM2KOjrrtcJVQQHhRivBnMwOCBQloreQX4yPOQZFO2EBWQgFpRVkAbi9GfKdfPAZGih4IMnwmRPdrdgPgjEwTdJRX293v93umfgPmOPuL8dECgfkN2nKlACZocWXB1QKgt4jzS4RbhaIFJGjBlQKY7Hlxs9AAEUWYm2YHAVidKwUQSOmiF2GhBtYUpQiPcGXgVbT2QAuuFEAwt9vtptgHRjgz14yej6IU3OZidiMUQEAlD/Y9Hig++rceNgauaF0UZ5uPXufibO2HEkIBBHb2TJWzWUBLLYrflQrolbYF3vFMAQRnMQJ6+HYyofZkQ8RnAIDvXCmAi0oWztqF0r2twCi1840gALkJBVChtkB//buSRVQwAKISCCA/tw/BRPc/ZrcD4KF0ThIIYA1CAVRofc/s2XBg8QV6Kr16aU6CdQgFcEHrBdFVAyADYQDWIxRAMN+CgcUY6MUVS9iXB43hoh4PAPvRMSCimnnpyvxoHoRxXCmAoD4tpBZKILL7k6uf06pNwGdCAQRmQQSiOHMyovUb1ZwAgXGEAghOMABmOxsIRn8n0I5nCgCAaj1OXAgEMJ4rBZCAqwVASyVzyqcC3dwE6xAKICln0oCZegUCcxvMIRTARc6UwVp2OKYV3sAroQCS2KFQAWJ5Fx7MR7AeoQAAOE0ggDUJBZDUmYXZLQIAwBlCAVww+oyZM3TATOYgWJdQAACEIXjAHEIBAABsTigAAL5yBh/WJhRAQh4yBlYmgMB4QgFUarFo1RTuFksiMR4B1vBrdgOAfc0oKKMVsb3bM2J7Z/bprt8N0JorBbAgtw4BACWEAgDY0JmTB4+rIa7qwfqEAgAA2JxQAItx6xAAUEoogAotL2sr4oHIauY78xrkIxTAZO6bBWaJXrybH2EcoQAm6bEYR1/gAYCYhAKooPgGAFYiFADAxpzkAH5+hAIoFvUeVws7AFDr1+wGQDRniv6rwUABv4Zv+zFCgHxtY+2bZCJsCwD9CAXwJGvhkzVkZG33WRG3r7TAf2xDxG1ZQZQ5p0fwEyYhF7cPAQDA5oQCeDLibOjzd7Q4i+YMLtCCuQT2JhTACwsjQAzmYxjHMwVw4LEQ9bjHNvLnAbR09bmCM39rHoQ2XCmAD3ouNt5gBESTcV65/zG7HZCdUABftFokMy62ADWei/RRc59gANcIBXBC60XNVQIgqqzzS9Z2QxSeKYABLFYAfZhfoQ1XCuCkVguPqwRAdFleimA+hHaEAuis5e8SWACBUa7ONz3v8b/90evzYUdCAQDQnSIeYhMKoCNXCYDMIl4tMBdCH0IBdNJy4bIIAiu4OpeZC6Efbx+CAa6cLbMIwn9KjiXHThstfpXYvoD4hALooOVtQ7C72mPo9e8UpvWuBoMWn2X/QV9uH4LGPEcAbdz/iPp5nKffIT6hAE4avagJBKyitBjvXbyXfL4g8Z+WDx2b3yAeoQAaanWVwILJSh7j+UyBPbIA//RdwsAxL1CAdXmmADoQCOC9SMX24yHYSG1amYeOIS6hAE44UzC0WOgslu099t2Zvn3+t5+KxZLP+qT0czKPj8iF97d2Ze73Hlq+jSjyuIDduH0IGrPAxfB6+0fJbSuP//3ub1rt49JbadzSMp5AcEy/wHqEAvii5Iyv24YYIWswyDbGs7V3tCv9U3MFLOu4hyyEArhIIIDzbn/Mbsc3GdoYwehgAPQjFMAHI85MWQzZUeRxH7ltqymdY10tgH6EArjg6lUCxQeQXat5zHwIcwkF8MbZN5IIBFDu9daRGbcV3V6M/O7VuI0I8hMK4AKBANrqXaSf+Xy3qNRpFQxa/lvgPL9TAAd6vrdcIJjn3W8W1BQZr59VW6i8/jZCzWdk9ul4eP5vIx7k33UftNSiD+0HmEMogEo1i5ZAEEPLgmPUbxas5My2voau2vD1Llg4FvupLeqff9Ss5b8FznH7EBSqXfAsYLSy+lj69KNzJdv+6UpD6Q/HUaZ2jL67mgf0JxTAix7FwMgFTjGzvpX38dG21QQDReV8V4NBq38HnCMUQIGaqwSjipP7H8//+/n/BxkcHS8K/Lw8fwV5CAXw5FMBHT0QXPnvsJIzweLo3zhO+qiZB8/eRmSfQTtCAZxUsviMfO+5S+1kdjQuby+O/u75/1/ydqGRxyb/uRIMgDGEAvjj21WCs58TueCwyLKS5wJfwR9f7b5xtQDGEArgi5LbhmYUJKXfaQFlNS2enXFcjFE7Xwl70J9QAD+fC4LIgaD2uxVARHJlPH56fSmfvb6QYFT/ma8gJqEAPii5V7l3W8604cy92A8WWiKZOR53OxY+BYDIweDT3+y2D6EHoYDtXb1KECEQvPMtHFhIiWTGeNztGDizvZGDQa+2AEIBXBI5EDzL0k4YWfjtVmRG3N7SuclJDuhHKGBrVxaRVQptCynR1I7JkmNyt3EfeXtL99sqcy9EIxRAhYyLUsY2s69eD/iPfKA2itLtjf4WtRYvhgD+9Wt2A4D5nH0joucC7+r43LVYzPRcVOnrn3fdp9CLKwVsa8QtCjMdbV+0tlvUOevbazOPxvboV21G82m7o/7Y29n2uFoA7blSAAWiLaDvPBbFkisArhaQxVHRl7EQ7Nnmb4Gg1/e24CoAzOFKAZwUfSEF+CbLPOZ2MRhPKGBLGR68q2UxhL2tMgdkmndhBW4fgi8yLUzvbqvItA1wZryuUviOlHEeuHIrkbkPyrhSwHZKFphMC0qLIkmhxSylD75GfEg2ghWPYfsZxhAKYAHRCgGLOCWujBfh4JxPb2ea0Z5S9jH0JxSwldWuEmRa1N/J3n7qtSzoMxyvXFOzj80vcJ5QAAcyFBg1i50FksjuL0r/PsNx21NJnz3/20zzwu77GHryoDEkk2kBhyPPhV3Jj1CdKQi9475OpodyS/dxpm2DmVwpYBtnF5Goi8cKtwrBQ814Nv770r+wN6EAnkQOBBE+A1q4MhbPhIkWx3GkuaB1W0quzkQVaf/AKoQCCMzVAeCMlvNEljmnJBhk2SaYSShgC2cWhGhnnlotYrPusbZgc6TVvh5xtWAlq96qZT9DO0IBdFR7pj/LggwlWo/rzMdJhra7Ugl7EQrgp889u7Wv/FM4sSLjcL7afRA9HJydvyNvA0QgFEBjVx+ibNkWWJ1jZpzI4cBtRHCdUMD2Wi0m3xbMb4tphMV25sIaYfvh5ydWgdmjLVc/07EKaxIKWN6nBaxlIJj591FFKq4gipnH+6gHvWc4M99EbDdEIRTARVefF7BIARldeZFCr3nPiQioJxTABStdIbCY0kukcU6clxlEfkYBdiQUsLRetw6ttpj1DAR+r4BMhOM6Z4/dEVdLv+1D8wwcEwqg0Mr35AJ9lRz3JQElQpjx5jXI7dfsBsAMtQvoioEgQjERWY/fsGj5eRnM+lXtUo6F6+73+/1dP555A5t9APO4UgAnCQRjvidS/0AmUQrqq1cMWswBUfoCMnGlAE5YsVB9XTTfbaPFFdpYcR555+pZf1cNYDxXClhWqyJ31YX8/mJ2e2CmaAVobXuibccVV+elT31hzoN/CQXwgYWjHbcQwV6ej2OvLYX4hAI4YCGCfYw4uz5yPol0tWD2s1iR+gKiEwrYigUiD6EM6q0415kToC+hAF5YePpZsVCB1s4eJ9+eCYpyvLWcU2s+K0o/QHTePgRPBIK/zV5MvYGE3rLeOvT6mTvNXa3mBfML/M2VArbxbfLfaVGF1WU9nhWp52TdvxCZUMCSShcMC8w4ih6iyDwWM7e9lZJ5W3/Bd0IBcCjKIiqw0cOo8W389qV/oR2hgO1ZVCCvKOG1hZW2ZSRzOLQhFLCFd4utxeRY7+LEr0rT07fx4irBes70tdAFnwkFwF8snKws6viO2q5MakKY4Ab/EQrYlsVgLlcLWNmI8SpIAC0JBdBY5oU6c9vh5+dzMW58r8/JA6gnFLC8o0Kg18Jxu91uWRelGQWTqwVcUTJ+Ro7v0nEqrLRlnoA6QgHb6RkIenzuCJnabsHnnR3HRqZjd6R3Y0F/wXtCAWxu9iI5+/vJyVUCgLaEAmjgsbBnPFOpzaxg5zPDO2xjDfMElBEK2IpF4tjsflHU0MPocTXzKkHmY6hn22fPbZCJUAAXZb5K8Gx2+z10zFmvY+VoLGQukmtl3eb7/X4f2fas/QS9CQVAWoLBfqIGgijPEmQueDO3HVYgFLCNngXkKsXp7O1QFHBVhkDQW8bjyPwM8wkFcEHGxXc1Fvx9fLtKkOV4zNLOGfQNzCMUAKHUFAWCwX6iBIKIYy9im2bTJ/Ddr9kNgKxWecA4oha/DH20fz4VjkcPO/bYt49tKyliH+2o+dtVPG9z5kDQu62Z56PH2M78y/CQmSsFLGlEcUcsn95T//Dp74/+e5SHQZ/bv3sgKPlv0QgEc+kf+EwoAEJyGxFHnq+azAwExlof+hXmEQqgQqazk7tRVKzl+Taw50Aws01uG+pv9j6GHXmmAC6IuhCvsqC6t3hvz+M4ypiOGAgAWnClAJ5kXbxvL2a3pyW3Ee1ptXHMeT2vCJkb4D1XCiCh3QqmmisGu76lZwVR95urBMDKXCmAQjMX+RWvBJzlisEeoo5vgQBYnVDA0lZalFfalpEEgxwiB15jaLzeD5Xv/IpfeMftQyyr5l3wJf9+ZKFg4fqt9sFjtxLFFnnf1B7no7cp8vwF5CAUQGCRi6VZBIN1RN8fWQJBjaM2Zg4K3lQG1wkFLC/rQpGhsMhGMJhHv8cXNSgo+GEMzxSwtNYLyajCRgH12ZX+UVzwzfMPpZWI/FxErZnbVLIPat5OVt4iWJtQAMGsVlT0IhjAOOYlWJ9QwNKyLWTZ2jubYEBrKz9HcFX0KyElbYu+LTCDUMDyskz8WdoZjWBAC7W3DP387Hfsztjelt/puIdjQgEEsFtR0ZpgwBVXxsCux+6oM+2OTxhHKGALLRavXRf/LAQDatj31/SeF3t9vv0O/xIK4GduwS9stCMYUOLqFQLH7m89+6F0H5W0xTEPfxMKYCJFRXtXg4FCYQ9uGWpLn0B+QgGwnKsFimCwNvu3j0zBwJUe+JdQwDaiLQAe0utLMODI1f0abR7ZSau+tw/hmFAAi3oUPy2K2/uT6y0bp0UwyLbNHLu6L51ZPkcfQV5CAVs5s2CNWNR6f0fLQjZ7Udyir7P3we5cHRgrcn9FbhvMJhQAbx0VUxkLZMFgTy2u9Cgi64zuN/sJrhMK4EXv4m/GVYKabfr0NxkL5FbBIOO276jFflJoAjsRCtjOt4U+cyHQqmBdtfBttW+Fg7ha7ZvM88AZI8bv6n0IqxEKYBOti4CsRXHLQiVrH6yq1f6IWsw6hq+Jul8hCqGALa24OMxY4LMWFS3fJOOqwXwt90HUueH5bWJXt/X577PfLgm0IxRApZrFbvYC2aMAyFwUt75qkLUfsmodBmYfnyWMtfeO9mOmfQuzCAVs63mR2GmB7bWtWfuwdbEgHPTXuo+jF4zvtjXLM0Sj+9fxB3V+zW4AZHG/3+/Ri4fZHotxpH6aVSBE7IvseuzL6Pvn2zaXzkufAkbEvojYJliVUAAHbrfbLdPZptK29i5Yn9uT6YfaehAOruu1j+2TPdjPcI5QwNayFf+tjTg7eNS/Z79zpX0jHJTbPQyMfttQz/mg51ybZX9CdEIBLODKgjujWI1e7D/6oteD2a/fw996jo8MfV5z5S/DdgGxCQVwwUpXGlbZjlqf3ljS++FsBd16D7vW8iKAtrLsd4hAKGB7j8L+9WzbUcHvjNxazu7LUeGgtF3ZjSpUM/Rnz74o+WxzHOxLKAC2U1v0jLoytPItRjPOWH/7zpl93Ls/Ml8huLpfVjt2oDehAH6uFXtRbiGK0o6IWhYHo/s5+1WEDGPybBtb9P3MsZPdlZcWAN8JBfDHu3vKV1tYdzDiVauzRC6MIvRPT1m2L2o7R8ynntOBekIBFLpyz23v+3V3DjE9+vVTX75+38x+f/fdPcdatHG289j/+Ym3P4B8hAJoIFJBEqktvbUueq/cex6x31u0J9o2PXvdH70fCN9BlCDpTD+MJxTAFxGLvW8ytvms0UHg23eu2s+RfRsDz//d/lnXu3EgUEAdoQAqHN0GdLYQH/XKv1WCwejbgs587wr9mlHNWBAQ9uF1qnCNUAALyxQMRizmI8PA0edk2RcRtRgfkZ4DiShKQV177ERpP2TlAIKTzr4acuTrDUtEK4BGbv+VgqLXfdDR9kc0354PmHUFaWW9j8krc2Pkt27BKhxQcNLZRSnDw3Sji5/I2zk6DFz9rpVduUrTcoztuD+iBIKjtggEMIaDCgq0vlrw6TNGalUEZduWK6Gu17buWJC+unoLl4BQJsqte+/aIhTAGA4qKNDjasG7z6BM9jBwZIeC9Jtot+mttk9GjeeWocB8CX04sKBQj6sFnz6H71qfhTzzd7NkK0p7Prhd8jk992G2ffKQMRC8+3fAdQ4sqCAYxNAzDGTcFzOL01HPVUQOB6VtmSXqSw6EApjLgQWVnherVmdDv30Wv+10ZaCHiLdKPbS4ehB1H88OCpG3+ey+XP3YhJkcXHDBY8H6tlDVFAMWv38JA3tpXVCW/v0ovcJCpu1ylQDmc3DBILULv0XwN7cK7WvFh8hLPJ98yFIo97jiE3E7YSUOMBjoyhnBXRdEYYBnva8Wvftbzut1C5j9An05wGAC4eC7K4WFMLCH2v0sHPTT641S9gX05yCDSVrcR7zqQunqACVq9rlg0F6rlyoIBDCHAw0mm/1Gklq9FuraYk0YQDiYo/WLFM6+2Q1oy8EGQWQJB9HCwJm/VVjsRTgYp9eb1e73+11fw1gOOAgmSjgYuSD3ujpw9DfsoWZsCAbneCYK1uTghOB6hoQIC3RtYe/qAGe4atCOMABrc5AC0/Q6m6sA4ZVwUO/qiYnV+wdW4UAFhqspthRoXJU1GIy8KtbyyqRjEXJxwAJDCQTMVlpkzx5/UZ4zKuFYhHwctMAQPcPA69/BNxmvGjzeyBM1JDgGITcHMNCdQEBEK76haEZgcPzBGhzIQDc1hX2rX0WFM3q9/erd383mDULAOw5woLkRYeD5b+Eqb8ICdmeyApoSCMjKQ/DAzkxSwGW1RX3trQwKLHrpHWqNXSAqkxNQzUONrKi2yHfVAMjMxAQUm/VKRMUUowgGwG5MSsBpM9+ProhitNo3YbmdCMjIZAR8NfvHkhROzDIiGDz/HcAsJiHg0Owg8KBYYrYrb8cSDoAsTD7APwQC+NuVN2V55S6QgUkH+EeEUKAoIhpv2wJWZrIBDnmoGP7lzVvAqkwywFujCyCFDxkIzMCKTC7ARyMLIAUPWbjFDliNCQX4qncBpLghowjB4OfH8QO0YSIBTutRBCloyEwwAFZhEgGKtSiEFDGsYnYwcCwBLZhIgEtKCiLFC6vyViIgO5MJADTgbV1AZv+b3QAAWMHIIl0gAFozqQBAQz2vGAgDQC8mFwDooHU4EAiAnkwwANBZbUAQBIBRTDYAMNCngCAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwKpusxsA79zv9/vjf99ut3RjNXv7V/S8T47YT0T3OoaNWc6yJvHNUoPifr/fb7fb7dvCX2vmQXR1m476JfKkcLS9kdv7Kkv7Wx4rUbZvxeN/tB59OLr/Wm3D2Xb3GndnjOzbkdsZ8ZjrXWeMVDO2r2z7iP3ZolZq1ZaMltj42Qdn70HUc/siHgDvtjdiW4982l+RtmGl4nn0HBBpP7aWfb6ZMa5XX4MedtnOZ7O3uadv/ZltjWjd3pXn+Xf+N7sBV0U4YO9/9PrsHp+b0Qp9EWUborTjqp7HXsTv7a33NumzvCJs5/3JqO/q/T20YV+1kT4URJJxEsnW3hXo8+uiHGtR2gG76XkizjHdl/6NSyjoINOksuPlsQiyjI9ooh5bUdsFK2t93DmG2V36UBC5qG0xwUTevh6+9ZlJu41s4ypL0Z2lne9kGxeME3lstDjmMh+32UQeS7tLHwp+fmIPsMjBIHK/ZVbyRoeZC1GP/d/jMzMu1hnb/NBzvhkx54we16O2K4LI23nlmMt8vPaUZY3o8bmRx3pPy250tIO89QCr2b7og7xkm2xLH9Ha3fo4nvG2jUj7t9aVfpm9/bPmypFr0Mw+zr7WRmv/SDXjprS/shz/s9sZxa/ZDeil9F26ZwbE1TMRLQddj+1jjtZj44or76Bu7Wo7avr06G+utiPS/q31aH+UsdHLzP0U+ZWnLWVba1+1+uwRxXWvkxyrFdpZ2jnCErcPXXV2QOx0mXi00slrpUXy5yff9vQ+Dq6emW4dwK9+Xrb9u6OogeDMf5+p1y0mI9bbkuJ25vpf+72zaxbzXj5CQYXaA80BwidRxsfsAqS2H3ovgFc/P8r+vSLbvLfSMzuzj8tZZo+5XfudPQkFF5gsaG2FwvGKK4GgdVt6fNfu+zcqc3ls2c7Q85v+y0coYLraQmnVAmvV7fomQyBo8Z3Z92+WhT57P3PNjGeSIDuh4KLSicNCxRm7jZNMgeD5uxUO5+w2nmnPsVZP33GWUMBULd7s0qot0ay8bS1EWehm3/M8Q5S+f2fVN7MdtTVT+5nndZwYNxwRChpwcNFL9uLxjBV+cyNaeyLaYSyPcHsxuz2RGXN/M274RihgGhP2OSv30wqBoNbK+zWLVcbSLuwv6EsoIL0diqsdtvGMyEXBbrcRRd0XmfsUYCahYAKLFjVWGzcjftGTWCKNYeOJT2Mg0liFUYQCpmg94e4yge+ynVntVmhG217HB0A9oYCwohUctLNy8eY1xfGZW3gwFuA/QsEEu09CiqDfasfBjv23+zETmRAEsAahgNBKCo6dio2dthXOOHtMCJi88vsP8JtQwFAW7r9d2c6swSBru0vsdvZ8t+0lh5Jx6fcfQChowgLX1+pXC3YMBiUs0HzjZMNvq88Hq28fzCYUEM7qC/cRwYDdGLft3P94/d8AJYSCi7xr/bxRC1XWBVEwWMtut9TMmtuy91svq/WLtRb6EwouWG3SjWyXCV4wgD52mUNWZG6DMYSCSiapMqPv+c28fwQDstrt6gj91YwRATAGx3c+QkGF2oFuouKsVYNB5LaRjweM1z6mVt42iOjX7AZkYoLq69vCfbvdbjvtgyvbe7/f7ysUQitsw25Kx+0qY/WKnea1T1r0w+5jCa4QCn7+nYgek0rLiXrniWrWgrdCsSEYwDFXCXISgCAutw8daP1KN4vSd/rovVVvJQJoyToC1wgFne0+SbUuSnd9kFEwIJPex6mrBLyyr+E6oaAjkxRRCAbAqqy10IZQ0IlJqt/ZvF379up2CwaMtOtVPcbadT2AHoSCxm5/zG4H/1mp2BAM2J1bh/j5sdZCD0LBT5vJxQT1N8VnP8YZWRirtGathX68kvRJ6atITUxtjAgQq72eM+urSr3Dnk9a7e9sY2anFwn0eOU30IZQcCDbgsKesgYDqKWQ/FfWH3Wsbbe5C/px+xDNRV2gorbrip3OMJLT6AeOFYx51O4rcxf0IRRAcoJBTKV9q5j9zFhdk2AAcQgFsADBgMhGBZ5dg9XRdu/QF+YuaEsooKnok3T09l0hGLCK1/FofH53ezG7PSXMXRCDUAALybC4+lGrPWUrVBkrw9wFq/P2IZopmZhbFgilC8Lqb6+4+lai1u3ZkecJxtOH+XmjGszlSgHDtZ64LQT/0idEVDIuH8WhoLoXcxfMIxTQhIU7nsiL68q3ELlKMJ4+rHf/Y3Y7nnkjEcwhFDBUr8V75SLzCsUS0dRcLaCP5/6NFg4EA64yFsoJBcAUKwa5DG1cjeBbJ8NYFQzysy9yEQq4LOtBn7XdpTK+ovCdyPuspm2r7BfoRTCgJ3Pw34QChul98Dm486nZZxb7/Byrc2U7hgSDWDJc5bXv6wgFXJL9wMve/hJRC7EVgoGrBHPow3Kfxmrk/hQMoD+hgCEiLzY7sR/aEwjq6ANGEQzai3y14Ox3mYP+JRRQLeJE6yD/LmIf1V4tmD0GBYJ5ovfj7LF5JGKbSvjV49xG7AP7+RqhgO3tOIlELKgy3R4QIZAQW7Rj7Nt4jdbedwSDOKKNmZL9G63tUQgFdDf64HOwnxOxnzIEgyvfFbHPZ6rtD/1YZrViWDCIo+Y2oh77wH5tQyigymoH4Grbc1bE4upKMOi5H69+fsS+pp8oc0qUdrQmGOTWch+Ufpa5+D2h4McEUcolurVEfPvP1QW/9YJz9fMcB++V9o2+/O7+5My/z9qnWdu9mllXeGvmZmPms2U7Z/WBMusBxyz9OvOMbtbQFHHftizuz7a3deCJtI+jynrMfJLpZNPos+6t92FtX2danzKM+xZj/tN2OjnT3zIdtPpC3mOBObONrb53VH/O6KcZhWsvEYuzTMXVs9n7MpvsZ7WzjtOfn7I+jbjWZritL2K/9RD1OIjaX9Es0Uk9B2GEgTRj+3p9Z8/+XKWfZo+5iMVZ1IXmndn7MKMz+zhiv2Ybm69mBoLadhyJGgwi91kv0Y6JqP0UUfpnCqINvtZW275e29O7n44+P+u2fBNxAr39Mbsd32RpZ0T6LbbZ89I3V4696Nv2TtR2RzqWI7Ulg/ShgGuiTirMFXUijVp0R23XSvRve5H6dPZa1OP7Z2/TTLPnxNnfn5VQsDkHDRlFmvCjtAMya3UcXfmcXe77H2lGH+j3eulDweo7f7Xt67U9vfvp6POzbstZUdrxyaxwcHsy+rtXpj/HKe3rTPvmajDIcoY/yz4ZNVeak6/TeT+/J4HHQHr+39DC2TEVdey9WyAjtvVhxQfAd3G07/R9Gy3nmKufNWK+8wrLuLK92XAXOhM45TGJZ52EI75VifeyjzdiEAzyyPoGspXoXABgWYIBnJP+mQIAgHeuFvVZnjGAq4QCAGBpggF855IYALCFFsW924lYlSsFAMAWWhT0rhqwKmkXANiKV2LCvwxmAGA7Lc/4CweswCAGALY08lYgwYHoDFAAYGujwoFgQGQeNAYAtqZYB6EAAODn9sfsdsAsQgEAwB/CAbsy6AEAPvCjZ+zAAAUAOKk0IAgDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADHOb3QDgvPv9fv/032+326Vj+tvnt/iOFm3o3ZZPbbjynUefe/bzSvrlqpJtrG1X633Xun96jK3ex2/N9/Y+noE8TAaQxNmip3XR2vo7rnzvOy3b0ysYXSnMRgaCn59z29eyTSPCbI3R46r1d575bqEAePjf7AYAMYwuPFt+7/2PFu05+32jvmsHo/cfAP8SCoApehSCCsvc7D+AeYQCWEyGwqpnG0dtf4Z+zmjFfi3ZphW3H8hBKACGFiIjvkthlZv9BzDer9kNAPbR4s1CZz/jfr/fR7wpacSDmrfb7TaqUG61PVf332wzH8AdNa4AngkFsKDMRcW3dj/+e5bispUWry4dNSY+fc+M/Te7wJ/13QAl3D4Em4t0D35J8Tb6tZkzv2NFWUMrwKqEAiCEmiJRYUlW0X6bAkAogEVFKip6/pLrqOLq0/dE6mviMC6ATIQCgAYUgJRypQuIRCiABGoLzm9/9+6/K1b+lfnhbWIxjoCIhAJILnqB0fPWobOfEelhavbQYiwYT8BIQgFAgSgBJDv99Fv0UA/sw+8UwKbcOsQsI64elXzfiDYAROdKASxg9Jtxdj/L62rBZ0fbf38yo00jtfwBuR36C4jBlQJgGmdj11VbzO44Jm63203xD8zmSgFsyK1D17la0J7xBzCPUACLaF1QKdAY5fbH7Ha0UHvrkB/HA2YTCiCxs4WUoqIPVwva0E8A83mmADYTqQBb4QfBvt0PvsI2jtCzn6L0f6RjD+CVKwWwkCvFT5TCiTXcXpz5G0Xze/oG6E0ogE3sXFT0DjwC1d+O+mOl5wbe2fkYA/ITCmAjqxYt0bcrevtG8hwGQExCAQRXWiTVnI3teQZ3lyJw9bPgzLfKsQLEJBQAqUUqlASDc1bsp0jjEKCGtw/B5iIUaDu8eYbzVntjU+m2CBjADK4UAN2dKYpqCqGIxdNKxSzxRBzzwBqEAlhQxMK0dTA4828j9gPrUagDKxAKYGMRi+YzBVb0Iixiv0azSx9F386aIB79+APqeKYAGObbr/8+tCg6ZhdjZ7eV/q7shxnjaPSvZNcGg9nHGNCWKwWwqKgL9oh2Rd12zssSqLK0E+AboQA2NbNwnvm7CCNFagvjrbz/V9422JVQAEzRuqi4/dHyM+nL/nov+o/+zf5+oD2hABb2rrCIUoy1KuSjbM+RyG2LLnrhGb19ACWEAkjqbLF5O9D6O66qCQc123PFle9ZMRi02qbIofDb53767yvu82erbx8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCC/g+23ucDMLDcrgAAAABJRU5ErkJggg==" alt="Piano Vertu" style="height:140px;width:auto;object-fit:contain;opacity:0.95;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto">
   <p class="hero-eye" id="heroEye">Enregistrement d'achat</p>
+  <h1 id="heroTitle">Bienvenue chez<br><em>Piano Vertu</em></h1>
   <p class="hero-sub" id="heroSub">Veuillez compléter ce formulaire pour enregistrer votre piano et organiser la livraison.</p>
 </div>
 
@@ -242,19 +242,6 @@ textarea{resize:none;min-height:72px;font-size:14px}
         <div class="field"><label class="lbl" id="l-p1">Téléphone 1</label><input id="phone1" type="tel" placeholder="+1 (514) 000-0000"></div>
         <div class="field"><label class="lbl" id="l-p2">Téléphone 2</label><input id="phone2" type="tel" placeholder="Optionnel"></div>
       </div>
-      <div class="field">
-        <label class="lbl" id="l-heard">Comment avez-vous entendu parler de nous ?</label>
-        <select id="heardFrom">
-          <option value="" id="opt-heard-ph">Sélectionner…</option>
-          <option id="opt-google">Google / Recherche web</option>
-          <option id="opt-social">Facebook / Instagram</option>
-          <option id="opt-friend">Référence d'un ami</option>
-          <option id="opt-walkin">Passage en magasin</option>
-          <option id="opt-event">Salon ou événement</option>
-          <option id="opt-ad">Publicité</option>
-          <option id="opt-heard-other">Autre</option>
-        </select>
-      </div>
     </div>
   </div>
 
@@ -273,7 +260,7 @@ textarea{resize:none;min-height:72px;font-size:14px}
       <div class="row2">
         <div class="field"><label class="lbl" id="l-prov">Province</label>
           <select id="province">
-            <option value="" id="opt-prov-ph">Sélectionner…</option>
+            <option value="">Sélectionner…</option>
             <option value="QC" selected>Québec</option>
             <option value="ON">Ontario</option>
             <option value="BC">Colombie-Britannique</option>
@@ -285,11 +272,6 @@ textarea{resize:none;min-height:72px;font-size:14px}
         <div class="field"><label class="lbl" id="l-postal">Code postal</label><input id="postal" type="text" placeholder="H2X 1Y6" maxlength="7"></div>
       </div>
 
-      <label class="cb-item" id="km40Item">
-        <input type="checkbox" id="km40Check">
-        <div class="cb-icon"></div>
-        <span class="cb-label" id="l-km40">Dans un rayon de 40 km du magasin</span>
-      </label>
       <div class="sec-div" id="sd1">Détails de livraison</div>
 
       <div class="field"><label class="lbl" id="l-floor">Étage / Niveau</label><input id="floorText" type="text" placeholder="ex. 3e étage, sous-sol, rez-de-chaussée"></div>
@@ -346,19 +328,7 @@ textarea{resize:none;min-height:72px;font-size:14px}
       </div>
 
       <div class="field"><label class="lbl" id="l-notes">Notes pour les déménageurs</label><textarea id="moverNotes" placeholder="ex. chien sur les lieux, couloir étroit, stationnement limité…"></textarea></div>
-      <div class="field">
-        <label class="lbl" id="l-deldate">Date de livraison souhaitée</label>
-        <label class="cb-item" id="asapItem" style="margin-bottom:7px">
-          <input type="checkbox" id="asapCheck">
-          <div class="cb-icon"></div>
-          <span class="cb-label" id="l-asap">Dès que possible (ASAP)</span>
-        </label>
-        <div id="dateFromRow">
-          <label class="lbl" id="l-datefrom" style="font-size:10px;margin-bottom:4px;display:block">À partir du</label>
-          <input id="deliveryDate" type="date" style="margin-bottom:7px">
-        </div>
-        <textarea id="deliveryNotes" placeholder="ex. Disponible le matin seulement, pas les week-ends…" style="min-height:58px"></textarea>
-      </div>
+      <div class="field"><label class="lbl" id="l-deldate">Date de livraison souhaitée</label><input id="deliveryDate" type="date"></div>
 
       <div class="surcharge" id="surchargeWarn">
         <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -374,42 +344,40 @@ textarea{resize:none;min-height:72px;font-size:14px}
       <h3 id="t3">Détails du piano</h3><span class="sn">3/5</span>
     </div>
     <div class="card-bd">
-      <div class="row2">
-        <div class="field">
-          <label class="lbl" id="l-pcat">Catégorie</label>
-          <select id="pianoCat" onchange="onCatChange()">
-            <option value="" id="opt-cat-ph">Sélectionner…</option>
-            <option value="acoustic" id="opt-cat-acoustic">Acoustique neuf</option>
-            <option value="preloved" id="opt-cat-preloved">Piano d'occasion certifié</option>
-            <option value="digital" id="opt-cat-digital">Numérique / Hybride</option>
-            <option value="consignation" id="opt-cat-consign">Consignation</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="lbl" id="l-make">Marque</label>
-          <input id="make" type="text" placeholder="—" readonly style="background:var(--cream);color:var(--muted);cursor:default" id="make">
-        </div>
-      </div>
-      <div class="field" id="subtypeRow" style="display:none">
-        <label class="lbl" id="l-ptype">Type</label>
-        <select id="pianoType" onchange="onTypeChange()">
-          <option value="">—</option>
+      <div class="field">
+        <label class="lbl" id="l-make">Marque</label>
+        <select id="make">
+          <option value="" id="opt-make-ph">Sélectionner…</option>
+          <option>Kawai</option>
+          <option>Yamaha</option>
+          <option>Steinway &amp; Sons</option>
+          <option>Bösendorfer</option>
+          <option>Fazioli</option>
+          <option>Baldwin</option>
+          <option>Bechstein</option>
+          <option>Blüthner</option>
+          <option>Petrof</option>
+          <option>Sauter</option>
+          <option id="opt-other">Autre</option>
         </select>
-      </div>
-      <div id="makeEditRow" style="display:none">
-        <div class="field">
-          <label class="lbl" id="l-make-edit">Marque</label>
-          <input id="makeEdit" type="text" placeholder="ex. Yamaha, Steinway…">
-        </div>
-      </div>
-      <div id="consignNote" style="display:none;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--muted)">
-        <span id="l-consign-note">ℹ️ Les pianos en consignation ne sont pas couverts par une garantie. Le client devra signer pour en prendre acte.</span>
       </div>
       <div class="row2">
         <div class="field"><label class="lbl" id="l-model">Modèle</label><input id="model" type="text" placeholder="ex. K-300"></div>
         <div class="field"><label class="lbl" id="l-serial">N° de série</label><input id="serial" type="text" placeholder="SN-XXXX"></div>
       </div>
-      <div class="field"><label class="lbl" id="l-color">Couleur / Fini</label><input id="color" type="text" placeholder="ex. Noir laqué"></div>
+      <div class="row2">
+        <div class="field"><label class="lbl" id="l-color">Couleur / Fini</label><input id="color" type="text" placeholder="ex. Noir laqué"></div>
+        <div class="field">
+          <label class="lbl" id="l-ptype">Type de piano</label>
+          <select id="pianoType">
+            <option value="" id="opt-ph">Sélectionner…</option>
+            <option id="opt-baby">Piano à queue</option>
+            <option id="opt-upright">Piano droit</option>
+            <option id="opt-player">Piano mécanique</option>
+            <option id="opt-digital">Piano numérique</option>
+          </select>
+        </div>
+      </div>
       <div class="field">
         <label class="lbl" id="l-pdate">Date d'achat</label>
         <div class="date-disp"><b id="dateDisp">—</b><svg width="14" height="14" fill="none" stroke="var(--muted)" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
@@ -423,39 +391,11 @@ textarea{resize:none;min-height:72px;font-size:14px}
         <label class="acc-item" id="acc-item-dampp"><input type="checkbox" id="acc-dampp"><div class="acc-icon"></div><span class="acc-label" id="a-dampp">Dampp-Chaser</span></label>
         <label class="acc-item" id="acc-item-adapter"><input type="checkbox" id="acc-adapter"><div class="acc-icon"></div><span class="acc-label" id="a-adapter">Adaptateur élec.</span></label>
         <label class="acc-item" id="acc-item-headphones"><input type="checkbox" id="acc-headphones"><div class="acc-icon"></div><span class="acc-label" id="a-headphones">Écouteurs</span></label>
-        <label class="acc-item" id="acc-item-casters"><input type="checkbox" id="acc-casters"><div class="acc-icon"></div><span class="acc-label" id="a-casters">Sous-pattes</span></label>
+        <label class="acc-item" id="acc-item-casters"><input type="checkbox" id="acc-casters"><div class="acc-icon"></div><span class="acc-label" id="a-casters">Patins / Roulettes</span></label>
+        <label class="acc-item" id="acc-item-liquid"><input type="checkbox" id="acc-liquid"><div class="acc-icon"></div><span class="acc-label" id="a-liquid">Solution D-C</span></label>
         <label class="acc-item" id="acc-item-cover"><input type="checkbox" id="acc-cover"><div class="acc-icon"></div><span class="acc-label" id="a-cover">Housse</span></label>
       </div>
-      <div class="reveal" id="benchTypeRow">
-        <div class="field" style="margin-bottom:7px">
-          <label class="lbl" id="l-benchmodel">Modèle de banc</label>
-          <select id="benchModel">
-            <option value="" id="opt-bench-ph">Sélectionner…</option>
-            <option>Double Adjustable Bench (OPUS 12)</option>
-            <option>Emperor Chair (Opus 10)</option>
-            <option>Ergo Hydraulic Made in Italy</option>
-            <option>Hydrau Bench K&amp;M Made in Germany</option>
-            <option>Hydrau Modern (Opus 06)</option>
-            <option>Hydrau Perfecto (Opus 205)</option>
-            <option>Hydrau Virtuoso (Opus 305)</option>
-            <option>Hydrau-Etude (Opus 102)</option>
-            <option>Imposant (OPUS 104)</option>
-            <option>Nocturne (OPUS 32)</option>
-            <option>Open-Cadenza (OPUS 007)</option>
-            <option>Banc Etude 4C PE</option>
-            <option>Banc Maestro (Opus 92)</option>
-            <option>Banc SONATA 1C PE</option>
-            <option>600</option>
-            <option>800</option>
-            <option>160</option>
-            <option id="opt-bench-other">Autre / Other</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="lbl" id="l-benchtype">Notes / Précisions (banc)</label>
-          <input id="benchType" type="text" placeholder="ex. couleur, dimensions…">
-        </div>
-      </div>
+      <div class="reveal" id="benchTypeRow"><div class="field"><label class="lbl" id="l-benchtype">Type de banc</label><input id="benchType" type="text" placeholder="ex. ajustable, duet, standard…"></div></div>
       <div class="field"><label class="lbl" id="l-pianoNotes">Notes (piano)</label><textarea id="pianoNotes" placeholder="Remarques sur l'état, caractéristiques spéciales…"></textarea></div>
     </div>
   </div>
@@ -469,7 +409,7 @@ textarea{resize:none;min-height:72px;font-size:14px}
     <div class="card-bd">
       <div class="hum-box">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span id="humNote">Le piano doit être gardé en tout temps à un taux d'humidité entre <b style="font-size:15px;color:#92400e">40 % et 55 %</b> et une température entre <b style="font-size:15px;color:#92400e">18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.</span>
+        <span id="humNote">Le piano doit être gardé en tout temps à un taux d'humidité entre <b>40 % et 55 %</b> et une température entre <b>18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.</span>
       </div>
       <label class="cb-item" id="humItem">
         <input type="checkbox" id="humCheck">
@@ -553,23 +493,21 @@ textarea{resize:none;min-height:72px;font-size:14px}
         <div class="field"><label class="lbl" id="l-invoice">Facture #</label><input id="invoiceNum" type="text" placeholder="ex. INV-2024-0142"></div>
         <div class="field"><label class="lbl" id="l-from">Provenance</label>
           <select id="fromLocation">
-            <option value="" id="opt-from-ph">Sélectionner…</option>
-            <option>5193 – Tradition</option>
-            <option>5223 – Signature</option>
-            <option>3830 – Expérience</option>
-            <option>5473 – Warehouse</option>
+            <option value="">Sélectionner…</option>
+            <option>Piano Vertu – 5193</option>
+            <option>Piano Vertu – 5223</option>
+            <option>Piano Vertu – Warehouse / Entrepôt</option>
             <option>Client pick up / Collecte par client</option>
           </select></div>
       </div>
       <div class="field"><label class="lbl" id="l-oldpiano">Destination ancien piano</label>
           <select id="oldPianoDest">
-            <option value="" id="opt-dest-ph">Sélectionner…</option>
-            <option id="opt-dest-1">5193 – Tradition</option>
-            <option id="opt-dest-2">5223 – Signature</option>
-            <option id="opt-dest-3">3830 – Expérience</option>
-            <option id="opt-dest-4">5473 – Warehouse</option>
-            <option id="opt-dest-recycle">Recycle / Éco-Centre</option>
-            <option id="opt-dest-second">Deuxième livraison</option>
+            <option value="">Sélectionner…</option>
+            <option>Piano Vertu – 5193</option>
+            <option>Piano Vertu – 5223</option>
+            <option>Piano Vertu – Warehouse / Entrepôt</option>
+            <option>Recycle / Éco-Centre</option>
+            <option>Second delivery / Deuxième livraison</option>
           </select></div>
       <div class="field"><label class="lbl" id="l-surcharge">Montant supplément ($)</label><input id="surchargeAmount" type="number" placeholder="0.00" min="0" step="0.01"></div>
 
@@ -601,10 +539,6 @@ textarea{resize:none;min-height:72px;font-size:14px}
   </div>
 
 </div><!-- /mainForm -->
-<button class="print-btn" onclick="window.print()">
-  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-  Imprimer / PDF
-</button>
 
 <!-- SUCCESS -->
 <div class="success-screen" id="successScreen">
@@ -684,16 +618,12 @@ const cv=document.getElementById('sigCanvas'),ctx=cv.getContext('2d');
 let drawing=false,hasSig=false;
 function resizeCv(){
   const w=cv.offsetWidth,h=140;
-  const img=hasSig?cv.toDataURL():null;
   cv.width=w*devicePixelRatio;cv.height=h*devicePixelRatio;
   ctx.scale(devicePixelRatio,devicePixelRatio);
   cv.style.width=w+'px';cv.style.height=h+'px';
   ctx.strokeStyle='#0d1f3c';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
-  if(img){const i=new Image();i.onload=()=>ctx.drawImage(i,0,0,w,140);i.src=img;}
 }
-resizeCv();
-let resizeTimer;
-window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(resizeCv,200);});
+resizeCv();window.addEventListener('resize',resizeCv);
 function gp(e){const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
 cv.addEventListener('mousedown',e=>{drawing=true;const p=gp(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
 cv.addEventListener('mousemove',e=>{if(!drawing)return;hasSig=true;const p=gp(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
@@ -728,7 +658,7 @@ function updateProgress(){
     else seg.className='pseg';
   });
   const nm=SEC_NAMES[lang]||SEC_NAMES.fr;
-  document.getElementById('progStep').textContent=(lang==='zh'?'第':lang==='en'?'Step':'Étape')+' '+(active+1)+' / 5';
+  document.getElementById('progStep').textContent=(lang==='zh'?'第':'Étape')+' '+(active+1)+' / 5';
   document.getElementById('progName').textContent=nm[active];
 }
 window.addEventListener('scroll',updateProgress);
@@ -744,7 +674,7 @@ function accList(){
   if(document.getElementById('acc-adapter').checked)items.push('Adaptateur élec.');
   if(document.getElementById('acc-headphones').checked)items.push('Écouteurs');
   if(document.getElementById('acc-casters').checked)items.push('Patins/Roulettes');
-
+  if(document.getElementById('acc-liquid').checked)items.push('Solution D-C');
   if(document.getElementById('acc-cover').checked)items.push('Housse');
   return items.join(', ')||'Aucun';
 }
@@ -789,7 +719,7 @@ async function doSubmit(){
     recycle_piano: rb('recycle')==='yes'?'Oui'+(g('recycleDesc')?' — '+g('recycleDesc'):''):'Non',
     crane: rb('crane')==='yes'?'Oui':'Non',
     surcharge_flag: surcharge?'⚠ OUI':'Non',
-    piano_make: g('make')||g('makeEdit')||'—',
+    piano_make: g('make'),
     piano_model: g('model')||'—',
     piano_serial: g('serial'),
     piano_color: g('color')||'—',
@@ -831,7 +761,7 @@ function showErr(msg){const el=document.getElementById('errMsg');el.textContent=
 const L={
 fr:{
   logoSub:'Spécialistes du Piano',heroEye:'Enregistrement d\'achat',
-heroSub:'Veuillez compléter ce formulaire pour enregistrer votre piano et organiser la livraison.',
+  heroTitle:'Bienvenue chez<br><em>Piano Vertu</em>',heroSub:'Veuillez compléter ce formulaire pour enregistrer votre piano et organiser la livraison.',
   qrLabel:'Piano scanné',qrDetail:'Informations pré-remplies. Vous pouvez les modifier si nécessaire.',
   t1:'Renseignements client',t2:'Info livraison',t3:'Détails du piano',t4:'Avis d\'humidité',t5:'Garantie & Consentement',tStaff:'À remplir par le personnel',
   l_ln:'Nom',l_fn:'Prénom',l_em:'Courriel',l_p1:'Téléphone 1',l_p2:'Téléphone 2',
@@ -846,28 +776,9 @@ heroSub:'Veuillez compléter ce formulaire pour enregistrer votre piano et organ
   l_make:'Marque',opt_make_ph:'Sélectionner…',opt_other:'Autre',l_model:'Modèle',l_serial:'N° de série',l_color:'Couleur / Fini',l_ptype:'Type de piano',
   opt_ph:'Sélectionner…',opt_baby:'Piano à queue',opt_upright:'Piano droit',opt_player:'Piano mécanique',opt_digital:'Piano numérique',
   l_pdate:'Date d\'achat',sd_acc:'Accessoires',
-  a_assembly:'Assemblage',a_bench:'Banc',a_dampp:'Dampp-Chaser',a_adapter:'Adaptateur élec.',a_headphones:'Écouteurs',a_casters:'Sous-pattes',a_cover:'Housse',
-  l_benchtype:'Type de banc',l_benchmodel:'Modèle de banc',l_pianoNotes:'Notes (piano)',
-  sel:'Sélectionner…',l_make_edit:'Marque',
-  l_heard:'Comment avez-vous entendu parler de nous ?',
-  opt_heard_ph:'Sélectionner…',opt_google:'Google / Recherche web',opt_social:'Facebook / Instagram',
-  opt_friend:"Référence d'un ami",opt_walkin:'Passage en magasin',opt_event:'Salon ou événement',
-  opt_ad:'Publicité',opt_heard_other:'Autre',
-  l_km40:'Dans un rayon de 40 km du magasin',
-  l_asap:'Dès que possible (ASAP)',l_datefrom:'À partir du',
-  l_pcat:'Catégorie',opt_cat_ph:'Sélectionner…',
-  opt_dest_recycle:'Recycle / Éco-Centre',opt_dest_second:'Deuxième livraison',
-  opt_cat_acoustic:'Acoustique neuf',opt_cat_preloved:"Piano d'occasion certifié",
-  opt_cat_digital:'Numérique / Hybride',opt_cat_consign:'Consignation',
-  l_ptype:'Type',
-  opt_acoustic_1:'Kawai Grand',opt_acoustic_2:'Kawai Upright',
-  opt_acoustic_3:'Kawai Upright ATX/Aures',opt_acoustic_4:'Kawai Grand ATX/Aures',
-  opt_acoustic_5:'Shigeru Kawai',opt_acoustic_6:'C. Bechstein',
-  opt_acoustic_7:'Bösendorfer',opt_acoustic_8:'Fazioli',opt_acoustic_9:'Blüthner',
-  opt_acoustic_10:'Schimmel',opt_acoustic_11:'Mason &amp; Hamlin',opt_acoustic_12:'Estonia',
-  opt_digital_1:'Kawai CX / KDP / ES',opt_digital_2:'Kawai CN / VA / DG / NV',opt_digital_3:'Casio',
-  l_consign_note:"ℹ️ Les pianos en consignation ne sont pas couverts par une garantie. Le client devra signer pour en prendre acte.",
-  humNote:"Le piano doit être gardé en tout temps à un taux d'humidité entre <b style=\"font-size:15px;color:#92400e\">40 % et 55 %</b> et une température entre <b style=\"font-size:15px;color:#92400e\">18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.",
+  a_assembly:'Assemblage',a_bench:'Banc',a_dampp:'Dampp-Chaser',a_adapter:'Adaptateur élec.',a_headphones:'Écouteurs',a_casters:'Patins / Roulettes',a_liquid:'Solution D-C',a_cover:'Housse',
+  l_benchtype:'Type de banc',l_pianoNotes:'Notes (piano)',
+  humNote:'Le piano doit être gardé en tout temps à un taux d\'humidité entre <b>40 % et 55 %</b> et une température entre <b>18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.',
   humLabel:'Je comprends et m\'engage à maintenir les conditions requises pour préserver la validité de la garantie.',
   pdfFile:'Garantie_Piano_Vertu_FR.pdf',pdfBadge:'Lire d\'abord',pdfDone:'Lu',
   pdfOverlay:'Veuillez ouvrir et lire le document de garantie avant de signer',pdfOpenBtn:'Ouvrir le document',
@@ -888,7 +799,7 @@ heroSub:'Veuillez compléter ce formulaire pour enregistrer votre piano et organ
 },
 en:{
   logoSub:'Grand Piano Specialists',heroEye:'Purchase Registration',
-heroSub:'Please complete this form to register your piano and arrange delivery.',
+  heroTitle:'Welcome to<br><em>Piano Vertu</em>',heroSub:'Please complete this form to register your piano and arrange delivery.',
   qrLabel:'Piano scanned',qrDetail:'Information pre-filled from QR code. You may edit if needed.',
   t1:'Customer Information',t2:'Delivery Info',t3:'Piano Details',t4:'Humidity Notice',t5:'Warranty & Consent',tStaff:'Staff Section',
   l_ln:'Last Name',l_fn:'First Name',l_em:'Email',l_p1:'Phone 1',l_p2:'Phone 2',
@@ -903,28 +814,9 @@ heroSub:'Please complete this form to register your piano and arrange delivery.'
   l_make:'Brand',opt_make_ph:'Select…',opt_other:'Other',l_model:'Model',l_serial:'Serial No.',l_color:'Colour / Finish',l_ptype:'Piano type',
   opt_ph:'Select…',opt_baby:'Baby Grand',opt_upright:'Upright',opt_player:'Player Piano',opt_digital:'Digital Grand',
   l_pdate:'Purchase date',sd_acc:'Accessories',
-  a_assembly:'Assembly',a_bench:'Bench',a_dampp:'Dampp-Chaser',a_adapter:'Electric adapter',a_headphones:'Headphones',a_casters:'Caster cups',a_cover:'Piano cover',
-  l_benchtype:'Bench type',l_benchmodel:'Bench model',l_pianoNotes:'Notes (piano)',
-  sel:'Select…',l_make_edit:'Brand',
-  l_heard:'How did you hear about us?',
-  opt_heard_ph:'Select…',opt_google:'Google / Web search',opt_social:'Facebook / Instagram',
-  opt_friend:'Friend referral',opt_walkin:'Walk-in',opt_event:'Show or event',
-  opt_ad:'Advertisement',opt_heard_other:'Other',
-  l_km40:'Within 40 km of the store',
-  l_asap:'As soon as possible (ASAP)',l_datefrom:'Starting from',
-  l_pcat:'Category',opt_cat_ph:'Select…',
-  opt_dest_recycle:'Recycle / Eco-Centre',opt_dest_second:'Second delivery',
-  opt_cat_acoustic:'New Acoustic',opt_cat_preloved:'Pre-loved certified',
-  opt_cat_digital:'Digital / Hybrid',opt_cat_consign:'Consignment',
-  l_ptype:'Type',
-  opt_acoustic_1:'Kawai Grand',opt_acoustic_2:'Kawai Upright',
-  opt_acoustic_3:'Kawai Upright ATX/Aures',opt_acoustic_4:'Kawai Grand ATX/Aures',
-  opt_acoustic_5:'Shigeru Kawai',opt_acoustic_6:'C. Bechstein',
-  opt_acoustic_7:'Bösendorfer',opt_acoustic_8:'Fazioli',opt_acoustic_9:'Blüthner',
-  opt_acoustic_10:'Schimmel',opt_acoustic_11:'Mason &amp; Hamlin',opt_acoustic_12:'Estonia',
-  opt_digital_1:'Kawai CX / KDP / ES',opt_digital_2:'Kawai CN / VA / DG / NV',opt_digital_3:'Casio',
-  l_consign_note:'ℹ️ Consignment pianos are not covered by a warranty. The customer will need to sign to acknowledge.',
-  humNote:"The piano must be kept between <b style=\"font-size:15px;color:#92400e\">40% and 55% humidity</b> and <b style=\"font-size:15px;color:#92400e\">18°C and 26°C</b> at all times. Failure to do so may void the warranty.",
+  a_assembly:'Assembly',a_bench:'Bench',a_dampp:'Dampp-Chaser',a_adapter:'Electric adapter',a_headphones:'Headphones',a_casters:'Caster cups',a_liquid:'D-C liquid',a_cover:'Piano cover',
+  l_benchtype:'Bench type',l_pianoNotes:'Notes (piano)',
+  humNote:'The piano must be kept between <b>40% and 55% humidity</b> and <b>18°C and 26°C</b> at all times. Failure to do so may void the warranty.',
   humLabel:'I understand and commit to maintaining the required conditions to preserve the warranty.',
   pdfFile:'Warranty_Piano_Vertu_EN.pdf',pdfBadge:'Read first',pdfDone:'Read',
   pdfOverlay:'Please open and read the warranty document before signing',pdfOpenBtn:'Open Document',
@@ -945,7 +837,7 @@ heroSub:'Please complete this form to register your piano and arrange delivery.'
 },
 zh:{
   logoSub:'大型三角钢琴专家',heroEye:'购买注册',
-heroSub:'请填写此表格以注册您的钢琴并安排送货。',
+  heroTitle:'欢迎来到<br><em>Piano Vertu</em>',heroSub:'请填写此表格以注册您的钢琴并安排送货。',
   qrLabel:'已扫描钢琴',qrDetail:'信息已从 QR 码预填。如需要可以修改。',
   t1:'客户信息',t2:'送货信息',t3:'钢琴详情',t4:'湿度须知',t5:'保修与同意',tStaff:'员工填写',
   l_ln:'姓',l_fn:'名',l_em:'电子邮箱',l_p1:'电话 1',l_p2:'电话 2',
@@ -960,28 +852,9 @@ heroSub:'请填写此表格以注册您的钢琴并安排送货。',
   l_make:'品牌',opt_make_ph:'选择…',opt_other:'其他',l_model:'型号',l_serial:'序列号',l_color:'颜色/饰面',l_ptype:'钢琴类型',
   opt_ph:'选择…',opt_baby:'三角钢琴',opt_upright:'立式钢琴',opt_player:'自动钢琴',opt_digital:'数字钢琴',
   l_pdate:'购买日期',sd_acc:'配件',
-  a_assembly:'组装',a_bench:'琴凳',a_dampp:'Dampp-Chaser',a_adapter:'电源适配器',a_headphones:'耳机',a_casters:'底座垫',a_cover:'钢琴罩',
-  l_benchtype:'琴凳类型',l_benchmodel:'琴凳型号',l_pianoNotes:'备注（钢琴）',
-  sel:'选择…',l_make_edit:'品牌',
-  l_heard:'您是如何了解我们的？',
-  opt_heard_ph:'选择…',opt_google:'Google / 网络搜索',opt_social:'Facebook / Instagram',
-  opt_friend:'朋友推荐',opt_walkin:'路过门店',opt_event:'展会或活动',
-  opt_ad:'广告',opt_heard_other:'其他',
-  l_km40:'距店铺40公里范围内',
-  l_asap:'尽快（ASAP）',l_datefrom:'最早日期',
-  l_pcat:'类别',opt_cat_ph:'选择…',
-  opt_dest_recycle:'回收 / 生态中心',opt_dest_second:'第二次送货',
-  opt_cat_acoustic:'全新原声钢琴',opt_cat_preloved:'认证二手钢琴',
-  opt_cat_digital:'数字 / 混合',opt_cat_consign:'寄售',
-  l_ptype:'类型',
-  opt_acoustic_1:'Kawai 三角',opt_acoustic_2:'Kawai 立式',
-  opt_acoustic_3:'Kawai 立式 ATX/Aures',opt_acoustic_4:'Kawai 三角 ATX/Aures',
-  opt_acoustic_5:'Shigeru Kawai',opt_acoustic_6:'C. Bechstein',
-  opt_acoustic_7:'Bösendorfer',opt_acoustic_8:'Fazioli',opt_acoustic_9:'Blüthner',
-  opt_acoustic_10:'Schimmel',opt_acoustic_11:'Mason & Hamlin',opt_acoustic_12:'Estonia',
-  opt_digital_1:'Kawai CX / KDP / ES',opt_digital_2:'Kawai CN / VA / DG / NV',opt_digital_3:'Casio',
-  l_consign_note:'ℹ️ 寄售钢琴不在保修范围内。客户需签字确认。',
-  humNote:"钢琴必须始终保持在 <b style=\"font-size:15px;color:#92400e\">40% 至 55% 湿度</b> 和 <b style=\"font-size:15px;color:#92400e\">18°C 至 26°C</b> 之间。否则可能导致保修失效。",
+  a_assembly:'组装',a_bench:'琴凳',a_dampp:'Dampp-Chaser',a_adapter:'电源适配器',a_headphones:'耳机',a_casters:'脚轮垫',a_liquid:'D-C液体',a_cover:'钢琴罩',
+  l_benchtype:'琴凳类型',l_pianoNotes:'备注（钢琴）',
+  humNote:'钢琴必须始终保持在 <b>40% 至 55% 湿度</b> 和 <b>18°C 至 26°C</b> 之间。否则可能导致保修失效。',
   humLabel:'我理解并承诺保持所需条件以保持保修的有效性。',
   pdfFile:'保修条款_Piano_Vertu_ZH.pdf',pdfBadge:'请先阅读',pdfDone:'已读',
   pdfOverlay:'请打开并阅读保修文件后再签名',pdfOpenBtn:'打开文件',
@@ -1012,6 +885,7 @@ function setLang(l){
   document.body.style.fontFamily=l==='zh'?"'Noto Serif SC','DM Sans',sans-serif":"'DM Sans',sans-serif";
   ['fr','en','zh'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('active',x===l));
   s('logoSub',t.logoSub);
+  document.getElementById('heroTitle').innerHTML=t.heroTitle;
   s('heroEye',t.heroEye);s('heroSub',t.heroSub);
   s('qrLabel',t.qrLabel);s('qrDetail',t.qrDetail);
   s('t1',t.t1);s('t2',t.t2);s('t3',t.t3);s('t4',t.t4);s('t5',t.t5);s('tStaff',t.tStaff);
@@ -1026,28 +900,13 @@ function setLang(l){
   s('l-crane',t.l_crane);s('yn-cry',t.yn_cry);s('yn-crn',t.yn_crn);
   s('l-notes',t.l_notes);s('l-deldate',t.l_deldate);
   s('wt',t.wt);s('wb',t.wb);
-  s('l-make',t.l_make);
+  s('l-make',t.l_make);s('opt-make-ph',t.opt_make_ph);s('opt-other',t.opt_other);
   s('l-model',t.l_model);s('l-serial',t.l_serial);s('l-color',t.l_color);s('l-ptype',t.l_ptype);
-  // Piano subtypes are dynamically generated by onCatChange()
+  s('opt-ph',t.opt_ph);s('opt-baby',t.opt_baby);s('opt-upright',t.opt_upright);s('opt-player',t.opt_player);s('opt-digital',t.opt_digital);
   s('l-pdate',t.l_pdate);s('sd-acc',t.sd_acc);
   s('a-assembly',t.a_assembly);s('a-bench',t.a_bench);s('a-dampp',t.a_dampp);s('a-adapter',t.a_adapter);
-  s('a-headphones',t.a_headphones);s('a-casters',t.a_casters);s('a-cover',t.a_cover);
-  s('l-benchtype',t.l_benchtype);s('l-benchmodel',t.l_benchmodel||'');s('l-pianoNotes',t.l_pianoNotes);
-  s('l-make-edit',t.l_make_edit||'');
-  // Update all "Select..." placeholders
-  ['opt-cat-ph','opt-prov-ph','opt-bench-ph','opt-from-ph','opt-dest-ph','opt-heard-ph'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.textContent=t.sel;
-  });
-  s('l-heard',t.l_heard);
-  s('l-km40',t.l_km40);s('l-asap',t.l_asap);s('l-datefrom',t.l_datefrom);
-  s('l-pcat',t.l_pcat);
-  s('opt-cat-ph',t.opt_cat_ph);s('opt-cat-acoustic',t.opt_cat_acoustic);
-  s('opt-cat-preloved',t.opt_cat_preloved);s('opt-cat-digital',t.opt_cat_digital);s('opt-cat-consign',t.opt_cat_consign);
-  s('l-ptype',t.l_ptype);
-  s('l-consign-note',t.l_consign_note||'');
-  // refresh subtype labels when language changes
-  const curCat = document.getElementById('pianoCat')?.value;
-  if(curCat) onCatChange();
+  s('a-headphones',t.a_headphones);s('a-casters',t.a_casters);s('a-liquid',t.a_liquid);s('a-cover',t.a_cover);
+  s('l-benchtype',t.l_benchtype);s('l-pianoNotes',t.l_pianoNotes);
   s('humNote',t.humNote,true);s('humLabel',t.humLabel);
   s('pdfName',t.pdfFile);
   if(!pdfRead){
@@ -1069,8 +928,6 @@ function setLang(l){
   s('submitBtn',t.submitBtn);
   s('staffSepLabel',t.staffSep);
   s('l-invoice',t.l_invoice);s('l-from',t.l_from);s('l-oldpiano',t.l_oldpiano);s('l-surcharge',t.l_surcharge);
-  s('opt-dest-recycle',t.opt_dest_recycle||'Recycle / Éco-Centre');
-  s('opt-dest-second',t.opt_dest_second||'Deuxième livraison');
   s('sd-staff2',t.sd_staff2);
   s('l-cheque',t.l_cheque);s('yn-chq-yes',t.yn_chq_yes);s('yn-chq-no',t.yn_chq_no);
   s('l-review',t.l_review);s('yn-rev-yes',t.yn_rev_yes);s('yn-rev-no',t.yn_rev_no);
@@ -1083,174 +940,6 @@ function setLang(l){
   updateProgress();
 }
 
-
-
-// ── ASAP TOGGLE ───────────────────────────────
-function toggleAsap(on){
-  document.getElementById('dateFromRow').style.display = on ? 'none' : 'block';
-  if(on) document.getElementById('deliveryDate').value = '';
-}
-
-// ── PIANO CATEGORY / TYPE LOGIC ───────────────
-const ACOUSTIC_SUBTYPES = ['Kawai Grand','Kawai Upright','Kawai Upright ATX/Aures','Kawai Grand ATX/Aures','C. Bechstein'];
-const DIGITAL_SUBTYPES  = ['Kawai CX / KDP / ES','Kawai CN / VA / DG / NV','Casio'];
-
-// PDF map — keys are subtype values, values are [fr,en,zh] filenames
-// Use placeholders until real PDFs are ready
-const PDF_MAP = {
-  acoustic: {
-    'Kawai Grand':             ['Garantie_Kawai_Grand_FR.pdf','Warranty_Kawai_Grand_EN.pdf','Warranty_Kawai_Grand_EN.pdf'],
-    'Kawai Upright':           ['Garantie_Kawai_Upright_FR.pdf','Warranty_Kawai_Upright_EN.pdf','Warranty_Kawai_Upright_EN.pdf'],
-    'Kawai Upright ATX/Aures': ['Garantie_Kawai_Upright_ATX_FR.pdf','Warranty_Kawai_Upright_ATX_EN.pdf','Warranty_Kawai_Upright_ATX_EN.pdf'],
-    'Kawai Grand ATX/Aures':   ['Garantie_Kawai_Grand_ATX_FR.pdf','Warranty_Kawai_Grand_ATX_EN.pdf','Warranty_Kawai_Grand_ATX_EN.pdf'],
-    'Shigeru Kawai':           ['Garantie_ShigeruKawai_FR.pdf','Warranty_ShigeruKawai_EN.pdf','Warranty_ShigeruKawai_EN.pdf'],
-    'C. Bechstein':            ['Garantie_Bechstein_FR.pdf','Warranty_Bechstein_EN.pdf','Warranty_Bechstein_EN.pdf'],
-    'Bösendorfer':             ['Garantie_Bosendorfer_FR.pdf','Warranty_Bosendorfer_EN.pdf','Warranty_Bosendorfer_EN.pdf'],
-    'Fazioli':                 ['Garantie_Fazioli_FR.pdf','Warranty_Fazioli_EN.pdf','Warranty_Fazioli_EN.pdf'],
-    'Blüthner':                ['Garantie_Bluthner_FR.pdf','Warranty_Bluthner_EN.pdf','Warranty_Bluthner_EN.pdf'],
-    'Schimmel':                ['Garantie_Schimmel_FR.pdf','Warranty_Schimmel_EN.pdf','Warranty_Schimmel_EN.pdf'],
-    'Mason & Hamlin':          ['Garantie_MasonHamlin_FR.pdf','Warranty_MasonHamlin_EN.pdf','Warranty_MasonHamlin_EN.pdf'],
-    'Estonia':                 ['Garantie_Estonia_FR.pdf','Warranty_Estonia_EN.pdf','Warranty_Estonia_EN.pdf'],
-    default:                   ['Garantie_Piano_Vertu_FR.pdf','Warranty_Piano_Vertu_EN.pdf','保修条款_Piano_Vertu_ZH.pdf'],
-  },
-  digital: {
-    'Kawai CX / KDP / ES':   ['Garantie_Kawai_Digital_FR.pdf','Warranty_Kawai_Digital_EN.pdf','Warranty_Kawai_Digital_EN.pdf'],
-    'Kawai CN / VA / DG / NV':['Garantie_Kawai_Digital_FR.pdf','Warranty_Kawai_Digital_EN.pdf','Warranty_Kawai_Digital_EN.pdf'],
-    'Casio':                  ['Garantie_Casio_FR.pdf','Warranty_Casio_EN.pdf','Warranty_Casio_EN.pdf'],
-    default:                  ['Garantie_Piano_Vertu_FR.pdf','Warranty_Piano_Vertu_EN.pdf','保修条款_Piano_Vertu_ZH.pdf'],
-  },
-  preloved: ['Garantie_Piano_Vertu_FR.pdf','Warranty_Piano_Vertu_EN.pdf','保修条款_Piano_Vertu_ZH.pdf'],
-};
-
-
-// Brand auto-fill map
-const BRAND_MAP = {
-  acoustic: {
-    'Kawai Grand': 'Kawai', 'Kawai Upright': 'Kawai',
-    'Kawai Upright ATX/Aures': 'Kawai', 'Kawai Grand ATX/Aures': 'Kawai',
-    'Shigeru Kawai': 'Shigeru Kawai',
-    'C. Bechstein': 'C. Bechstein',
-    'Bösendorfer': 'Bösendorfer',
-    'Fazioli': 'Fazioli',
-    'Blüthner': 'Blüthner',
-    'Schimmel': 'Schimmel',
-    'Mason & Hamlin': 'Mason & Hamlin',
-    'Estonia': 'Estonia',
-  },
-  digital: {
-    'Kawai CX / KDP / ES': 'Kawai', 'Kawai CN / VA / DG / NV': 'Kawai',
-    'Casio': 'Casio',
-  },
-};
-
-function setMake(val, readonly){
-  const makeEl = document.getElementById('make');
-  makeEl.value = val;
-  makeEl.readOnly = readonly;
-  makeEl.style.color = readonly ? 'var(--muted)' : 'var(--navy)';
-  makeEl.style.cursor = readonly ? 'default' : 'text';
-}
-
-function onCatChange(){
-  const cat = document.getElementById('pianoCat').value;
-  const subtypeRow = document.getElementById('subtypeRow');
-  const consignNote = document.getElementById('consignNote');
-  const makeEditRow = document.getElementById('makeEditRow');
-  const c5 = document.getElementById('c5');
-  const c4 = document.getElementById('c4');
-  const t = L[lang];
-
-  // Reset subtype & make
-  document.getElementById('pianoType').innerHTML = '<option value="">—</option>';
-  subtypeRow.style.display = 'none';
-  makeEditRow.style.display = 'none';
-  setMake('', true);
-
-  // Populate subtype options
-  if(cat === 'acoustic'){
-    subtypeRow.style.display = 'block';
-    const opts = [
-      ['Kawai Grand', t.opt_acoustic_1], ['Kawai Upright', t.opt_acoustic_2],
-      ['Kawai Upright ATX/Aures', t.opt_acoustic_3], ['Kawai Grand ATX/Aures', t.opt_acoustic_4],
-      ['Shigeru Kawai', t.opt_acoustic_5],
-      ['C. Bechstein', t.opt_acoustic_6],
-      ['Bösendorfer', t.opt_acoustic_7],
-      ['Fazioli', t.opt_acoustic_8],
-      ['Blüthner', t.opt_acoustic_9],
-      ['Schimmel', t.opt_acoustic_10],
-      ['Mason & Hamlin', t.opt_acoustic_11],
-      ['Estonia', t.opt_acoustic_12],
-    ];
-    opts.forEach(([v,label]) => {
-      const o = document.createElement('option'); o.value = v; o.textContent = label;
-      document.getElementById('pianoType').appendChild(o);
-    });
-  } else if(cat === 'digital'){
-    subtypeRow.style.display = 'block';
-    const opts = [
-      ['Kawai CX / KDP / ES', t.opt_digital_1],
-      ['Kawai CN / VA / DG / NV', t.opt_digital_2],
-      ['Casio', t.opt_digital_3]
-    ];
-    opts.forEach(([v,label]) => {
-      const o = document.createElement('option'); o.value = v; o.textContent = label;
-      document.getElementById('pianoType').appendChild(o);
-    });
-  } else if(cat === 'preloved'){
-    // Editable brand for pre-loved
-    makeEditRow.style.display = 'block';
-    setMake('', false);
-  } else if(cat === 'consignation'){
-    makeEditRow.style.display = 'block';
-    setMake('', false);
-  }
-
-  consignNote.style.display = cat === 'consignation' ? 'block' : 'none';
-
-  if(cat === 'consignation'){
-    c5.style.display = 'none';
-    c4.style.display = 'none';
-  } else {
-    c5.style.display = 'block';
-    c4.style.display = 'block';
-    if(cat === 'preloved') updatePdfGate('preloved', null);
-  }
-}
-
-function onTypeChange(){
-  const cat  = document.getElementById('pianoCat').value;
-  const type = document.getElementById('pianoType').value;
-  // Auto-fill brand
-  if(type && BRAND_MAP[cat]){
-    setMake(BRAND_MAP[cat][type] || '', true);
-  }
-  if(type) updatePdfGate(cat, type);
-}
-
-function updatePdfGate(cat, type){
-  let files;
-  if(cat === 'preloved'){
-    files = PDF_MAP.preloved;
-  } else if(cat === 'acoustic'){
-    files = (PDF_MAP.acoustic[type] || PDF_MAP.acoustic.default);
-  } else if(cat === 'digital'){
-    files = (PDF_MAP.digital[type] || PDF_MAP.digital.default);
-  } else return;
-
-  const langIdx = lang === 'fr' ? 0 : lang === 'en' ? 1 : 2;
-  const file = files[langIdx];
-
-  if(!pdfRead){
-    pdfOpened = false;
-    document.getElementById('pdfFrame').src = file;
-    document.getElementById('pdfName').textContent = file;
-    document.getElementById('pdfOverlay').classList.remove('gone');
-    document.getElementById('pdfFill').style.width = '0%';
-    document.getElementById('pdfBadge').textContent = L[lang].pdfBadge;
-    document.getElementById('pdfBadge').classList.remove('read');
-    document.getElementById('sigLock').classList.remove('open');
-  }
-}
 
 // ── CHECKBOX HANDLER ─────────────────────────
 function initCheckboxes(){
@@ -1268,10 +957,6 @@ function initCheckboxes(){
   });
 }
 initCheckboxes();
-// Wire ASAP toggle
-const asapInp = document.getElementById('asapCheck');
-if(asapInp) asapInp.addEventListener('change', () => toggleAsap(asapInp.checked));
-
 
 // ── RADIO HANDLER ─────────────────────────────
 function initRadios(){

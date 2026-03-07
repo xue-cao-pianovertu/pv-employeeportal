@@ -601,6 +601,8 @@ textarea{resize:none;min-height:72px;font-size:14px}
   </div>
 
 </div><!-- /mainForm -->
+
+<button onclick="fillMockData()" style="position:fixed;bottom:70px;right:16px;z-index:999;background:#1f6b4a;color:white;border:none;padding:10px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3)">🧪 Remplir données test</button>
 <button class="print-btn" onclick="window.print()">
   <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
   Imprimer / PDF
@@ -1268,6 +1270,85 @@ function initCheckboxes(){
   });
 }
 initCheckboxes();
+
+// ── TEST MODE ─────────────────────────────────
+function fillMockData(){
+  // Customer
+  document.getElementById('lastName').value   = 'Tremblay';
+  document.getElementById('firstName').value  = 'Marie';
+  document.getElementById('email').value      = 'marie.tremblay@test.com';
+  document.getElementById('phone1').value     = '+1 (514) 555-0123';
+  document.getElementById('phone2').value     = '+1 (514) 555-0124';
+  document.getElementById('heardFrom').value  = 'opt-google';
+
+  // Delivery
+  document.getElementById('street').value     = '123 Rue Sainte-Catherine';
+  document.getElementById('apt').value        = '4B';
+  document.getElementById('city').value       = 'Montréal';
+  document.getElementById('postal').value     = 'H2X 1Y6';
+  document.getElementById('km40Check').checked = true;
+  document.getElementById('floorText').value  = '3e étage';
+  document.querySelector('input[name="elevator"][value="yes"]').checked = true;
+  step('sout', 3); step('sin', 2); step('turns', 1);
+  document.querySelector('input[name="collect"][value="no"]').checked = true;
+  document.querySelector('input[name="recycle"][value="no"]').checked = true;
+  document.querySelector('input[name="crane"][value="no"]').checked = true;
+  document.getElementById('moverNotes').value = 'Disponible le matin seulement.';
+  document.getElementById('deliveryDate').value = new Date(Date.now()+7*86400000).toISOString().split('T')[0];
+  document.getElementById('deliveryNotes').value = 'Pas les week-ends';
+
+  // Piano
+  document.getElementById('pianoCat').value = 'acoustic';
+  onCatChange();
+  setTimeout(()=>{
+    document.getElementById('pianoType').value = 'Kawai Grand';
+    onTypeChange();
+  }, 50);
+  document.getElementById('model').value  = 'GX-6';
+  document.getElementById('serial').value = 'SN-2024-99887';
+  document.getElementById('color').value  = 'Noir laqué';
+
+  // Accessories
+  ['acc-assembly','acc-bench','acc-dampp'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && !el.checked){ el.checked=true; el.closest('.acc-item').classList.add('checked'); el.closest('.acc-item').querySelector('.acc-icon').textContent='✕'; }
+  });
+  revealEl('benchTypeRow', true);
+  document.getElementById('benchModel').value = 'Hydrau Virtuoso (Opus 305)';
+  document.getElementById('benchType').value  = 'Noir laqué';
+
+  // Humidity
+  const hum = document.getElementById('humCheck');
+  if(!hum.checked){ hum.checked=true; hum.closest('.cb-item').classList.add('checked'); hum.closest('.cb-item').querySelector('.cb-icon').textContent='✕'; }
+
+  // PDF — mark as read immediately
+  markRead();
+
+  // Signature
+  setTimeout(()=>{
+    const w = cv.offsetWidth;
+    ctx.beginPath(); ctx.moveTo(20,70); ctx.bezierCurveTo(60,30,100,110,140,70); ctx.bezierCurveTo(180,30,220,90,260,70); ctx.stroke();
+    hasSig = true;
+  }, 100);
+
+  // Agreement
+  const agree = document.getElementById('agreeCheck');
+  if(!agree.checked){ agree.checked=true; agree.closest('.agree-row').classList.add('checked'); agree.closest('.agree-row').querySelector('.cb-icon').textContent='✕'; }
+
+  // Staff
+  document.getElementById('invoiceNum').value     = 'INV-2024-0142';
+  document.getElementById('fromLocation').value   = '5193 – Tradition';
+  document.getElementById('oldPianoDest').value   = '5473 – Warehouse';
+  document.getElementById('surchargeAmount').value= '250';
+  document.querySelector('input[name="cheque"][value="no"]').checked  = true;
+  document.querySelector('input[name="review"][value="yes"]').checked = true;
+  document.querySelector('input[name="paid"][value="yes"]').checked   = true;
+  document.getElementById('staffNotes').value = 'Client très satisfait. Livraison sans problème.';
+
+  calcSurcharge();
+}
+
+
 // Wire ASAP toggle
 const asapInp = document.getElementById('asapCheck');
 if(asapInp) asapInp.addEventListener('change', () => toggleAsap(asapInp.checked));
