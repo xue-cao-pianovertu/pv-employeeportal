@@ -431,24 +431,6 @@ textarea{resize:none;min-height:72px;font-size:14px}
           <label class="lbl" id="l-benchmodel">Modèle de banc</label>
           <select id="benchModel">
             <option value="" id="opt-bench-ph">Sélectionner…</option>
-            <option>Double Adjustable Bench (OPUS 12)</option>
-            <option>Emperor Chair (Opus 10)</option>
-            <option>Ergo Hydraulic Made in Italy</option>
-            <option>Hydrau Bench K&amp;M Made in Germany</option>
-            <option>Hydrau Modern (Opus 06)</option>
-            <option>Hydrau Perfecto (Opus 205)</option>
-            <option>Hydrau Virtuoso (Opus 305)</option>
-            <option>Hydrau-Etude (Opus 102)</option>
-            <option>Imposant (OPUS 104)</option>
-            <option>Nocturne (OPUS 32)</option>
-            <option>Open-Cadenza (OPUS 007)</option>
-            <option>Banc Etude 4C PE</option>
-            <option>Banc Maestro (Opus 92)</option>
-            <option>Banc SONATA 1C PE</option>
-            <option>600</option>
-            <option>800</option>
-            <option>160</option>
-            <option id="opt-bench-other">Autre / Other</option>
           </select>
         </div>
         <div class="field">
@@ -616,6 +598,15 @@ textarea{resize:none;min-height:72px;font-size:14px}
 </div>
 
 <script>
+
+//── API Base for local testing ────────────────────────────
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:7072'
+  : '';
+function apiUrl(endpoint) {
+  return `${API_BASE}/api/${endpoint}`;
+}
+
 // ── EMAILJS CONFIG ────────────────────────────
 const EMAILJS_SERVICE  = 'service_bmg9k6m';
 const EMAILJS_TEMPLATE = 'template_8dmr44f';
@@ -1307,6 +1298,48 @@ function initRadios(){
   });
 }
 initRadios();
+
+
+//Benches
+async function loadBenches() {
+  try {
+    const res = await fetch(apiUrl('GetBenches'));
+    const benches = await res.json();
+
+    const select = document.getElementById('benchModel');
+
+    // Rebuild: placeholder + DB options + Autre
+    select.innerHTML = '';
+
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.id = 'opt-bench-ph';
+    ph.textContent = L[lang].sel;   // uses your existing translation system
+    select.appendChild(ph);
+
+    benches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = b.name;
+      if (b.description) opt.title = b.description;
+      select.appendChild(opt);
+    });
+
+    const autre = document.createElement('option');
+    autre.id = 'opt-bench-other';
+    autre.textContent = 'Autre / Other';
+    select.appendChild(autre);
+
+  } catch (err) {
+    console.error('Failed to load benches:', err);
+  }
+}
+
+//Init load
+document.addEventListener('DOMContentLoaded', function() {
+  // ... existing init ...
+  loadBenches();
+});
 
 // Init date
 document.getElementById('dateDisp').textContent=today.toLocaleDateString('fr-CA',{year:'numeric',month:'long',day:'numeric'});
