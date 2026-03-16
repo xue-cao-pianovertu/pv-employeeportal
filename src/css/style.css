@@ -133,6 +133,6 @@ textarea{resize:none;min-height:72px;font-size:14px}
 .reveal.on{display:block}
 
 
-body {
+html,body {
   overscroll-behavior-y: none;
 }
