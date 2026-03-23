@@ -23,9 +23,5 @@
   "globalHeaders": {
     "Cache-Control": "no-store"
   },
-  "responseOverrides": {
-    "401": {
-      "rewrite": "/login-staff.html"
-    }
-  }
+  "responseOverrides": {}
 }

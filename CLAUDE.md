@@ -205,6 +205,13 @@ pv-employeeportal/
 - `UpdateRegistration.GetUsername(req)` — extracts `unique_name` from JWT without full validation (Phase 6 will add full validation)
 - `UpdateRegistration.WriteAuditLog(conn, regId, changedBy, section, changes)` — called by all Update* functions
 
+### JWT claim mapping gotcha
+`JwtSecurityTokenHandler.ReadJwtToken()` remaps standard JWT claim names to .NET long-form equivalents by default:
+- `sub` → `ClaimTypes.NameIdentifier` (`http://schemas.xmlsoap.org/...`)
+- `unique_name` is non-standard and is NOT remapped (stays as `"unique_name"`)
+
+When reading the `sub` claim, always check both: `c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier`
+
 ---
 
 ## Staff Dashboard (`dashboard-staff.html`)
