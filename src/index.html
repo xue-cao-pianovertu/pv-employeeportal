@@ -2,6 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- Subdomain routing: staff.pianovertu.ca → staff login -->
+<script>
+  if (window.location.hostname.startsWith('staff.')) {
+    window.location.replace('/login-staff.html');
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Piano Vertu — Enregistrement</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
@@ -274,7 +280,7 @@
       <h3 id="t5">Garantie &amp; Consentement</h3><span class="sn">5/5</span>
     </div>
     <div class="card-bd">
-      <div class="pdf-gate" id="pdfGate">
+      <div class="pdf-gate" id="pdfGate" style="display:none">
         <div class="pdf-hd">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
          
@@ -295,8 +301,7 @@
         </div>
       </div>
 
-<!-- ADD after the closing </div> of the first pdf-gate and before <div class="sig-lock"> -->
-<div class="pdf-gate" id="tradeupGate">
+<div class="pdf-gate" id="tradeupGate" style="display:none">
   <div class="pdf-hd">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
     <div class="pdf-badge" id="tradeupBadge">Lire d'abord</div>
@@ -342,13 +347,13 @@
     </div>
   </div>
 
-  <!-- ── STAFF ── -->
-  <div class="staff-sep">
+  <!-- ── STAFF ── (hidden in registration form; filled via staff portal) -->
+  <div class="staff-sep" style="display:none">
     <div class="staff-sep-line"></div>
     <div class="staff-sep-label" id="staffSepLabel">— Section staff —</div>
     <div class="staff-sep-line"></div>
   </div>
-  <div class="card staff-card" id="cStaff">
+  <div class="card staff-card" id="cStaff" style="display:none">
     <div class="card-hd">
       <div class="card-ico"><svg width="13" height="13" fill="none" stroke="#c9a84c" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
       <h3 id="tStaff">À remplir par le personnel</h3>
@@ -418,6 +423,13 @@
   <p id="sMsg1">Merci ! Votre enregistrement Piano Vertu a été soumis avec succès.</p>
   <p id="sMsg2">Notre équipe vous contactera sous peu.</p>
   <div class="doc-ref" id="docRef"></div>
+  <div id="newAccountBox" style="display:none;margin-top:18px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.4);border-radius:10px;padding:16px 18px;text-align:left;max-width:340px;margin-left:auto;margin-right:auto">
+    <div style="font-size:12px;font-weight:600;color:#c9a84c;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Votre compte client</div>
+    <div style="font-size:13px;color:#374151;margin-bottom:5px">Identifiant : <strong id="newAccUser" style="color:#0d1f3c"></strong></div>
+    <div style="font-size:13px;color:#374151;margin-bottom:10px">Mot de passe : <strong id="newAccPass" style="font-family:monospace;font-size:15px;color:#0d1f3c;letter-spacing:0.1em"></strong></div>
+    <div style="font-size:11.5px;color:#6b7280;line-height:1.5">Ces informations vous ont été envoyées par courriel. Conservez-les pour accéder à votre espace client.</div>
+  </div>
+  <a href="/login-client.html" style="display:inline-block;margin-top:22px;padding:13px 28px;background:#0d1f3c;color:#fff;border-radius:9px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;text-decoration:none">Accéder à mon espace client →</a>
 </div>
 
 <script type="module" src="js/main.js"></script>

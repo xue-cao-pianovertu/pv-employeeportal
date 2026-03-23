@@ -27,8 +27,9 @@ const today = new Date();
 const todayISO = today.toISOString().split('T')[0];
 
 // ── EmailJS ───────────────────────────────────
-const EMAILJS_SERVICE  = 'service_bmg9k6m';
-const EMAILJS_TEMPLATE = 'template_8dmr44f';
+const EMAILJS_SERVICE           = 'service_bmg9k6m';
+const EMAILJS_TEMPLATE          = 'template_8dmr44f';   // staff notification
+const EMAILJS_TEMPLATE_CUSTOMER = 'template_customer';  // customer welcome — create in EmailJS dashboard
 
 // ── Init ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -174,6 +175,8 @@ function accList() {
   return items.join(', ') || 'Aucun';
 }
 
+const yn = v => v ? 'Oui' : 'Non';
+
 function showErr(msg) {
   const el = document.getElementById('errMsg');
   el.textContent = '⚠ ' + msg;
@@ -190,11 +193,14 @@ window.doSubmit = async function () {
   if (!g('lastName') || !g('firstName')) return showErr(t.eName);
   if (!g('email') || !g('email').includes('@')) return showErr(t.eEmail);
   if (!g('street')) return showErr(t.eStreet);
-  if (!g('make') && !g('makeEdit')) return showErr(t.eMake);
-  if (!g('serial')) return showErr(t.eSerial);
+  const manualEntry = document.getElementById('makeEditRow').style.display !== 'none';
+  if (manualEntry ? !g('makeEdit') : !g('make')) return showErr(t.eMake);
   if (!document.getElementById('asapCheck').checked && !g('deliveryDate')) return showErr(t.eDelDate);
   if (!document.getElementById('humCheck').checked) return showErr(t.eHum);
-  if (!getPdfRead() || !getTradeupRead()) return showErr(t.eNotRead);
+  const warrantyVisible = document.getElementById('pdfGate').style.display !== 'none';
+  const tradeupVisible  = document.getElementById('tradeupGate').style.display !== 'none';
+  if (warrantyVisible && !getPdfRead()) return showErr(t.eNotRead);
+  if (tradeupVisible  && !getTradeupRead()) return showErr(t.eNotRead);
   if (!document.getElementById('agreeCheck').checked) return showErr(t.eAgree);
   if (typeMode && !g('typedName')) return showErr(t.eTyped);
   if (!typeMode && !hasSig) return showErr(t.eDraw);
@@ -203,11 +209,9 @@ window.doSubmit = async function () {
   btn.disabled = true;
   btn.innerHTML = `<span class="spinner"></span>${t.submitting}`;
 
-  const ref = 'PV-' + Date.now();
   const surcharge = document.getElementById('surchargeWarn').classList.contains('on');
 
   const payload = {
-    ref_id: ref,
     language: lang.toUpperCase(),
     customer_last_name: g('lastName'),
     customer_first_name: g('firstName'),
@@ -250,15 +254,6 @@ window.doSubmit = async function () {
     humidity_confirmed: true,
     signature_type: typeMode ? 'typed' : 'drawn',
     signature_data: typeMode ? g('typedName') : (getSignatureDataUrl() || ''),
-    // Staff fields
-    invoice_number: g('invoiceNum') || '—',
-    from_location: g('fromLocation') || '—',
-    old_piano_dest: g('oldPianoDest') || '—',
-    surcharge_amount: parseFloat(g('surchargeAmount')) || 0,
-    cheque_to_collect: rb('cheque') === 'yes',
-    google_review: rb('review') === 'yes',
-    fully_paid: rb('paid') === 'yes',
-    staff_notes: g('staffNotes') || '—',
   };
 
   try {
@@ -266,6 +261,15 @@ window.doSubmit = async function () {
     try {
       await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
         ...payload,
+        // Human-readable overrides for email display
+        within_40km:       yn(payload.within_40km),
+        delivery_elevator: yn(payload.delivery_elevator),
+        collect_piano:     yn(payload.collect_piano),
+        recycle_piano:     yn(payload.recycle_piano),
+        crane_required:    yn(payload.crane_required),
+        delivery_asap:     yn(payload.delivery_asap),
+        surcharge_flag:    yn(payload.surcharge_flag),
+        humidity_confirmed: yn(payload.humidity_confirmed),
         customer_name: `${g('firstName')} ${g('lastName')}`,
         delivery_address: `${g('street')}${g('apt') ? ' #' + g('apt') : ''}, ${g('city')}, ${g('province')} ${g('postal')}`,
         purchase_date_display: today.toLocaleDateString(
@@ -277,11 +281,30 @@ window.doSubmit = async function () {
       console.warn('EmailJS error (non-fatal):', e);
     }
 
-    // TODO: replace with real SubmitRegistration Azure Function call
-    // await submitRegistration(payload);
+    const result = await submitRegistration(payload);
+
+    // Send customer welcome email with login credentials (non-blocking)
+    if (result.new_account) {
+      try {
+        await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE_CUSTOMER, {
+          to_email:        result.client_username,
+          customer_name:   `${g('firstName')} ${g('lastName')}`,
+          ref_id:          result.ref_id,
+          client_username: result.client_username,
+          client_password: result.client_password,
+        });
+      } catch (e) {
+        console.warn('Customer welcome email failed (non-fatal):', e);
+      }
+    }
 
     // Show success
-    document.getElementById('docRef').textContent = `Réf : ${ref}`;
+    document.getElementById('docRef').textContent = `Réf : ${result.ref_id}`;
+    if (result.new_account) {
+      document.getElementById('newAccUser').textContent = result.client_username;
+      document.getElementById('newAccPass').textContent = result.client_password;
+      document.getElementById('newAccountBox').style.display = 'block';
+    }
     document.getElementById('mainForm').style.display = 'none';
     document.getElementById('successScreen').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });

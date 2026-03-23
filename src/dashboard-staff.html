@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Piano Vertu — Tableau de bord</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f0eee9;
+      color: #0d1f3c;
+      min-height: 100svh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      background: #0d1f3c;
+      padding: 0 20px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .hd-left  { display: flex; align-items: center; gap: 12px; }
+    .hd-right { display: flex; align-items: center; gap: 10px; }
+    header img { height: 30px; }
+    .hd-title {
+      font-family: 'Playfair Display', serif;
+      color: #c9a84c;
+      font-size: 14px;
+      letter-spacing: 0.06em;
+    }
+    .user-badge { font-size: 13px; color: rgba(255,255,255,0.65); }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid rgba(201,168,76,0.45);
+      color: #c9a84c;
+      border-radius: 6px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .btn-logout:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── Toolbar ─────────────────────────────────────────────── */
+    .toolbar {
+      padding: 16px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 420px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 9px 12px 9px 34px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      color: #0d1f3c;
+      outline: none;
+    }
+    .search-input:focus { border-color: #c9a84c; }
+    .filter-select {
+      padding: 9px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      color: #0d1f3c;
+      outline: none;
+      cursor: pointer;
+    }
+    .filter-select:focus { border-color: #c9a84c; }
+    .count-badge {
+      font-size: 13px;
+      color: #6b7280;
+      margin-left: auto;
+    }
+
+    /* ── Table ───────────────────────────────────────────────── */
+    .table-wrap {
+      margin: 0 20px 20px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(13,31,60,0.07);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: #0d1f3c; color: #fff; }
+    th {
+      padding: 11px 14px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    td { padding: 11px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    tbody tr { cursor: pointer; transition: background 0.1s; }
+    tbody tr:hover { background: #faf9f7; }
+    tbody tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-potential  { background: #f3f4f6; color: #374151; }
+    .badge-completed  { background: #dbeafe; color: #1e40af; }
+    .badge-paid       { background: #dcfce7; color: #166534; }
+    .badge-partial    { background: #fef9ee; color: #92400e; }
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    /* ── Detail Panel ────────────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(13,31,60,0.35);
+      z-index: 200;
+    }
+    .overlay.open { display: block; }
+    .panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: min(520px, 100vw);
+      background: #fff;
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel.open { transform: translateX(0); }
+    .panel-header {
+      background: #0d1f3c;
+      color: #fff;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .panel-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: #c9a84c;
+    }
+    .panel-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .panel-close:hover { color: #fff; }
+    .panel-body {
+      overflow-y: auto;
+      flex: 1;
+      padding: 20px 18px;
+    }
+    .panel-section {
+      margin-bottom: 22px;
+    }
+    .panel-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #c9a84c;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .field-item { display: flex; flex-direction: column; gap: 2px; }
+    .field-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9ca3af;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .field-value { font-size: 13px; color: #111827; }
+    .field-value.mono { font-family: monospace; font-size: 13px; }
+    .field-full { grid-column: 1 / -1; }
+
+    /* Staff editable fields */
+    .staff-form { display: flex; flex-direction: column; gap: 10px; }
+    .staff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .staff-field { display: flex; flex-direction: column; gap: 4px; }
+    .staff-field.full { grid-column: 1 / -1; }
+    .staff-field label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9ca3af;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .staff-field input, .staff-field textarea, .staff-field select {
+      padding: 8px 10px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 7px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: #0d1f3c;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .staff-field input:focus,
+    .staff-field textarea:focus,
+    .staff-field select:focus { border-color: #c9a84c; background: #fff; }
+    .staff-field textarea { resize: vertical; min-height: 72px; }
+    .check-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .check-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+    .check-item input[type=checkbox] { width: 15px; height: 15px; accent-color: #c9a84c; cursor: pointer; }
+    .save-btn {
+      padding: 11px 20px;
+      background: #0d1f3c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s;
+      align-self: flex-start;
+    }
+    .save-btn:hover { background: #162f5a; }
+    .save-btn:disabled { opacity: 0.5; cursor: default; }
+    .save-msg {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: none;
+      align-self: center;
+    }
+    .save-msg.ok  { background: #dcfce7; color: #166534; display: block; }
+    .save-msg.err { background: #fef2f2; color: #991b1b; display: block; }
+    .spinner-sm {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Modifier toggle ─────────────────────────────────────── */
+    .panel-section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modifier-btn {
+      background: none;
+      border: 1px solid rgba(201,168,76,0.5);
+      color: #c9a84c;
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .modifier-btn:hover { background: rgba(201,168,76,0.1); }
+    .cancel-btn {
+      padding: 8px 14px;
+      border: 1.5px solid #e5e7eb;
+      background: #fff;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      color: #6b7280;
+      cursor: pointer;
+    }
+    .cancel-btn:hover { background: #f3f4f6; }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #0d1f3c;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 300;
+      transition: transform 0.22s ease;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Audit log ───────────────────────────────────────────── */
+    .audit-entry {
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 12px;
+    }
+    .audit-entry:last-child { border-bottom: none; }
+    .audit-meta { color: #6b7280; margin-bottom: 5px; }
+    .audit-meta strong { color: #0d1f3c; }
+    .audit-change {
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      color: #374151;
+      line-height: 1.6;
+    }
+    .audit-field { font-weight: 600; color: #0d1f3c; }
+    .audit-old   { color: #9ca3af; text-decoration: line-through; }
+    .audit-new   { color: #166534; }
+    .audit-section-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      color: #6b7280;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="hd-left">
+      <img src="/img/logo.png" alt="Piano Vertu">
+      <span class="hd-title">Personnel</span>
+    </div>
+    <div class="hd-right">
+      <span class="user-badge" id="userBadge"></span>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" id="searchInput" type="text" placeholder="Rechercher réf, client, piano…" oninput="renderTable()">
+    </div>
+    <select class="filter-select" id="filterPaid" onchange="renderTable()">
+      <option value="">Tous les statuts</option>
+      <option value="potential">Potentiel</option>
+      <option value="completed">Complété</option>
+      <option value="paid">Payé</option>
+      <option value="partially_paid">Part. payé</option>
+    </select>
+    <span class="count-badge" id="countBadge"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Réf</th>
+          <th>Date</th>
+          <th>Client</th>
+          <th>Téléphone</th>
+          <th>Piano</th>
+          <th>Catégorie</th>
+          <th>Facture</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none">Aucun enregistrement trouvé.</div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Detail panel overlay -->
+  <div class="overlay" id="overlay" onclick="closePanel()"></div>
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <h2 id="panelRef">—</h2>
+      <button class="panel-close" onclick="closePanel()">×</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────────
+    const token    = localStorage.getItem('pv_token');
+    const fullName = localStorage.getItem('pv_full_name');
+    if (!token) window.location.replace('/login-staff.html');
+    document.getElementById('userBadge').textContent = fullName || '';
+
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+    let allRows = [];
+
+    function logout() {
+      ['pv_token','pv_role','pv_full_name'].forEach(k => localStorage.removeItem(k));
+      window.location.replace('/login-staff.html');
+    }
+
+    // ── Load registrations ────────────────────────────────────
+    async function loadRegistrations() {
+      try {
+        const res  = await fetch(`${API_BASE}/api/GetRegistrations`);
+        allRows    = await res.json();
+        renderTable();
+      } catch (e) {
+        document.getElementById('emptyState').textContent = 'Erreur de chargement.';
+        document.getElementById('emptyState').style.display = 'block';
+      }
+    }
+
+    // ── Render table ──────────────────────────────────────────
+    function renderTable() {
+      const q      = document.getElementById('searchInput').value.toLowerCase();
+      const filter = document.getElementById('filterPaid').value;
+
+      const rows = allRows.filter(r => {
+        const text = [
+          r.ref_id, r.customer_last_name, r.customer_first_name,
+          r.customer_email, r.piano_make, r.piano_model, r.invoice_number,
+          r.category_name_fr
+        ].join(' ').toLowerCase();
+        if (q && !text.includes(q)) return false;
+        if (filter && (r.status || 'potential') !== filter) return false;
+        return true;
+      });
+
+      document.getElementById('countBadge').textContent = `${rows.length} enregistrement${rows.length !== 1 ? 's' : ''}`;
+      const tbody = document.getElementById('tableBody');
+      document.getElementById('emptyState').style.display = rows.length ? 'none' : 'block';
+
+      tbody.innerHTML = rows.map(r => {
+        const date  = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-CA') : '—';
+        const name  = `${r.customer_last_name || ''} ${r.customer_first_name || ''}`.trim() || '—';
+        const piano = [r.piano_make, r.piano_model].filter(Boolean).join(' ') || r.type_name_fr || '—';
+        const cat   = r.category_name_fr || '—';
+        const inv   = r.invoice_number || '—';
+        const statusMap = {
+          potential:     ['badge-potential', 'Potentiel'],
+          completed:     ['badge-completed', 'Complété'],
+          paid:          ['badge-paid',      'Payé'],
+          partially_paid:['badge-partial',   'Part. payé'],
+        };
+        const [badgeCls, badgeLbl] = statusMap[r.status || 'potential'] || statusMap.potential;
+        const paid = `<span class="badge ${badgeCls}">${badgeLbl}</span>`;
+        return `<tr onclick="openPanel(${r.id})">
+          <td style="font-family:monospace;font-size:12px;color:#c9a84c;font-weight:600">${r.ref_id}</td>
+          <td style="color:#6b7280">${date}</td>
+          <td>${name}</td>
+          <td>${r.customer_phone1 || '—'}</td>
+          <td>${piano}</td>
+          <td>${cat}</td>
+          <td>${inv}</td>
+          <td>${paid}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ── Detail panel ──────────────────────────────────────────
+    function openPanel(id) {
+      const r = allRows.find(x => x.id === id);
+      if (!r) return;
+
+      document.getElementById('panelRef').textContent = r.ref_id;
+      document.getElementById('panelBody').innerHTML  = buildPanelHTML(r);
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('panel').classList.add('open');
+      if (r.signature_blob_name) loadSignature(r.id, r.signature_blob_name);
+      loadAuditLog(r.id);
+    }
+
+    function closePanel() {
+      document.getElementById('overlay').classList.remove('open');
+      document.getElementById('panel').classList.remove('open');
+    }
+
+    function fv(val, fallback = '—') {
+      if (val === null || val === undefined || val === '') return fallback;
+      if (val === true  || val === 1)  return 'Oui';
+      if (val === false || val === 0)  return 'Non';
+      if (val instanceof Date || (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}/)))
+        return new Date(val).toLocaleDateString('fr-CA');
+      return val;
+    }
+
+    function buildPanelHTML(r) {
+      const name = `${r.customer_last_name || ''} ${r.customer_first_name || ''}`.trim();
+      const delivDateVal = r.delivery_date ? r.delivery_date.toString().split('T')[0] : '';
+      const purchDateVal = r.purchase_date ? r.purchase_date.toString().split('T')[0] : '';
+
+      return `
+        <!-- ── CLIENT ─────────────────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">
+            Client
+            <button type="button" class="modifier-btn" onclick="toggleEdit('clientEdit-${r.id}')">Modifier</button>
+          </div>
+          <div class="field-grid">
+            <div class="field-item field-full"><span class="field-label">Nom</span><span class="field-value">${name || '—'}</span></div>
+            <div class="field-item"><span class="field-label">Courriel</span><span class="field-value">${fv(r.customer_email)}</span></div>
+            <div class="field-item"><span class="field-label">Téléphone</span><span class="field-value">${fv(r.customer_phone1)}</span></div>
+            <div class="field-item field-full"><span class="field-label">Comment nous a-t-il connu</span><span class="field-value">${fv(r.heard_from)}</span></div>
+          </div>
+          <form id="clientEdit-${r.id}" class="staff-form" style="display:none;margin-top:12px" onsubmit="saveClient(event, ${r.id})">
+            <div class="staff-row">
+              <div class="staff-field"><label>Prénom</label><input type="text" name="customer_first_name" value="${r.customer_first_name || ''}"></div>
+              <div class="staff-field"><label>Nom</label><input type="text" name="customer_last_name" value="${r.customer_last_name || ''}"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field"><label>Courriel</label><input type="email" name="customer_email" value="${r.customer_email || ''}"></div>
+              <div class="staff-field"><label>Téléphone</label><input type="tel" name="customer_phone1" value="${r.customer_phone1 || ''}"></div>
+            </div>
+            <div class="staff-field full"><label>Comment nous a-t-il connu</label><input type="text" name="heard_from" value="${r.heard_from || ''}"></div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <button type="submit" class="save-btn" id="saveClientBtn-${r.id}">Sauvegarder</button>
+              <button type="button" class="cancel-btn" onclick="toggleEdit('clientEdit-${r.id}')">Annuler</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ── LIVRAISON ──────────────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">
+            Livraison
+            <button type="button" class="modifier-btn" onclick="toggleEdit('livraisonEdit-${r.id}')">Modifier</button>
+          </div>
+          <div class="field-grid">
+            <div class="field-item field-full"><span class="field-label">Adresse</span><span class="field-value">${[r.delivery_street, r.delivery_apt ? '#'+r.delivery_apt : null, r.delivery_city, r.delivery_province, r.delivery_postal].filter(Boolean).join(', ') || '—'}</span></div>
+            <div class="field-item"><span class="field-label">Dans 40 km</span><span class="field-value">${fv(r.within_40km)}</span></div>
+            <div class="field-item"><span class="field-label">Étage</span><span class="field-value">${fv(r.delivery_floor)}</span></div>
+            <div class="field-item"><span class="field-label">Ascenseur</span><span class="field-value">${fv(r.delivery_elevator)}</span></div>
+            <div class="field-item"><span class="field-label">Marches ext.</span><span class="field-value">${r.steps_outside ?? '—'}</span></div>
+            <div class="field-item"><span class="field-label">Marches int.</span><span class="field-value">${r.steps_inside ?? '—'}</span></div>
+            <div class="field-item"><span class="field-label">Virages escalier</span><span class="field-value">${r.stair_turns ?? '—'}</span></div>
+            <div class="field-item"><span class="field-label">Grue requise</span><span class="field-value">${fv(r.crane_required)}</span></div>
+            <div class="field-item"><span class="field-label">ASAP</span><span class="field-value">${fv(r.delivery_asap)}</span></div>
+            <div class="field-item"><span class="field-label">À partir de la date</span><span class="field-value">${fv(r.delivery_date)}</span></div>
+            <div class="field-item"><span class="field-label">Surcharge</span><span class="field-value">${fv(r.surcharge_flag)}</span></div>
+            ${r.delivery_notes ? `<div class="field-item field-full"><span class="field-label">Notes livraison</span><span class="field-value">${r.delivery_notes}</span></div>` : ''}
+            ${r.mover_notes    ? `<div class="field-item field-full"><span class="field-label">Notes déménageur</span><span class="field-value">${r.mover_notes}</span></div>` : ''}
+            <div class="field-item"><span class="field-label">Collecte ancien piano</span><span class="field-value">${fv(r.collect_piano)}</span></div>
+            ${r.collect_piano && r.collect_desc ? `<div class="field-item"><span class="field-label">Marque ancien piano</span><span class="field-value">${r.collect_desc}</span></div>` : '<div class="field-item"></div>'}
+            <div class="field-item"><span class="field-label">Recyclage</span><span class="field-value">${fv(r.recycle_piano)}</span></div>
+          </div>
+          <form id="livraisonEdit-${r.id}" class="staff-form" style="display:none;margin-top:12px" onsubmit="saveLivraison(event, ${r.id})">
+            <div class="staff-field full"><label>Rue</label><input type="text" name="delivery_street" value="${r.delivery_street || ''}"></div>
+            <div class="staff-row">
+              <div class="staff-field"><label>Appartement</label><input type="text" name="delivery_apt" value="${r.delivery_apt || ''}"></div>
+              <div class="staff-field"><label>Ville</label><input type="text" name="delivery_city" value="${r.delivery_city || ''}"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field"><label>Province</label><input type="text" name="delivery_province" value="${r.delivery_province || ''}"></div>
+              <div class="staff-field"><label>Code postal</label><input type="text" name="delivery_postal" value="${r.delivery_postal || ''}"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field"><label>Étage</label><input type="text" name="delivery_floor" value="${r.delivery_floor || ''}"></div>
+              <div class="staff-field"><label>À partir de la date</label><input type="date" name="delivery_date" value="${delivDateVal}"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field"><label>Marches ext.</label><input type="number" name="steps_outside" value="${r.steps_outside || 0}" min="0"></div>
+              <div class="staff-field"><label>Marches int.</label><input type="number" name="steps_inside" value="${r.steps_inside || 0}" min="0"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field"><label>Virages escalier</label><input type="number" name="stair_turns" value="${r.stair_turns || 0}" min="0"></div>
+              <div class="staff-field"><label>Marque ancien piano</label><input type="text" name="collect_desc" value="${r.collect_desc || ''}"></div>
+            </div>
+            <div class="check-row">
+              <label class="check-item"><input type="checkbox" name="within_40km" ${r.within_40km ? 'checked' : ''}> Dans 40 km</label>
+              <label class="check-item"><input type="checkbox" name="delivery_elevator" ${r.delivery_elevator ? 'checked' : ''}> Ascenseur</label>
+              <label class="check-item"><input type="checkbox" name="crane_required" ${r.crane_required ? 'checked' : ''}> Grue</label>
+              <label class="check-item"><input type="checkbox" name="delivery_asap" ${r.delivery_asap ? 'checked' : ''}> ASAP</label>
+              <label class="check-item"><input type="checkbox" name="collect_piano" ${r.collect_piano ? 'checked' : ''}> Collecte piano</label>
+              <label class="check-item"><input type="checkbox" name="recycle_piano" ${r.recycle_piano ? 'checked' : ''}> Recyclage</label>
+              <label class="check-item"><input type="checkbox" name="surcharge_flag" ${r.surcharge_flag ? 'checked' : ''}> Surcharge</label>
+            </div>
+            <div class="staff-field full"><label>Notes déménageur</label><textarea name="mover_notes">${r.mover_notes || ''}</textarea></div>
+            <div class="staff-field full"><label>Notes livraison</label><textarea name="delivery_notes">${r.delivery_notes || ''}</textarea></div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <button type="submit" class="save-btn" id="saveLivraisonBtn-${r.id}">Sauvegarder</button>
+              <button type="button" class="cancel-btn" onclick="toggleEdit('livraisonEdit-${r.id}')">Annuler</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ── PIANO ──────────────────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">
+            Piano
+            <button type="button" class="modifier-btn" onclick="toggleEdit('pianoEdit-${r.id}')">Modifier</button>
+          </div>
+          <div class="field-grid">
+            <div class="field-item"><span class="field-label">Catégorie</span><span class="field-value">${fv(r.category_name_fr)}</span></div>
+            <div class="field-item"><span class="field-label">Modèle catalogue</span><span class="field-value">${fv(r.type_name_fr)}</span></div>
+            <div class="field-item"><span class="field-label">Marque</span><span class="field-value">${fv(r.piano_make)}</span></div>
+            <div class="field-item"><span class="field-label">Modèle</span><span class="field-value">${fv(r.piano_model)}</span></div>
+            <div class="field-item"><span class="field-label">N° de série</span><span class="field-value mono">${fv(r.piano_serial)}</span></div>
+            <div class="field-item"><span class="field-label">Couleur / Fini</span><span class="field-value">${fv(r.piano_color)}</span></div>
+            <div class="field-item"><span class="field-label">Date d'achat</span><span class="field-value">${fv(r.purchase_date)}</span></div>
+            <div class="field-item"><span class="field-label">Banc</span><span class="field-value">${fv(r.bench_name)}</span></div>
+            ${r.accessories ? `<div class="field-item field-full"><span class="field-label">Autres accessoires</span><span class="field-value">${r.accessories}</span></div>` : ''}
+            ${r.piano_notes  ? `<div class="field-item field-full"><span class="field-label">Notes piano</span><span class="field-value">${r.piano_notes}</span></div>` : ''}
+          </div>
+          <form id="pianoEdit-${r.id}" class="staff-form" style="display:none;margin-top:12px" onsubmit="savePiano(event, ${r.id})">
+            <div class="staff-row">
+              <div class="staff-field"><label>Marque</label><input type="text" name="piano_make" value="${r.piano_make || ''}"></div>
+              <div class="staff-field"><label>Modèle</label><input type="text" name="piano_model" value="${r.piano_model || ''}"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field"><label>Couleur / Fini</label><input type="text" name="piano_color" value="${r.piano_color || ''}"></div>
+              <div class="staff-field"><label>Date d'achat</label><input type="date" name="purchase_date" value="${purchDateVal}"></div>
+            </div>
+            <div class="staff-field full"><label>Autres accessoires</label><input type="text" name="accessories" value="${r.accessories || ''}"></div>
+            <div class="staff-field full"><label>Notes piano</label><textarea name="piano_notes">${r.piano_notes || ''}</textarea></div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <button type="submit" class="save-btn" id="savePianoBtn-${r.id}">Sauvegarder</button>
+              <button type="button" class="cancel-btn" onclick="toggleEdit('pianoEdit-${r.id}')">Annuler</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ── DOCUMENTS & SIGNATURE ──────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">Documents &amp; Signature</div>
+          <div class="field-grid">
+            <div class="field-item"><span class="field-label">Garantie PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.warranty_pdf_blob)}</span></div>
+            <div class="field-item"><span class="field-label">Échange PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.tradeup_pdf_blob)}</span></div>
+            <div class="field-item"><span class="field-label">Type signature</span><span class="field-value">${fv(r.signature_type)}</span></div>
+            <div class="field-item"><span class="field-label">Signé le</span><span class="field-value">${fv(r.signed_at)}</span></div>
+            <div class="field-item"><span class="field-label">Humidité confirmée</span><span class="field-value">${fv(r.humidity_confirmed)}</span></div>
+          </div>
+          ${r.signature_blob_name ? `
+          <div style="margin-top:12px">
+            <div class="field-label" style="margin-bottom:6px">Signature</div>
+            <div id="sigBox-${r.id}" style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fafafa;min-height:60px">
+              <span style="font-size:12px;color:#9ca3af">Chargement…</span>
+            </div>
+          </div>` : r.signature_type === 'typed' ? `
+          <div style="margin-top:12px">
+            <div class="field-label" style="margin-bottom:6px">Signature (tapée)</div>
+            <div style="font-family:'Playfair Display',serif;font-size:20px;color:#0d1f3c;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa">${r.customer_first_name || ''} ${r.customer_last_name || ''}</div>
+          </div>` : ''}
+        </div>
+
+        <!-- ── CHAMPS PERSONNEL ───────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">Champs personnel</div>
+          <form class="staff-form" onsubmit="saveStaff(event, ${r.id})">
+            <div class="staff-row">
+              <div class="staff-field">
+                <label>N° Facture</label>
+                <input type="text" name="invoice_number" value="${r.invoice_number || ''}">
+              </div>
+              <div class="staff-field">
+                <label>N° de série</label>
+                <input type="text" name="piano_serial" value="${r.piano_serial || ''}" placeholder="SN-XXXX">
+              </div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field">
+                <label>Provenance</label>
+                <select name="from_location">
+                  <option value="">Sélectionner…</option>
+                  ${['5193 – Tradition','5223 – Signature','3830 – Expérience','5473 – Warehouse','Client pick up / Collecte par client'].map(o =>
+                    `<option${r.from_location === o ? ' selected' : ''}>${o}</option>`).join('')}
+                </select>
+              </div>
+              <div class="staff-field">
+                <label>Destination ancien piano</label>
+                <select name="old_piano_dest">
+                  <option value="">Sélectionner…</option>
+                  ${['5193 – Tradition','5223 – Signature','3830 – Expérience','5473 – Warehouse','Recycle / Éco-Centre','Deuxième livraison'].map(o =>
+                    `<option${r.old_piano_dest === o ? ' selected' : ''}>${o}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field">
+                <label>Prix de vente ($)</label>
+                <input type="number" step="0.01" name="price" value="${r.price != null ? r.price : ''}">
+              </div>
+              <div class="staff-field">
+                <label>Montant surcharge ($)</label>
+                <input type="number" step="0.01" name="surcharge_amount" value="${r.surcharge_amount || 0}">
+              </div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field">
+                <label>Statut</label>
+                <select name="status">
+                  <option value="potential"${(r.status||'potential')==='potential'?' selected':''}>Potentiel</option>
+                  <option value="completed"${r.status==='completed'?' selected':''}>Complété</option>
+                  <option value="paid"${r.status==='paid'?' selected':''}>Payé</option>
+                  <option value="partially_paid"${r.status==='partially_paid'?' selected':''}>Part. payé</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-row">
+              <label class="check-item">
+                <input type="checkbox" name="cheque_to_collect" ${r.cheque_to_collect ? 'checked' : ''}>
+                Chèque à collecter
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="google_review" ${r.google_review ? 'checked' : ''}>
+                Avis Google demandé
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="fully_paid" ${r.fully_paid ? 'checked' : ''}>
+                Entièrement payé
+              </label>
+            </div>
+            <div class="staff-field full">
+              <label>Notes personnel</label>
+              <textarea name="staff_notes">${r.staff_notes || ''}</textarea>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <button type="submit" class="save-btn" id="saveBtn-${r.id}">Sauvegarder</button>
+              <span class="save-msg" id="saveMsg-${r.id}"></span>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">Historique des modifications</div>
+          <div id="auditLog-${r.id}">
+            <span style="font-size:12px;color:#9ca3af">Chargement…</span>
+          </div>
+        </div>`;
+    }
+
+    async function saveStaff(e, id) {
+      e.preventDefault();
+      const form    = e.target;
+      const btn     = document.getElementById(`saveBtn-${id}`);
+      const msg     = document.getElementById(`saveMsg-${id}`);
+      msg.className = 'save-msg';
+      btn.disabled  = true;
+      btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
+
+      const body = {
+        id,
+        invoice_number:   form.invoice_number.value.trim()   || null,
+        piano_serial:     form.piano_serial.value.trim()     || null,
+        from_location:    form.from_location.value           || null,
+        old_piano_dest:   form.old_piano_dest.value          || null,
+        surcharge_amount: parseFloat(form.surcharge_amount.value) || 0,
+        price:            form.price.value !== '' ? parseFloat(form.price.value) : null,
+        cheque_to_collect: form.cheque_to_collect.checked,
+        google_review:     form.google_review.checked,
+        fully_paid:        form.fully_paid.checked,
+        staff_notes:       form.staff_notes.value.trim()     || null,
+        status:            form.status.value                 || 'potential',
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/UpdateRegistration`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          // Sync local cache
+          const idx = allRows.findIndex(r => r.id === id);
+          if (idx >= 0) Object.assign(allRows[idx], body);
+          renderTable();
+          loadAuditLog(id);
+          msg.textContent = '✓ Sauvegardé';
+          msg.className   = 'save-msg ok';
+        } else {
+          const data = await res.json();
+          msg.textContent = data.error || 'Erreur';
+          msg.className   = 'save-msg err';
+        }
+      } catch {
+        msg.textContent = 'Erreur réseau';
+        msg.className   = 'save-msg err';
+      }
+
+      btn.disabled  = false;
+      btn.textContent = 'Sauvegarder';
+      setTimeout(() => { msg.className = 'save-msg'; }, 3000);
+    }
+
+    function toggleEdit(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    async function saveClient(e, id) {
+      e.preventDefault();
+      const btn = document.getElementById(`saveClientBtn-${id}`);
+      btn.disabled  = true;
+      btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
+      const form = e.target;
+      const body = {
+        id,
+        customer_first_name: form.customer_first_name.value.trim() || null,
+        customer_last_name:  form.customer_last_name.value.trim()  || null,
+        customer_email:      form.customer_email.value.trim()      || null,
+        customer_phone1:     form.customer_phone1.value.trim()     || null,
+        heard_from:          form.heard_from.value.trim()          || null,
+      };
+      try {
+        const res = await fetch(`${API_BASE}/api/UpdateClientInfo`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          const idx = allRows.findIndex(r => r.id === id);
+          if (idx >= 0) Object.assign(allRows[idx], body);
+          renderTable();
+          showToast('✓ Client corrigé');
+          openPanel(id);
+        } else {
+          const data = await res.json();
+          showToast('Erreur : ' + (data.error || 'Échec'));
+          btn.disabled = false; btn.textContent = 'Sauvegarder';
+        }
+      } catch {
+        showToast('Erreur réseau');
+        btn.disabled = false; btn.textContent = 'Sauvegarder';
+      }
+    }
+
+    async function saveLivraison(e, id) {
+      e.preventDefault();
+      const btn = document.getElementById(`saveLivraisonBtn-${id}`);
+      btn.disabled  = true;
+      btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
+      const form = e.target;
+      const body = {
+        id,
+        delivery_street:    form.delivery_street.value.trim()   || null,
+        delivery_apt:       form.delivery_apt.value.trim()      || null,
+        delivery_city:      form.delivery_city.value.trim()     || null,
+        delivery_province:  form.delivery_province.value.trim() || null,
+        delivery_postal:    form.delivery_postal.value.trim()   || null,
+        within_40km:        form.within_40km.checked,
+        delivery_floor:     form.delivery_floor.value.trim()    || null,
+        delivery_elevator:  form.delivery_elevator.checked,
+        steps_outside:      parseInt(form.steps_outside.value)  || 0,
+        steps_inside:       parseInt(form.steps_inside.value)   || 0,
+        stair_turns:        parseInt(form.stair_turns.value)    || 0,
+        crane_required:     form.crane_required.checked,
+        delivery_asap:      form.delivery_asap.checked,
+        delivery_date:      form.delivery_date.value            || null,
+        delivery_notes:     form.delivery_notes.value.trim()    || null,
+        mover_notes:        form.mover_notes.value.trim()       || null,
+        collect_piano:      form.collect_piano.checked,
+        collect_desc:       form.collect_desc.value.trim()      || null,
+        recycle_piano:      form.recycle_piano.checked,
+        surcharge_flag:     form.surcharge_flag.checked,
+      };
+      try {
+        const res = await fetch(`${API_BASE}/api/UpdateLivraison`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          const idx = allRows.findIndex(r => r.id === id);
+          if (idx >= 0) Object.assign(allRows[idx], body);
+          renderTable();
+          showToast('✓ Livraison sauvegardée');
+          openPanel(id);
+        } else {
+          const data = await res.json();
+          showToast('Erreur : ' + (data.error || 'Échec'));
+          btn.disabled = false; btn.textContent = 'Sauvegarder';
+        }
+      } catch {
+        showToast('Erreur réseau');
+        btn.disabled = false; btn.textContent = 'Sauvegarder';
+      }
+    }
+
+    async function savePiano(e, id) {
+      e.preventDefault();
+      const btn = document.getElementById(`savePianoBtn-${id}`);
+      btn.disabled  = true;
+      btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
+      const form = e.target;
+      const body = {
+        id,
+        piano_make:    form.piano_make.value.trim()    || null,
+        piano_model:   form.piano_model.value.trim()   || null,
+        piano_color:   form.piano_color.value.trim()   || null,
+        purchase_date: form.purchase_date.value        || null,
+        accessories:   form.accessories.value.trim()   || null,
+        piano_notes:   form.piano_notes.value.trim()   || null,
+      };
+      try {
+        const res = await fetch(`${API_BASE}/api/UpdatePiano`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          const idx = allRows.findIndex(r => r.id === id);
+          if (idx >= 0) Object.assign(allRows[idx], body);
+          renderTable();
+          showToast('✓ Piano sauvegardé');
+          openPanel(id);
+        } else {
+          const data = await res.json();
+          showToast('Erreur : ' + (data.error || 'Échec'));
+          btn.disabled = false; btn.textContent = 'Sauvegarder';
+        }
+      } catch {
+        showToast('Erreur réseau');
+        btn.disabled = false; btn.textContent = 'Sauvegarder';
+      }
+    }
+
+    // ── Audit log ─────────────────────────────────────────────
+    const FIELD_LABELS = {
+      invoice_number:     'Facture #',
+      from_location:      'Provenance',
+      old_piano_dest:     'Dest. ancien piano',
+      surcharge_amount:   'Surcharge $',
+      price:              'Prix $',
+      cheque_to_collect:  'Chèque à collecter',
+      google_review:      'Avis Google',
+      fully_paid:         'Entièrement payé',
+      staff_notes:        'Notes personnel',
+      piano_serial:       'N° de série',
+      status:             'Statut',
+      customer_first_name:'Prénom',
+      customer_last_name: 'Nom',
+      customer_email:     'Courriel',
+      customer_phone1:    'Téléphone',
+      customer_phone2:    'Téléphone 2',
+      heard_from:         'Comment connu',
+      delivery_street:    'Rue',
+      delivery_apt:       'Appartement',
+      delivery_city:      'Ville',
+      delivery_province:  'Province',
+      delivery_postal:    'Code postal',
+      within_40km:        'Dans 40 km',
+      delivery_floor:     'Étage',
+      delivery_elevator:  'Ascenseur',
+      steps_outside:      'Marches ext.',
+      steps_inside:       'Marches int.',
+      stair_turns:        'Virages escalier',
+      crane_required:     'Grue requise',
+      delivery_asap:      'ASAP',
+      delivery_date:      'À partir de la date',
+      delivery_notes:     'Notes livraison',
+      mover_notes:        'Notes déménageur',
+      collect_piano:      'Collecte ancien piano',
+      collect_desc:       'Marque ancien piano',
+      recycle_piano:      'Recyclage',
+      surcharge_flag:     'Surcharge',
+      piano_make:         'Marque',
+      piano_model:        'Modèle',
+      piano_color:        'Couleur / Fini',
+      purchase_date:      "Date d'achat",
+      accessories:        'Autres accessoires',
+      piano_notes:        'Notes piano',
+      bench_notes:        'Notes banc',
+    };
+
+    async function loadAuditLog(id) {
+      const box = document.getElementById(`auditLog-${id}`);
+      if (!box) return;
+      try {
+        const res  = await fetch(`${API_BASE}/api/GetAuditLog?id=${id}`);
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Aucune modification enregistrée.</span>';
+          return;
+        }
+        box.innerHTML = data.map(entry => {
+          const changes = JSON.parse(entry.changes_json);
+          const date    = new Date(entry.changed_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' });
+          const sectionLabels = { client: 'client', livraison: 'livraison', piano: 'piano', staff: 'personnel' };
+          const sectionLabel = sectionLabels[entry.section] || entry.section;
+          const lines   = Object.entries(changes).map(([field, { old: o, new: n }]) => {
+            const label = FIELD_LABELS[field] || field;
+            return `<div class="audit-change">
+              <span class="audit-field">${label} :</span>
+              <span class="audit-old">${o ?? '—'}</span>
+              <span style="color:#9ca3af">→</span>
+              <span class="audit-new">${n ?? '—'}</span>
+            </div>`;
+          }).join('');
+          return `<div class="audit-entry">
+            <div class="audit-meta">
+              <strong>${entry.changed_by}</strong>
+              <span class="audit-section-badge">${sectionLabel}</span>
+              &nbsp;·&nbsp; ${date}
+            </div>
+            ${lines}
+          </div>`;
+        }).join('');
+      } catch {
+        box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Erreur de chargement.</span>';
+      }
+    }
+
+    // Load signature image after panel opens
+    async function loadSignature(id, blobName) {
+      const box = document.getElementById(`sigBox-${id}`);
+      if (!box) return;
+      try {
+        const res  = await fetch(`${API_BASE}/api/GetSignatureUrl?blob=${encodeURIComponent(blobName)}`);
+        const data = await res.json();
+        if (data.url) {
+          box.innerHTML = `<img src="${data.url}" alt="Signature" style="max-width:100%;max-height:120px;display:block">`;
+        } else {
+          box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Non disponible</span>';
+        }
+      } catch {
+        box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Erreur de chargement</span>';
+      }
+    }
+
+    loadRegistrations();
+  </script>
+</body>
+</html>

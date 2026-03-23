@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Piano Vertu — Espace client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f0eee9;
+      color: #0d1f3c;
+      min-height: 100svh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      background: #0d1f3c;
+      padding: 0 20px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .hd-left  { display: flex; align-items: center; gap: 12px; }
+    .hd-right { display: flex; align-items: center; gap: 10px; }
+    header img { height: 30px; }
+    .hd-title {
+      font-family: 'Playfair Display', serif;
+      color: #c9a84c;
+      font-size: 14px;
+      letter-spacing: 0.06em;
+    }
+    .user-badge { font-size: 13px; color: rgba(255,255,255,0.65); }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid rgba(201,168,76,0.45);
+      color: #c9a84c;
+      border-radius: 6px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .btn-logout:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── Page content ────────────────────────────────────────── */
+    .page-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #0d1f3c;
+      margin-bottom: 4px;
+    }
+    .page-sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+
+    /* ── Badge ───────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-potential  { background: #f3f4f6; color: #374151; }
+    .badge-completed  { background: #dbeafe; color: #1e40af; }
+    .badge-paid       { background: #dcfce7; color: #166534; }
+    .badge-partial    { background: #fef9ee; color: #92400e; }
+
+    /* ── Registration cards ──────────────────────────────────── */
+    .cards { display: flex; flex-direction: column; gap: 12px; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(13,31,60,0.07);
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.1s;
+      border: 1.5px solid transparent;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(13,31,60,0.12);
+      transform: translateY(-1px);
+      border-color: rgba(201,168,76,0.3);
+    }
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .card-ref {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #c9a84c;
+    }
+    .card-date {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .card-piano {
+      font-size: 15px;
+      font-weight: 500;
+      color: #0d1f3c;
+      margin-bottom: 4px;
+    }
+    .card-cat {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-addr {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    .empty-state strong {
+      display: block;
+      font-size: 16px;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    /* ── Detail Panel ────────────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(13,31,60,0.35);
+      z-index: 200;
+    }
+    .overlay.open { display: block; }
+    .panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: min(520px, 100vw);
+      background: #fff;
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel.open { transform: translateX(0); }
+    .panel-header {
+      background: #0d1f3c;
+      color: #fff;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .panel-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: #c9a84c;
+    }
+    .panel-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .panel-close:hover { color: #fff; }
+    .panel-body {
+      overflow-y: auto;
+      flex: 1;
+      padding: 20px 18px;
+    }
+    .panel-section { margin-bottom: 22px; }
+    .panel-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #c9a84c;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .field-item { display: flex; flex-direction: column; gap: 2px; }
+    .field-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9ca3af;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .field-value { font-size: 13px; color: #111827; }
+    .field-value.mono { font-family: monospace; font-size: 13px; }
+    .field-full { grid-column: 1 / -1; }
+
+    /* ── Loading spinner ─────────────────────────────────────── */
+    .loading-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 64px 0;
+    }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #c9a84c;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-sm {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="hd-left">
+      <img src="/img/logo.png" alt="Piano Vertu">
+      <span class="hd-title">Espace client</span>
+    </div>
+    <div class="hd-right">
+      <span class="user-badge" id="userBadge"></span>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <div class="page-inner">
+    <div class="page-title">Mes enregistrements</div>
+    <div class="page-sub" id="pageSub">Chargement…</div>
+    <div id="content">
+      <div class="loading-wrap"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- Detail panel overlay -->
+  <div class="overlay" id="overlay" onclick="closePanel()"></div>
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <h2 id="panelRef">—</h2>
+      <button class="panel-close" onclick="closePanel()">×</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+
+  <script>
+    // ── Auth guard ────────────────────────────────────────────
+    const token    = localStorage.getItem('pv_token');
+    const role     = localStorage.getItem('pv_role');
+    const fullName = localStorage.getItem('pv_full_name');
+
+    if (!token || role !== 'customer') {
+      window.location.replace('/login-client.html');
+    }
+
+    document.getElementById('userBadge').textContent = fullName || '';
+
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+    let allRows = [];
+
+    function logout() {
+      ['pv_token','pv_role','pv_full_name'].forEach(k => localStorage.removeItem(k));
+      window.location.replace('/login-client.html');
+    }
+
+    // ── Load registrations ────────────────────────────────────
+    async function loadRegistrations() {
+      try {
+        const res = await fetch(`${API_BASE}/api/GetMyRegistrations`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (res.status === 401) {
+          logout();
+          return;
+        }
+
+        allRows = await res.json();
+        renderCards();
+      } catch {
+        document.getElementById('pageSub').textContent = '';
+        document.getElementById('content').innerHTML =
+          '<div class="empty-state"><strong>Erreur de chargement</strong>Veuillez réessayer plus tard.</div>';
+      }
+    }
+
+    // ── Status helpers ────────────────────────────────────────
+    const statusMap = {
+      potential:      ['badge-potential', 'En attente'],
+      completed:      ['badge-completed', 'Complété'],
+      paid:           ['badge-paid',      'Payé'],
+      partially_paid: ['badge-partial',   'Part. payé'],
+    };
+
+    function statusBadge(status) {
+      const [cls, lbl] = statusMap[status || 'potential'] || statusMap.potential;
+      return `<span class="badge ${cls}">${lbl}</span>`;
+    }
+
+    // ── Render cards ──────────────────────────────────────────
+    function renderCards() {
+      const sub = document.getElementById('pageSub');
+      sub.textContent = allRows.length
+        ? `${allRows.length} enregistrement${allRows.length !== 1 ? 's' : ''}`
+        : '';
+
+      const content = document.getElementById('content');
+
+      if (allRows.length === 0) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <strong>Aucun enregistrement</strong>
+            Vos enregistrements de piano apparaîtront ici.
+          </div>`;
+        return;
+      }
+
+      content.innerHTML = `<div class="cards">${allRows.map(r => {
+        const date  = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-CA') : '—';
+        const piano = [r.piano_make, r.piano_model].filter(Boolean).join(' ') || r.type_name_fr || '—';
+        const cat   = r.category_name_fr || '—';
+        const city  = [r.delivery_city, r.delivery_province].filter(Boolean).join(', ');
+
+        return `
+          <div class="card" onclick="openPanel(${r.id})">
+            <div class="card-top">
+              <span class="card-ref">${r.ref_id}</span>
+              <span class="card-date">${date}</span>
+            </div>
+            <div class="card-piano">${piano}</div>
+            <div class="card-cat">${cat}</div>
+            <div class="card-footer">
+              <span class="card-addr">${city || '—'}</span>
+              ${statusBadge(r.status)}
+            </div>
+          </div>`;
+      }).join('')}</div>`;
+    }
+
+    // ── Detail panel ──────────────────────────────────────────
+    function openPanel(id) {
+      const r = allRows.find(x => x.id === id);
+      if (!r) return;
+      document.getElementById('panelRef').textContent = r.ref_id;
+      document.getElementById('panelBody').innerHTML  = buildPanelHTML(r);
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('panel').classList.add('open');
+      if (r.signature_blob_name) loadSignature(r.id, r.signature_blob_name);
+    }
+
+    function closePanel() {
+      document.getElementById('overlay').classList.remove('open');
+      document.getElementById('panel').classList.remove('open');
+    }
+
+    function fv(val, fallback = '—') {
+      if (val === null || val === undefined || val === '') return fallback;
+      if (val === true  || val === 1)  return 'Oui';
+      if (val === false || val === 0)  return 'Non';
+      if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}/))
+        return new Date(val).toLocaleDateString('fr-CA');
+      return val;
+    }
+
+    function buildPanelHTML(r) {
+      const name        = `${r.customer_last_name || ''} ${r.customer_first_name || ''}`.trim();
+      const delivAsap   = r.delivery_asap;
+      const delivDate   = r.delivery_date ? new Date(r.delivery_date).toLocaleDateString('fr-CA') : null;
+
+      return `
+        <!-- ── STATUT ───────────────────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">Statut</div>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Référence</span>
+              <span class="field-value mono" style="color:#c9a84c;font-weight:600">${r.ref_id}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Statut</span>
+              <span class="field-value">${statusBadge(r.status)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Date d'enregistrement</span>
+              <span class="field-value">${fv(r.created_at)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Langue</span>
+              <span class="field-value">${r.language || '—'}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CLIENT ──────────────────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">Client</div>
+          <div class="field-grid">
+            <div class="field-item field-full">
+              <span class="field-label">Nom</span>
+              <span class="field-value">${name || '—'}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Courriel</span>
+              <span class="field-value">${fv(r.customer_email)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Téléphone</span>
+              <span class="field-value">${fv(r.customer_phone1)}</span>
+            </div>
+            ${r.customer_phone2 ? `
+            <div class="field-item">
+              <span class="field-label">Téléphone 2</span>
+              <span class="field-value">${r.customer_phone2}</span>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <!-- ── LIVRAISON ────────────────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">Livraison</div>
+          <div class="field-grid">
+            <div class="field-item field-full">
+              <span class="field-label">Adresse</span>
+              <span class="field-value">${[r.delivery_street, r.delivery_apt ? '#'+r.delivery_apt : null, r.delivery_city, r.delivery_province, r.delivery_postal].filter(Boolean).join(', ') || '—'}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Dans 40 km</span>
+              <span class="field-value">${fv(r.within_40km)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Étage</span>
+              <span class="field-value">${fv(r.delivery_floor)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Ascenseur</span>
+              <span class="field-value">${fv(r.delivery_elevator)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Marches ext.</span>
+              <span class="field-value">${r.steps_outside ?? '—'}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Marches int.</span>
+              <span class="field-value">${r.steps_inside ?? '—'}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Virages escalier</span>
+              <span class="field-value">${r.stair_turns ?? '—'}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Grue requise</span>
+              <span class="field-value">${fv(r.crane_required)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Livraison</span>
+              <span class="field-value">${delivAsap ? 'Dès que possible' : (delivDate || '—')}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Collecte ancien piano</span>
+              <span class="field-value">${fv(r.collect_piano)}</span>
+            </div>
+            ${r.collect_piano && r.collect_desc ? `
+            <div class="field-item">
+              <span class="field-label">Marque ancien piano</span>
+              <span class="field-value">${r.collect_desc}</span>
+            </div>` : '<div class="field-item"></div>'}
+            <div class="field-item">
+              <span class="field-label">Recyclage</span>
+              <span class="field-value">${fv(r.recycle_piano)}</span>
+            </div>
+            ${r.delivery_notes ? `
+            <div class="field-item field-full">
+              <span class="field-label">Notes livraison</span>
+              <span class="field-value">${r.delivery_notes}</span>
+            </div>` : ''}
+            ${r.mover_notes ? `
+            <div class="field-item field-full">
+              <span class="field-label">Notes déménageur</span>
+              <span class="field-value">${r.mover_notes}</span>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <!-- ── PIANO ────────────────────────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">Piano</div>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Catégorie</span>
+              <span class="field-value">${fv(r.category_name_fr)}</span>
+            </div>
+            ${r.type_name_fr ? `
+            <div class="field-item">
+              <span class="field-label">Modèle catalogue</span>
+              <span class="field-value">${r.type_name_fr}</span>
+            </div>` : '<div class="field-item"></div>'}
+            <div class="field-item">
+              <span class="field-label">Marque</span>
+              <span class="field-value">${fv(r.piano_make)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Modèle</span>
+              <span class="field-value">${fv(r.piano_model)}</span>
+            </div>
+            ${r.piano_serial ? `
+            <div class="field-item">
+              <span class="field-label">N° de série</span>
+              <span class="field-value mono">${r.piano_serial}</span>
+            </div>` : ''}
+            <div class="field-item">
+              <span class="field-label">Couleur / Fini</span>
+              <span class="field-value">${fv(r.piano_color)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Date d'achat</span>
+              <span class="field-value">${fv(r.purchase_date)}</span>
+            </div>
+            ${r.bench_name ? `
+            <div class="field-item">
+              <span class="field-label">Banc</span>
+              <span class="field-value">${r.bench_name}</span>
+            </div>` : ''}
+            ${r.accessories ? `
+            <div class="field-item field-full">
+              <span class="field-label">Autres accessoires</span>
+              <span class="field-value">${r.accessories}</span>
+            </div>` : ''}
+            ${r.piano_notes ? `
+            <div class="field-item field-full">
+              <span class="field-label">Notes piano</span>
+              <span class="field-value">${r.piano_notes}</span>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <!-- ── DOCUMENTS & SIGNATURE ──────────────────────── -->
+        <div class="panel-section">
+          <div class="panel-section-title">Documents &amp; Signature</div>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Garantie PDF</span>
+              <span class="field-value">${r.warranty_pdf_blob ? 'Inclus' : '—'}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Échange PDF</span>
+              <span class="field-value">${r.tradeup_pdf_blob ? 'Inclus' : '—'}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Type signature</span>
+              <span class="field-value">${fv(r.signature_type)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Signé le</span>
+              <span class="field-value">${fv(r.signed_at)}</span>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Humidité confirmée</span>
+              <span class="field-value">${fv(r.humidity_confirmed)}</span>
+            </div>
+          </div>
+          ${r.signature_blob_name ? `
+          <div style="margin-top:12px">
+            <div class="field-label" style="margin-bottom:6px">Signature</div>
+            <div id="sigBox-${r.id}" style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fafafa;min-height:60px">
+              <span style="font-size:12px;color:#9ca3af">Chargement…</span>
+            </div>
+          </div>` : (r.signature_type === 'typed' ? `
+          <div style="margin-top:12px">
+            <div class="field-label" style="margin-bottom:6px">Signature (tapée)</div>
+            <div style="font-family:'Playfair Display',serif;font-size:20px;color:#0d1f3c;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa">${r.customer_first_name || ''} ${r.customer_last_name || ''}</div>
+          </div>` : '')}
+        </div>`;
+    }
+
+    // Load signature image after panel opens
+    async function loadSignature(id, blobName) {
+      const box = document.getElementById(`sigBox-${id}`);
+      if (!box) return;
+      try {
+        const res  = await fetch(`${API_BASE}/api/GetSignatureUrl?blob=${encodeURIComponent(blobName)}`);
+        const data = await res.json();
+        if (data.url) {
+          box.innerHTML = `<img src="${data.url}" alt="Signature" style="max-width:100%;max-height:120px;display:block">`;
+        } else {
+          box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Non disponible</span>';
+        }
+      } catch {
+        box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Erreur de chargement</span>';
+      }
+    }
+
+    loadRegistrations();
+  </script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Piano Vertu — Test Client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f0eee9;
+      min-height: 100svh;
+      padding: 24px 20px;
+      color: #0d1f3c;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .page-header img { height: 36px; }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+    }
+    .dev-badge {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 5px;
+      letter-spacing: 0.05em;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 980px;
+    }
+    @media (max-width: 680px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 4px rgba(13,31,60,0.07);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #c9a84c;
+      margin-bottom: 14px;
+    }
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      font-size: 13px;
+    }
+    .di { display: flex; flex-direction: column; gap: 2px; }
+    .di.full { grid-column: 1 / -1; }
+    .di-label { font-size: 10px; font-weight: 600; color: #9ca3af; letter-spacing: 0.06em; text-transform: uppercase; }
+    .di-value { color: #111827; }
+    .di-value.mono { font-family: monospace; font-size: 12px; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+    .btn-primary { background: #0d1f3c; color: #fff; }
+    .btn-primary:not(:disabled):hover { background: #162f5a; }
+    .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+    .btn-secondary:not(:disabled):hover { background: #e9eaec; }
+    .result-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+    }
+    .result-box.ok  { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .result-box.err { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+    .result-box pre { font-size: 11px; margin-top: 8px; white-space: pre-wrap; word-break: break-all; font-family: monospace; }
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <img src="/img/logo.png" alt="Piano Vertu">
+    <h1>Générateur de test</h1>
+    <span class="dev-badge">DEV ONLY</span>
+  </div>
+
+  <div class="layout">
+    <!-- Generated data card -->
+    <div class="card">
+      <div class="card-title">Données générées</div>
+      <div id="dataDisplay" class="data-grid"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="generate()">↺ Régénérer</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitData()">Soumettre au serveur</button>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <!-- Raw payload card -->
+    <div class="card">
+      <div class="card-title">Payload JSON</div>
+      <pre id="payloadDisplay" style="font-size:11px;color:#374151;white-space:pre-wrap;word-break:break-all;max-height:520px;overflow-y:auto"></pre>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+    let currentPayload = null;
+
+    // ── Random data pools ─────────────────────────────────────
+    const FIRST_NAMES = ['Sophie','Marie','Jean','Pierre','Isabelle','Claire','Michel','François','Émilie','Nicolas'];
+    const LAST_NAMES  = ['Tremblay','Gagnon','Roy','Côté','Bouchard','Gauthier','Morin','Lavoie','Fortin','Ouellet'];
+    const STREETS     = ['Rue Sherbrooke O','Avenue du Parc','Boulevard Saint-Laurent','Rue Notre-Dame O','Avenue Laurier','Rue Sainte-Catherine','Chemin Queen-Mary','Avenue Victoria'];
+    const CITIES      = ['Montréal','Laval','Longueuil','Brossard','Saint-Lambert','Outremont','Westmount'];
+    const PROVINCES   = ['QC'];
+    const MAKES       = ['Yamaha','Kawai','Steinway','Bösendorfer','Fazioli','Roland','Casio'];
+    const MODELS      = ['K-200','K-300','U1','U3','CX-5','B1','GX-1','YUS3','Model S'];
+    const COLORS      = ['Noir laqué','Blanc laqué','Acajou','Noyer','Ébène poli'];
+    const HEARD       = ['Réseaux sociaux','Référence d\'un ami','Recherche Google','Visite en magasin'];
+    const FLOORS      = ['Rez-de-chaussée','1er étage','2e étage','3e étage','Sous-sol'];
+    const CATEGORY_IDS = [1, 2, 3, 4];  // adjust to match your DB
+
+    const rnd    = arr => arr[Math.floor(Math.random() * arr.length)];
+    const rndInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const rndBool = () => Math.random() > 0.5;
+    const rndEmail = (first, last) => `${first.toLowerCase()}.${last.toLowerCase()}@test.pianovertu.ca`;
+    const rndPhone = () => `514-${rndInt(200,999)}-${rndInt(1000,9999)}`;
+    const rndSerial = () => `SN-${rndInt(10000,99999)}`;
+    const rndPostal = () => {
+      const letters = 'HJKMNPQRSTV';
+      return `H${rndInt(1,4)}${rnd(letters.split(''))} ${rndInt(1,9)}${rnd(letters.split(''))}${rndInt(1,9)}`;
+    };
+    const rndDate = () => {
+      const d = new Date();
+      d.setDate(d.getDate() - rndInt(0, 180));
+      return d.toISOString().split('T')[0];
+    };
+
+    function buildPayload() {
+      const firstName = rnd(FIRST_NAMES);
+      const lastName  = rnd(LAST_NAMES);
+      const catId     = rnd(CATEGORY_IDS);
+      const asap      = rndBool();
+
+      return {
+        language:          rnd(['FR','EN']),
+        customer_first_name: firstName,
+        customer_last_name:  lastName,
+        customer_email:    rndEmail(firstName, lastName),
+        customer_phone1:   rndPhone(),
+        customer_phone2:   rndBool() ? rndPhone() : null,
+        heard_from:        rnd(HEARD),
+
+        delivery_street:   `${rndInt(1,9999)} ${rnd(STREETS)}`,
+        delivery_apt:      rndBool() ? `${rndInt(1,50)}` : null,
+        delivery_city:     rnd(CITIES),
+        delivery_province: 'QC',
+        delivery_postal:   rndPostal(),
+        within_40km:       rndBool(),
+        delivery_floor:    rnd(FLOORS),
+        delivery_elevator: rndBool(),
+        steps_outside:     rndInt(0, 6),
+        steps_inside:      rndInt(0, 4),
+        stair_turns:       rndInt(0, 2),
+        mover_notes:       rndBool() ? 'Entrée étroite, prévoir protection.' : null,
+
+        collect_piano:     rndBool(),
+        collect_desc:      null,
+        recycle_piano:     false,
+        recycle_desc:      null,
+        crane_required:    false,
+
+        delivery_asap:     asap,
+        delivery_date:     asap ? null : rndDate(),
+        delivery_notes:    null,
+        surcharge_flag:    rndBool(),
+
+        piano_category_id: catId,
+        piano_type_id:     null,
+        piano_make:        rnd(MAKES),
+        piano_model:       rnd(MODELS),
+        piano_serial:      null,
+        piano_color:       rnd(COLORS),
+        purchase_date:     rndDate(),
+        accessories:       rndBool() ? 'Banc, lampe, métronome' : null,
+        bench_model_id:    null,
+        bench_notes:       null,
+        piano_notes:       null,
+
+        humidity_confirmed: true,
+        signature_type:    'typed',
+        signature_data:    `${firstName} ${lastName}`,
+      };
+    }
+
+    function generate() {
+      currentPayload = buildPayload();
+      renderDisplay();
+    }
+
+    function renderDisplay() {
+      const p = currentPayload;
+      const fields = [
+        ['Prénom',     p.customer_first_name],
+        ['Nom',        p.customer_last_name],
+        ['Courriel',   p.customer_email],
+        ['Téléphone',  p.customer_phone1],
+        ['Adresse',    `${p.delivery_street}, ${p.delivery_city} ${p.delivery_province}`, true],
+        ['Code postal',p.delivery_postal],
+        ['Étage',      p.delivery_floor],
+        ['Ascenseur',  p.delivery_elevator ? 'Oui' : 'Non'],
+        ['Marque',     p.piano_make],
+        ['Modèle',     p.piano_model],
+        ['Couleur',    p.piano_color],
+        ['Date achat', p.purchase_date],
+        ['Signature',  p.signature_data, true],
+      ];
+
+      document.getElementById('dataDisplay').innerHTML = fields.map(([label, val, full]) =>
+        `<div class="di${full ? ' full' : ''}">
+          <span class="di-label">${label}</span>
+          <span class="di-value">${val ?? '—'}</span>
+        </div>`
+      ).join('');
+
+      document.getElementById('payloadDisplay').textContent = JSON.stringify(currentPayload, null, 2);
+
+      // Reset result
+      const box = document.getElementById('resultBox');
+      box.className = 'result-box';
+      box.style.display = 'none';
+    }
+
+    async function submitData() {
+      if (!currentPayload) return;
+      const btn = document.getElementById('submitBtn');
+      const box = document.getElementById('resultBox');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Soumission…';
+      box.style.display = 'none';
+
+      try {
+        const res  = await fetch(`${API_BASE}/api/SubmitRegistration`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentPayload),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          box.className   = 'result-box ok';
+          box.innerHTML   = `<strong>✓ ${data.ref_id}</strong>${data.new_account ? `<pre>Compte créé\nIdentifiant : ${data.client_username}\nMot de passe : ${data.client_password}</pre>` : '<pre>Compte existant — pas de nouveau compte créé</pre>'}`;
+        } else {
+          box.className   = 'result-box err';
+          box.innerHTML   = `<strong>Erreur</strong><pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+        box.style.display = 'block';
+      } catch (e) {
+        box.className     = 'result-box err';
+        box.innerHTML     = `<strong>Erreur réseau</strong><pre>${e.message}</pre>`;
+        box.style.display = 'block';
+      }
+
+      btn.disabled    = false;
+      btn.textContent = 'Soumettre au serveur';
+    }
+
+    // Generate on load
+    generate();
+  </script>
+</body>
+</html>

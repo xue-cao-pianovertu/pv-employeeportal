@@ -82,12 +82,9 @@ export function populateBenches() {
 // ── Category change ───────────────────────────
 
 export function onCatChange(categoryId) {
-
   const data = _formData();
-  const lang = _getLang();
   if (!data) return;
-console.log('categoryId:', categoryId);
-console.log('warranty keys:', Object.keys(_formData().pdfs.warranty));
+
   const category = data.categories.find(c => c.id === parseInt(categoryId));
   const makeEditRow = document.getElementById('makeEditRow');
   const consignNote = document.getElementById('consignNote');
@@ -100,32 +97,46 @@ console.log('warranty keys:', Object.keys(_formData().pdfs.warranty));
   setMake('', true);
   makeEditRow.style.display = 'none';
 
-  if (!category) return;
+  if (!category) {
+    const makeFieldCell = document.getElementById('make')?.closest('.field');
+    if (makeFieldCell) makeFieldCell.style.display = '';
+    document.getElementById('pdfGate').style.display = 'none';
+    document.getElementById('tradeupGate').style.display = 'none';
+    return;
+  }
 
+  const usesManualEntry = category.allows_manual_entry;
   const hasTypes = data.pianoTypes.some(pt => pt.category_id === parseInt(categoryId));
 
-  if (hasTypes) {
+  const makeFieldCell = document.getElementById('make')?.closest('.field');
+
+  if (usesManualEntry) {
+    // Used / consignment: hide the readonly make field, show free-text brand entry
+    if (makeFieldCell) makeFieldCell.style.display = 'none';
+    makeEditRow.style.display = 'block';
+    setMake('', false);
+  } else if (hasTypes) {
+    if (makeFieldCell) makeFieldCell.style.display = '';
     populatePianoTypes(categoryId);
   } else {
-    // Pre-loved / consignment — manual brand entry
+    if (makeFieldCell) makeFieldCell.style.display = 'none';
     makeEditRow.style.display = 'block';
     setMake('', false);
   }
 
-  // Consignment note + hide warranty/humidity
+  // Consignment note + humidity/warranty card visibility
   consignNote.style.display = !category.has_warranty ? 'block' : 'none';
   c4.style.display = category.has_warranty ? 'block' : 'none';
-  c5.style.display = 'block'; // always show signature card
-  // Hide just the PDF gate for consignment
-  document.getElementById('pdfGate').style.display = category.has_warranty ? 'block' : 'none';
+  c5.style.display = 'block';
 
-  // For categories without type subtypes but WITH warranty (e.g. preloved)
-  // → show category-level PDF immediately
-  if (!hasTypes && category.has_warranty) {
-    //const url = data.pdfs.warranty[`cat_${categoryId}`];
-    //updatePdfGate(url, `warranty-cat-${categoryId}.pdf`);
-const url = data.pdfs.warranty['used_piano'];
-  updatePdfGate(url, 'warranty-used.pdf');
+  // Show/hide PDF gates
+  document.getElementById('pdfGate').style.display = category.has_warranty ? 'block' : 'none';
+  document.getElementById('tradeupGate').style.display = 'block';
+
+  // For used/consignment categories with warranty, load category-level PDF immediately
+  if (usesManualEntry && category.has_warranty) {
+    const url = data.pdfs.warranty['used_piano'];
+    updatePdfGate(url, 'warranty-used.pdf');
   }
 }
 
