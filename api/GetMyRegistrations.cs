@@ -83,7 +83,7 @@ public class GetMyRegistrations
         {
             var handler = new JwtSecurityTokenHandler();
             var jwt     = handler.ReadJwtToken(auth["Bearer ".Length..].Trim());
-            var sub     = jwt.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var sub     = jwt.Payload.Sub;
             return sub != null && int.TryParse(sub, out var id) ? id : null;
         }
         catch { return null; }
