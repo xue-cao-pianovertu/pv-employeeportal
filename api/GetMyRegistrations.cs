@@ -77,7 +77,8 @@ public class GetMyRegistrations
 
     private static int? GetUserId(HttpRequest req)
     {
-        var auth = req.Headers["Authorization"].ToString();
+        var auth = req.Headers["X-Token"].ToString();
+        if (string.IsNullOrEmpty(auth)) auth = req.Headers["Authorization"].ToString();
         if (!auth.StartsWith("Bearer ")) return null;
         try
         {

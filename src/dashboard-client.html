@@ -309,7 +309,7 @@
     async function loadRegistrations() {
       try {
         const res = await fetch(`${API_BASE}/api/GetMyRegistrations`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
         });
 
         if (res.status === 401) {
