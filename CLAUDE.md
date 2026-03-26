@@ -196,6 +196,12 @@ pv-employeeportal/
 - Returns all audit entries for a registration, newest first
 - Entry shape: `{ id, changed_by, changed_at, section, changes_json }`
 
+### `GetPdfUrl` ✅
+- `GET /api/GetPdfUrl?blob={blobName}`
+- Returns 30-min SAS URL for a blob in the `warranty-pdfs` container
+- Returns `{ url }`
+- Used by customer dashboard to generate download links for warranty/tradeup PDFs
+
 ### `GetSignatureUrl` ✅
 - `GET /api/GetSignatureUrl?blob={blobName}`
 - Returns 30-min SAS URL for a blob in the `signatures` container
@@ -205,12 +211,17 @@ pv-employeeportal/
 - `UpdateRegistration.GetUsername(req)` — extracts `unique_name` from JWT without full validation (Phase 6 will add full validation)
 - `UpdateRegistration.WriteAuditLog(conn, regId, changedBy, section, changes)` — called by all Update* functions
 
-### JWT claim mapping gotcha
-`JwtSecurityTokenHandler.ReadJwtToken()` remaps standard JWT claim names to .NET long-form equivalents by default:
-- `sub` → `ClaimTypes.NameIdentifier` (`http://schemas.xmlsoap.org/...`)
-- `unique_name` is non-standard and is NOT remapped (stays as `"unique_name"`)
+### Azure SWA strips the Authorization header ⚠️
+Azure Static Web Apps does **not** forward the `Authorization` header to managed API functions. Any function that reads `req.Headers["Authorization"]` will receive an empty string in production.
 
-When reading the `sub` claim, always check both: `c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier`
+**Workaround:** Use a custom header `X-Token` alongside `Authorization`:
+- Frontend: send both `Authorization: Bearer <token>` AND `X-Token: Bearer <token>`
+- Function: check `X-Token` first, fall back to `Authorization` (for local dev compatibility)
+
+`GetMyRegistrations.cs` implements this. The staff update functions still use `Authorization` only — audit log `changed_by` will show `"inconnu"` in production until fixed (tracked for Phase 6).
+
+### JWT claim mapping
+`JwtSecurityTokenHandler.ReadJwtToken()` remaps standard JWT claim names to .NET long-form equivalents. Use `jwt.Payload.Sub` to read the `sub` field directly from the raw JSON payload, bypassing mapping entirely.
 
 ---
 
@@ -328,10 +339,10 @@ Tests use `patchAuth()` helper (sends `Authorization` header) for all staff endp
 
 ### Phase 3 — Authentication ✅ COMPLETE
 
-### Phase 4 — Customer portal ✅ COMPLETE
-- `login-client.html` ✅ built
-- `dashboard-client.html` ✅ built — card layout, read-only detail panel
-- `GET /api/GetMyRegistrations` ✅ built — filtered by JWT `sub` claim, returns customer-facing fields only (no staff fields)
+### Phase 4 — Customer portal ✅ COMPLETE + DEPLOYED
+- `login-client.html` ✅ working in production
+- `dashboard-client.html` ✅ working in production — card layout, read-only detail panel
+- `GET /api/GetMyRegistrations` ✅ working — uses `X-Token` header to bypass SWA Authorization stripping
 
 ### Phase 5 — Staff portal ✅ COMPLETE
 - Full registrations table with search + status filter
@@ -425,9 +436,7 @@ current status:
   - Invalid token → 401     
 
 
-  didnt' test yet.
-  need to deploy to azure.
-  github token expired.
+  
 
   currently: both point to index.html
   client.pianovertu.com

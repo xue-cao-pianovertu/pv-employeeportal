@@ -137,29 +137,28 @@
   <script>
     const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
     let currentPayload = null;
+    let currentDisplay = null;
+    let formData = { categories: [], pianoTypes: [], benches: [] };
 
     // ── Random data pools ─────────────────────────────────────
     const FIRST_NAMES = ['Sophie','Marie','Jean','Pierre','Isabelle','Claire','Michel','François','Émilie','Nicolas'];
     const LAST_NAMES  = ['Tremblay','Gagnon','Roy','Côté','Bouchard','Gauthier','Morin','Lavoie','Fortin','Ouellet'];
     const STREETS     = ['Rue Sherbrooke O','Avenue du Parc','Boulevard Saint-Laurent','Rue Notre-Dame O','Avenue Laurier','Rue Sainte-Catherine','Chemin Queen-Mary','Avenue Victoria'];
     const CITIES      = ['Montréal','Laval','Longueuil','Brossard','Saint-Lambert','Outremont','Westmount'];
-    const PROVINCES   = ['QC'];
-    const MAKES       = ['Yamaha','Kawai','Steinway','Bösendorfer','Fazioli','Roland','Casio'];
-    const MODELS      = ['K-200','K-300','U1','U3','CX-5','B1','GX-1','YUS3','Model S'];
+    const MAKES       = ['Yamaha','Kawai','Steinway','Roland','Casio'];
+    const MODELS      = ['K-200','K-300','U1','U3','CX-5','B1','GX-1','YUS3'];
     const COLORS      = ['Noir laqué','Blanc laqué','Acajou','Noyer','Ébène poli'];
     const HEARD       = ['Réseaux sociaux','Référence d\'un ami','Recherche Google','Visite en magasin'];
     const FLOORS      = ['Rez-de-chaussée','1er étage','2e étage','3e étage','Sous-sol'];
-    const CATEGORY_IDS = [1, 2, 3, 4];  // adjust to match your DB
 
-    const rnd    = arr => arr[Math.floor(Math.random() * arr.length)];
-    const rndInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const rnd     = arr => arr[Math.floor(Math.random() * arr.length)];
+    const rndInt  = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
     const rndBool = () => Math.random() > 0.5;
-    const rndEmail = (first, last) => `${first.toLowerCase()}.${last.toLowerCase()}@test.pianovertu.ca`;
+    const rndEmail = (first, last) => `${first.toLowerCase()}.${last.toLowerCase()}.${Date.now()}@test.pianovertu.ca`;
     const rndPhone = () => `514-${rndInt(200,999)}-${rndInt(1000,9999)}`;
-    const rndSerial = () => `SN-${rndInt(10000,99999)}`;
     const rndPostal = () => {
-      const letters = 'HJKMNPQRSTV';
-      return `H${rndInt(1,4)}${rnd(letters.split(''))} ${rndInt(1,9)}${rnd(letters.split(''))}${rndInt(1,9)}`;
+      const L = 'HJKMNPQRSTV'.split('');
+      return `H${rndInt(1,4)}${rnd(L)} ${rndInt(1,9)}${rnd(L)}${rndInt(1,9)}`;
     };
     const rndDate = () => {
       const d = new Date();
@@ -167,84 +166,129 @@
       return d.toISOString().split('T')[0];
     };
 
-    function buildPayload() {
+    // ── Load real form data ────────────────────────────────────
+    async function loadFormData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/GetFormData?lang=fr`);
+        formData  = await res.json();
+      } catch {
+        document.getElementById('dataDisplay').innerHTML =
+          '<div style="color:#991b1b;grid-column:1/-1">Erreur de chargement des données (API hors ligne?)</div>';
+        return;
+      }
+      generate();
+    }
+
+    // ── Build payload ──────────────────────────────────────────
+    function buildData() {
       const firstName = rnd(FIRST_NAMES);
       const lastName  = rnd(LAST_NAMES);
-      const catId     = rnd(CATEGORY_IDS);
       const asap      = rndBool();
 
-      return {
-        language:          rnd(['FR','EN']),
+      // Pick category from real DB data
+      const cat      = rnd(formData.categories);
+      const catTypes = formData.pianoTypes.filter(t => t.category_id === cat.id);
+
+      // Pick type if category uses dropdown (not manual entry)
+      let typeId = null, typeName = null, pianoMake = rnd(MAKES), pianoModel = rnd(MODELS);
+      if (!cat.allows_manual_entry && catTypes.length > 0) {
+        const type = rnd(catTypes);
+        typeId     = type.id;
+        typeName   = type.name_fr;
+        pianoMake  = type.brand_name || rnd(MAKES);
+        pianoModel = type.name_fr;
+      }
+
+      // Pick bench
+      const bench = formData.benches && formData.benches.length > 0 && rndBool()
+        ? rnd(formData.benches) : null;
+
+      const sigName = `${firstName} ${lastName}`;
+
+      const payload = {
+        language:            rnd(['FR','EN']),
         customer_first_name: firstName,
         customer_last_name:  lastName,
-        customer_email:    rndEmail(firstName, lastName),
-        customer_phone1:   rndPhone(),
-        customer_phone2:   rndBool() ? rndPhone() : null,
-        heard_from:        rnd(HEARD),
+        customer_email:      rndEmail(firstName, lastName),
+        customer_phone1:     rndPhone(),
+        customer_phone2:     rndBool() ? rndPhone() : null,
+        heard_from:          rnd(HEARD),
 
-        delivery_street:   `${rndInt(1,9999)} ${rnd(STREETS)}`,
-        delivery_apt:      rndBool() ? `${rndInt(1,50)}` : null,
-        delivery_city:     rnd(CITIES),
-        delivery_province: 'QC',
-        delivery_postal:   rndPostal(),
-        within_40km:       rndBool(),
-        delivery_floor:    rnd(FLOORS),
-        delivery_elevator: rndBool(),
-        steps_outside:     rndInt(0, 6),
-        steps_inside:      rndInt(0, 4),
-        stair_turns:       rndInt(0, 2),
-        mover_notes:       rndBool() ? 'Entrée étroite, prévoir protection.' : null,
+        delivery_street:     `${rndInt(1,9999)} ${rnd(STREETS)}`,
+        delivery_apt:        rndBool() ? `${rndInt(1,50)}` : null,
+        delivery_city:       rnd(CITIES),
+        delivery_province:   'QC',
+        delivery_postal:     rndPostal(),
+        within_40km:         rndBool(),
+        delivery_floor:      rnd(FLOORS),
+        delivery_elevator:   rndBool(),
+        steps_outside:       rndInt(0, 6),
+        steps_inside:        rndInt(0, 4),
+        stair_turns:         rndInt(0, 2),
+        mover_notes:         rndBool() ? 'Entrée étroite, prévoir protection.' : null,
 
-        collect_piano:     rndBool(),
-        collect_desc:      null,
-        recycle_piano:     false,
-        recycle_desc:      null,
-        crane_required:    false,
+        collect_piano:       rndBool(),
+        collect_desc:        null,
+        recycle_piano:       false,
+        crane_required:      false,
 
-        delivery_asap:     asap,
-        delivery_date:     asap ? null : rndDate(),
-        delivery_notes:    null,
-        surcharge_flag:    rndBool(),
+        delivery_asap:       asap,
+        delivery_date:       asap ? null : rndDate(),
+        delivery_notes:      null,
+        surcharge_flag:      rndBool(),
 
-        piano_category_id: catId,
-        piano_type_id:     null,
-        piano_make:        rnd(MAKES),
-        piano_model:       rnd(MODELS),
-        piano_serial:      null,
-        piano_color:       rnd(COLORS),
-        purchase_date:     rndDate(),
-        accessories:       rndBool() ? 'Banc, lampe, métronome' : null,
-        bench_model_id:    null,
-        bench_notes:       null,
-        piano_notes:       null,
+        piano_category_id:   cat.id,
+        piano_type_id:       typeId,
+        piano_make:          pianoMake,
+        piano_model:         pianoModel,
+        piano_serial:        null,
+        piano_color:         rnd(COLORS),
+        purchase_date:       rndDate(),
+        accessories:         rndBool() ? 'Lampe, métronome' : null,
+        bench_model_id:      bench ? bench.id : null,
+        bench_notes:         null,
+        piano_notes:         null,
 
-        humidity_confirmed: true,
-        signature_type:    'typed',
-        signature_data:    `${firstName} ${lastName}`,
+        humidity_confirmed:  true,
+        signature_type:      'typed',
+        signature_data:      sigName,
       };
+
+      const display = {
+        category:  cat.name_fr,
+        type:      typeName || '(entrée manuelle)',
+        bench:     bench ? bench.name : '—',
+        signature: sigName,
+      };
+
+      return { payload, display };
     }
 
     function generate() {
-      currentPayload = buildPayload();
+      if (!formData.categories.length) return;
+      const result   = buildData();
+      currentPayload = result.payload;
+      currentDisplay = result.display;
       renderDisplay();
     }
 
     function renderDisplay() {
       const p = currentPayload;
+      const d = currentDisplay;
       const fields = [
-        ['Prénom',     p.customer_first_name],
-        ['Nom',        p.customer_last_name],
-        ['Courriel',   p.customer_email],
-        ['Téléphone',  p.customer_phone1],
-        ['Adresse',    `${p.delivery_street}, ${p.delivery_city} ${p.delivery_province}`, true],
-        ['Code postal',p.delivery_postal],
-        ['Étage',      p.delivery_floor],
-        ['Ascenseur',  p.delivery_elevator ? 'Oui' : 'Non'],
-        ['Marque',     p.piano_make],
-        ['Modèle',     p.piano_model],
-        ['Couleur',    p.piano_color],
-        ['Date achat', p.purchase_date],
-        ['Signature',  p.signature_data, true],
+        ['Prénom',      p.customer_first_name],
+        ['Nom',         p.customer_last_name],
+        ['Courriel',    p.customer_email, true],
+        ['Téléphone',   p.customer_phone1],
+        ['Adresse',     `${p.delivery_street}, ${p.delivery_city} ${p.delivery_province}`, true],
+        ['Code postal', p.delivery_postal],
+        ['Catégorie',   d.category],
+        ['Type/Modèle', d.type],
+        ['Marque',      p.piano_make],
+        ['Couleur',     p.piano_color],
+        ['Banc',        d.bench],
+        ['Date achat',  p.purchase_date],
+        ['Signature',   d.signature, true],
       ];
 
       document.getElementById('dataDisplay').innerHTML = fields.map(([label, val, full]) =>
@@ -256,9 +300,8 @@
 
       document.getElementById('payloadDisplay').textContent = JSON.stringify(currentPayload, null, 2);
 
-      // Reset result
       const box = document.getElementById('resultBox');
-      box.className = 'result-box';
+      box.className    = 'result-box';
       box.style.display = 'none';
     }
 
@@ -266,7 +309,7 @@
       if (!currentPayload) return;
       const btn = document.getElementById('submitBtn');
       const box = document.getElementById('resultBox');
-      btn.disabled = true;
+      btn.disabled  = true;
       btn.innerHTML = '<span class="spinner"></span>Soumission…';
       box.style.display = 'none';
 
@@ -279,11 +322,13 @@
         const data = await res.json();
 
         if (res.ok) {
-          box.className   = 'result-box ok';
-          box.innerHTML   = `<strong>✓ ${data.ref_id}</strong>${data.new_account ? `<pre>Compte créé\nIdentifiant : ${data.client_username}\nMot de passe : ${data.client_password}</pre>` : '<pre>Compte existant — pas de nouveau compte créé</pre>'}`;
+          box.className = 'result-box ok';
+          box.innerHTML = `<strong>✓ ${data.ref_id}</strong>${data.new_account
+            ? `<pre>Compte créé\nIdentifiant : ${data.client_username}\nMot de passe : ${data.client_password}</pre>`
+            : '<pre>Compte existant — pas de nouveau compte créé</pre>'}`;
         } else {
-          box.className   = 'result-box err';
-          box.innerHTML   = `<strong>Erreur</strong><pre>${JSON.stringify(data, null, 2)}</pre>`;
+          box.className = 'result-box err';
+          box.innerHTML = `<strong>Erreur</strong><pre>${JSON.stringify(data, null, 2)}</pre>`;
         }
         box.style.display = 'block';
       } catch (e) {
@@ -296,8 +341,8 @@
       btn.textContent = 'Soumettre au serveur';
     }
 
-    // Generate on load
-    generate();
+    // Load real form data first, then generate
+    loadFormData();
   </script>
 </body>
 </html>
