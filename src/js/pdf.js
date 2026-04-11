@@ -20,15 +20,44 @@ export function resetPdf() {
   _pdfOpened = false;
 }
 
+export function unlockForConsignment() {
+  _pdfRead = true;
+  tryUnlockSig();
+}
+
+// On mobile, PDFs open in a new tab — timer is meaningless. Unlock immediately on click.
+const isMobile = () => 'ontouchstart' in window;
+
+/**
+ * Unlock sigLock only when all visible PDF gates have been read.
+ */
+function tryUnlockSig() {
+  const tradeupVisible = document.getElementById('tradeupGate')?.style.display !== 'none';
+  if (_pdfRead && (!tradeupVisible || _tradeupRead)) {
+    document.getElementById('sigLock').classList.add('open');
+    setTimeout(() => {
+      document.getElementById('sigLock')
+        .closest('.sig-lock')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);
+  }
+}
+
 /**
  * Called when user clicks "Open document"
- * Starts a 20s progress timer then marks as read
+ * On mobile: marks as read immediately (PDF opens in new tab).
+ * On desktop: starts a 20s progress timer then marks as read.
  */
 export function openPdf() {
   if (_pdfOpened) return;
   _pdfOpened = true;
 
   document.getElementById('pdfOverlay').classList.add('gone');
+
+  if (isMobile()) {
+    markRead();
+    return;
+  }
 
   const fill = document.getElementById('pdfFill');
   let elapsed = 0;
@@ -57,13 +86,38 @@ export function markRead() {
   statusEl.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
     <polyline points="20 6 9 17 4 12"/></svg> <span>${t.pdfReadDone}</span>`;
 
-  document.getElementById('sigLock').classList.add('open');
+  tryUnlockSig();
+}
 
-  setTimeout(() => {
-    document.getElementById('sigLock')
-      .closest('.sig-lock')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 400);
+/**
+ * Reset the warranty PDF gate to empty state (no PDF loaded).
+ * Called on category switch before a type is selected.
+ */
+export function resetPdfGate() {
+  _pdfRead = false;
+  _pdfOpened = false;
+
+  const lang = _getLang();
+  const t = _getL(lang);
+
+  const frame = document.getElementById('pdfFrame');
+  if (frame) frame.src = '';
+  const nameEl = document.getElementById('pdfName');
+  if (nameEl) nameEl.textContent = '';
+  const overlay = document.getElementById('pdfOverlay');
+  if (overlay) overlay.classList.remove('gone');
+  const fill = document.getElementById('pdfFill');
+  if (fill) { fill.style.width = '0%'; fill.style.background = ''; }
+  const badge = document.getElementById('pdfBadge');
+  if (badge) { badge.textContent = t.pdfBadge; badge.classList.remove('read'); }
+  const status = document.getElementById('pdfStatus');
+  if (status) {
+    status.classList.remove('done');
+    status.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <span>${t.pdfPending}</span>`;
+  }
+  document.getElementById('sigLock')?.classList.remove('open');
 }
 
 /**
@@ -81,16 +135,13 @@ export function updatePdfGate(pdfUrl, pdfLabel) {
   const lang = _getLang();
   const t = _getL(lang);
 
-  const frame = document.getElementById('pdfFrame');      // ← add this back
+  const frame = document.getElementById('pdfFrame');
   const nameEl = document.getElementById('pdfName');
   const overlay = document.getElementById('pdfOverlay');
   const fill = document.getElementById('pdfFill');
   const badge = document.getElementById('pdfBadge');
   const status = document.getElementById('pdfStatus');
   const lock = document.getElementById('sigLock');
-
-  frame.src = pdfUrl;
-
 
   frame.src = pdfUrl;
   if (nameEl && pdfLabel) nameEl.textContent = pdfLabel;
@@ -125,6 +176,11 @@ export function openTradeupPdf() {
 
   document.getElementById('tradeupOverlay').classList.add('gone');
 
+  if (isMobile()) {
+    markTradeupRead();
+    return;
+  }
+
   const fill = document.getElementById('tradeupFill');
   let elapsed = 0;
   const REQ = 20000;
@@ -151,4 +207,6 @@ function markTradeupRead() {
   status.classList.add('done');
   status.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
     <polyline points="20 6 9 17 4 12"/></svg> <span>${t.pdfReadDone}</span>`;
+
+  tryUnlockSig();
 }

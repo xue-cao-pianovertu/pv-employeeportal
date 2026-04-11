@@ -38,7 +38,7 @@ export const L = {
     l_asap: 'Dès que possible (ASAP)', l_datefrom: 'À partir du',
     l_pcat: 'Catégorie', l_ptype: 'Type',
     l_consign_note: "ℹ️ Les pianos en consignation ne sont pas couverts par une garantie. Le client devra signer pour en prendre acte.",
-    humNote: `Le piano doit être gardé en tout temps à un taux d'humidité entre <b style="font-size:15px;color:#92400e">40 % et 55 %</b> et une température entre <b style="font-size:15px;color:#92400e">18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.`,
+    humNote: `Le piano acoustique doit être gardé en tout temps à un taux d'humidité entre <b style="font-size:15px;color:#92400e">40 % et 55 %</b> et une température entre <b style="font-size:15px;color:#92400e">18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.`,
     humLabel: "Je comprends et m'engage à maintenir les conditions requises pour préserver la validité de la garantie.",
     pdfBadge: "Lire d'abord", pdfDone: 'Lu',
     pdfOverlay: 'Veuillez ouvrir et lire le document de garantie avant de signer',
@@ -47,6 +47,7 @@ export const L = {
     pdfReadDone: 'Document lu — vous pouvez signer',
     sigLockMsg: 'Lisez d\'abord le document de garantie',
     sigInstr: "En signant, vous acceptez les conditions de la Garantie Limitée Piano Vertu et confirmez l'exactitude de toutes les informations.",
+    sigInstrConsign: "En signant, vous prenez acte que ce piano est en consignation et n'est pas couvert par une garantie Piano Vertu.",
     sigWm: 'Signez au-dessus de cette ligne',
     typeMode: '⌨ Saisir le nom', drawMode: '✍ Dessiner', l_tname: 'Nom légal complet',
     agreeText: "J'ai lu et j'accepte les <a href=\"#\" onclick=\"return false\">Conditions de Garantie</a>. Je consens à la signature électronique. Je confirme l'exactitude de toutes les informations.",
@@ -111,7 +112,7 @@ export const L = {
     l_asap: 'As soon as possible (ASAP)', l_datefrom: 'Starting from',
     l_pcat: 'Category', l_ptype: 'Type',
     l_consign_note: 'ℹ️ Consignment pianos are not covered by a warranty. The customer will need to sign to acknowledge.',
-    humNote: `The piano must be kept between <b style="font-size:15px;color:#92400e">40% and 55% humidity</b> and <b style="font-size:15px;color:#92400e">18°C and 26°C</b> at all times. Failure to do so may void the warranty.`,
+    humNote: `The acoustic piano must be kept between <b style="font-size:15px;color:#92400e">40% and 55% humidity</b> and <b style="font-size:15px;color:#92400e">18°C and 26°C</b> at all times. Failure to do so may void the warranty.`,
     humLabel: 'I understand and commit to maintaining the required conditions to preserve the warranty.',
     pdfBadge: 'Read first', pdfDone: 'Read',
     pdfOverlay: 'Please open and read the warranty document before signing',
@@ -120,6 +121,7 @@ export const L = {
     pdfReadDone: 'Document read — you may now sign',
     sigLockMsg: 'Read the warranty document first',
     sigInstr: 'By signing, you agree to the Piano Vertu Limited Warranty and confirm all information is accurate.',
+    sigInstrConsign: 'By signing, you acknowledge that this piano is on consignment and is not covered by a Piano Vertu warranty.',
     sigWm: 'Sign above this line',
     typeMode: '⌨ Type Instead', drawMode: '✍ Draw Instead', l_tname: 'Full legal name',
     agreeText: 'I have read and agree to the <a href="#" onclick="return false">Warranty Terms</a>. I consent to electronic signatures. I confirm all information is accurate.',
@@ -184,7 +186,7 @@ export const L = {
     l_asap: '尽快（ASAP）', l_datefrom: '最早日期',
     l_pcat: '类别', l_ptype: '类型',
     l_consign_note: 'ℹ️ 寄售钢琴不在保修范围内。客户需签字确认。',
-    humNote: `钢琴必须始终保持在 <b style="font-size:15px;color:#92400e">40% 至 55% 湿度</b> 和 <b style="font-size:15px;color:#92400e">18°C 至 26°C</b> 之间。否则可能导致保修失效。`,
+    humNote: `原声钢琴必须始终保持在 <b style="font-size:15px;color:#92400e">40% 至 55% 湿度</b> 和 <b style="font-size:15px;color:#92400e">18°C 至 26°C</b> 之间。否则可能导致保修失效。`,
     humLabel: '我理解并承诺保持所需条件以保持保修的有效性。',
     pdfBadge: '请先阅读', pdfDone: '已读',
     pdfOverlay: '请打开并阅读保修文件后再签名',
@@ -193,6 +195,7 @@ export const L = {
     pdfReadDone: '文件已阅读 — 您现在可以签名',
     sigLockMsg: '请先阅读保修文件',
     sigInstr: '签名即表示您同意Piano Vertu有限保修条款并确认所有信息准确。',
+    sigInstrConsign: '签名即表示您确认此钢琴为寄售商品，不在Piano Vertu保修范围内。',
     sigWm: '请在此线上方签名',
     typeMode: '⌨ 输入姓名', drawMode: '✍ 手写签名', l_tname: '完整法定姓名',
     agreeText: '我已阅读并同意<a href="#" onclick="return false">保修条款</a>。我同意电子签名具有法律约束力。我确认所有信息准确。',
@@ -233,11 +236,11 @@ const s = (id, v, html = false) => {
  * Apply all translations to the DOM for a given language.
  * Call after formData is loaded so dropdowns can also be refreshed.
  * @param {string} lang
- * @param {object} deps - { today, pdfRead, pdfOpened, typeMode, onCatChange, refreshDropdowns }
+ * @param {object} deps - { today, pdfRead, pdfOpened, onCatChange, refreshDropdowns }
  */
 export function applyLang(lang, deps) {
   const t = L[lang];
-  const { today, pdfRead, typeMode, onCatChange } = deps;
+  const { today, pdfRead, onCatChange } = deps;
 
   document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang;
   document.body.style.fontFamily = lang === 'zh'
@@ -288,7 +291,7 @@ export function applyLang(lang, deps) {
   s('a-casters', t.a_casters); s('a-cover', t.a_cover);
   s('l-benchtype', t.l_benchtype); s('l-benchmodel', t.l_benchmodel);
   s('l-pianoNotes', t.l_pianoNotes);
-  s('l-consign-note', t.l_consign_note);
+  s('l-consign-note', t.l_consign_note); s('l-consign-sig-note', t.l_consign_note);
 
   // All "Select…" placeholders
   ['opt-cat-ph', 'opt-prov-ph', 'opt-bench-ph', 'opt-from-ph', 'opt-dest-ph', 'opt-heard-ph']
@@ -299,9 +302,7 @@ export function applyLang(lang, deps) {
 
   // Section 5 — PDF / Signature
   s('pdfStatusTxt', t.pdfPending);
-  s('sigLockMsg', t.sigLockMsg); s('sigInstr', t.sigInstr); s('sigWm', t.sigWm);
-  document.getElementById('typeToggle').textContent = typeMode ? t.drawMode : t.typeMode;
-  s('l-tname', t.l_tname);
+  s('sigLockMsg', t.sigLockMsg); s('sigInstr', deps?.isConsignment ? t.sigInstrConsign : t.sigInstr); s('sigWm', t.sigWm);
   s('agreeText', t.agreeText, true);
   s('submitBtn', t.submitBtn);
 

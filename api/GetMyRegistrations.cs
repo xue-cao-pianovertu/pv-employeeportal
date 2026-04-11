@@ -44,7 +44,11 @@ public class GetMyRegistrations
                     r.signature_type, r.signature_blob_name, r.signed_at,
                     r.status, r.created_at,
                     cat.name_fr AS category_name_fr,
+                    cat.name_en AS category_name_en,
+                    cat.name_zh AS category_name_zh,
                     pt.name_fr  AS type_name_fr,
+                    pt.name_en  AS type_name_en,
+                    pt.name_zh  AS type_name_zh,
                     b.name      AS bench_name
                 FROM dbo.Registrations r
                 LEFT JOIN dbo.PianoCategory cat ON cat.id = r.piano_category_id

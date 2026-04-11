@@ -113,7 +113,7 @@
   <div class="card">
     <div class="logo-wrap">
       <img src="/img/logo.png" alt="Piano Vertu">
-      <span>Personnel</span>
+      <span>Staff</span>
     </div>
     <h1>Connexion</h1>
 
@@ -132,7 +132,9 @@
   <script>
     // Redirect if already logged in
     const existing = localStorage.getItem('pv_token');
-    if (existing) window.location.replace('/dashboard-staff.html');
+    const existingRole = localStorage.getItem('pv_role');
+    if (existing && existingRole === 'customer') window.location.replace('/dashboard-client.html');
+    else if (existing && existingRole) window.location.replace('/dashboard-staff.html');
 
     const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
 
@@ -174,7 +176,7 @@
         localStorage.setItem('pv_role',      data.role);
         localStorage.setItem('pv_full_name', data.full_name);
 
-        window.location.replace('/dashboard-staff.html');
+        window.location.replace(data.role === 'customer' ? '/dashboard-client.html' : '/dashboard-staff.html');
       } catch {
         err.textContent = 'Erreur de connexion. Veuillez réessayer.';
         err.style.display = 'block';

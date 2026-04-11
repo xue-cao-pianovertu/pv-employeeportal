@@ -141,10 +141,51 @@
   </div>
 
   <script>
-    // Redirect if already logged in as customer
+    // ── Translations ──────────────────────────────────────────
+    const LC = {
+      fr: {
+        subtitle: 'Espace client', heading: 'Connexion',
+        lEmail: 'Courriel', lPwd: 'Mot de passe',
+        btnLogin: 'Se connecter', btnLogging: 'Connexion…',
+        registerLink: 'Pas encore de compte\u00a0? <a href="/index.html">Enregistrer un piano</a>',
+        errFields: 'Veuillez saisir vos identifiants.',
+        errCreds: 'Identifiants incorrects.',
+        errNetwork: 'Erreur de connexion. Veuillez réessayer.',
+      },
+      en: {
+        subtitle: 'Client Portal', heading: 'Sign in',
+        lEmail: 'Email', lPwd: 'Password',
+        btnLogin: 'Sign in', btnLogging: 'Signing in…',
+        registerLink: 'No account yet? <a href="/index.html">Register a piano</a>',
+        errFields: 'Please enter your credentials.',
+        errCreds: 'Incorrect credentials.',
+        errNetwork: 'Connection error. Please try again.',
+      },
+      zh: {
+        subtitle: '客户空间', heading: '登录',
+        lEmail: '电子邮箱', lPwd: '密码',
+        btnLogin: '登录', btnLogging: '登录中…',
+        registerLink: '还没有账户？<a href="/index.html">注册钢琴</a>',
+        errFields: '请输入您的登录信息。',
+        errCreds: '用户名或密码错误。',
+        errNetwork: '连接错误，请重试。',
+      },
+    };
+
+    const savedLang = localStorage.getItem('pv_lang') || 'fr';
+    const lc = LC[savedLang] || LC.fr;
+    document.querySelector('.logo-wrap span').textContent  = lc.subtitle;
+    document.querySelector('h1').textContent               = lc.heading;
+    document.querySelector('label[for="username"]').textContent = lc.lEmail;
+    document.querySelector('label[for="password"]').textContent = lc.lPwd;
+    document.getElementById('loginBtn').textContent        = lc.btnLogin;
+    document.querySelector('.register-link').innerHTML     = lc.registerLink;
+
+    // Redirect if already logged in
     const existing = localStorage.getItem('pv_token');
     const role     = localStorage.getItem('pv_role');
     if (existing && role === 'customer') window.location.replace('/dashboard-client.html');
+    else if (existing && role) window.location.replace('/dashboard-staff.html');
 
     const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
 
@@ -157,13 +198,13 @@
       const password = document.getElementById('password').value;
 
       if (!username || !password) {
-        err.textContent = 'Veuillez saisir vos identifiants.';
+        err.textContent = lc.errFields;
         err.style.display = 'block';
         return;
       }
 
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Connexion…';
+      btn.innerHTML = `<span class="spinner"></span>${lc.btnLogging}`;
 
       try {
         const res = await fetch(`${API_BASE}/api/Login`, {
@@ -175,10 +216,10 @@
         const data = await res.json();
 
         if (!res.ok) {
-          err.textContent = data.error || 'Identifiants incorrects.';
+          err.textContent = data.error || lc.errCreds;
           err.style.display = 'block';
           btn.disabled = false;
-          btn.textContent = 'Se connecter';
+          btn.textContent = lc.btnLogin;
           return;
         }
 
@@ -186,12 +227,12 @@
         localStorage.setItem('pv_role',      data.role);
         localStorage.setItem('pv_full_name', data.full_name);
 
-        window.location.replace('/dashboard-client.html');
+        window.location.replace(data.role === 'customer' ? '/dashboard-client.html' : '/dashboard-staff.html');
       } catch {
-        err.textContent = 'Erreur de connexion. Veuillez réessayer.';
+        err.textContent = lc.errNetwork;
         err.style.display = 'block';
         btn.disabled = false;
-        btn.textContent = 'Se connecter';
+        btn.textContent = lc.btnLogin;
       }
     }
 

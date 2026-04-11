@@ -5,12 +5,12 @@
 import { getFormData, submitRegistration } from './api.js';
 import { L, applyLang } from './lang.js';
 import { initPdf, openPdf, markRead, updatePdfGate, getPdfRead, getTradeupRead, initTradeupPdf, openTradeupPdf  } from './pdf.js';
-import { initSignature, clearSig, toggleType, hasSig, typeMode, getSignatureDataUrl } from './signature.js';
+import { initSignature, clearSig, hasSig, getSignatureDataUrl } from './signature.js';
 import {
   initForm, initCheckboxes, initRadios,
   populateCategories, populateBenches,
   onCatChange, onTypeChange,
-  step, calcSurcharge, revealEl, cnts
+  step, calcSurcharge, revealEl, cnts, getIsConsignment
 } from './form.js';
 import { initProgress, updateProgress } from './progress.js';
 
@@ -25,11 +25,6 @@ const getFormDataFn = () => formData;
 // ── Today ─────────────────────────────────────
 const today = new Date();
 const todayISO = today.toISOString().split('T')[0];
-
-// ── EmailJS ───────────────────────────────────
-const EMAILJS_SERVICE           = 'service_bmg9k6m';
-const EMAILJS_TEMPLATE          = 'template_8dmr44f';   // staff notification
-const EMAILJS_TEMPLATE_CUSTOMER = 'template_customer';  // customer welcome — create in EmailJS dashboard
 
 // ── Init ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -90,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     ?.addEventListener('change', () => { revealEl('recycleDetail', false); calcSurcharge(); });
 
   // Apply initial language
-  applyLang(lang, { today, pdfRead: getPdfRead(), typeMode, onCatChange });
+  applyLang(lang, { today, pdfRead: getPdfRead(), onCatChange, isConsignment: getIsConsignment() });
 });
 
 // ── Load form data ────────────────────────────
@@ -141,7 +136,7 @@ window.setLang = async function (l) {
   }
 
   // If PDF already read, keep it read — don't reset gate
-  applyLang(lang, { today, pdfRead: getPdfRead(), typeMode, onCatChange });
+  applyLang(lang, { today, pdfRead: getPdfRead(), onCatChange, isConsignment: getIsConsignment() });
   updateProgress();
 };
 
@@ -150,7 +145,6 @@ window.openPdf = openPdf;
 window.openTradeupPdf = openTradeupPdf;
 window.markRead = markRead;
 window.clearSig = clearSig;
-window.toggleType = () => toggleType(getLang, getL);
 window.step = step;
 window.calcSurcharge = calcSurcharge;
 window.revealEl = revealEl;
@@ -202,8 +196,7 @@ window.doSubmit = async function () {
   if (warrantyVisible && !getPdfRead()) return showErr(t.eNotRead);
   if (tradeupVisible  && !getTradeupRead()) return showErr(t.eNotRead);
   if (!document.getElementById('agreeCheck').checked) return showErr(t.eAgree);
-  if (typeMode && !g('typedName')) return showErr(t.eTyped);
-  if (!typeMode && !hasSig) return showErr(t.eDraw);
+  if (!hasSig) return showErr(t.eDraw);
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -252,51 +245,12 @@ window.doSubmit = async function () {
     bench_notes: g('benchType') || '—',
     piano_notes: g('pianoNotes') || '—',
     humidity_confirmed: true,
-    signature_type: typeMode ? 'typed' : 'drawn',
-    signature_data: typeMode ? g('typedName') : (getSignatureDataUrl() || ''),
+    signature_type: 'drawn',
+    signature_data: getSignatureDataUrl() || '',
   };
 
   try {
-    // EmailJS (non-blocking failure)
-    try {
-      await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
-        ...payload,
-        // Human-readable overrides for email display
-        within_40km:       yn(payload.within_40km),
-        delivery_elevator: yn(payload.delivery_elevator),
-        collect_piano:     yn(payload.collect_piano),
-        recycle_piano:     yn(payload.recycle_piano),
-        crane_required:    yn(payload.crane_required),
-        delivery_asap:     yn(payload.delivery_asap),
-        surcharge_flag:    yn(payload.surcharge_flag),
-        humidity_confirmed: yn(payload.humidity_confirmed),
-        customer_name: `${g('firstName')} ${g('lastName')}`,
-        delivery_address: `${g('street')}${g('apt') ? ' #' + g('apt') : ''}, ${g('city')}, ${g('province')} ${g('postal')}`,
-        purchase_date_display: today.toLocaleDateString(
-          lang === 'fr' ? 'fr-CA' : lang === 'zh' ? 'zh-CN' : 'en-CA',
-          { year: 'numeric', month: 'long', day: 'numeric' }
-        ),
-      });
-    } catch (e) {
-      console.warn('EmailJS error (non-fatal):', e);
-    }
-
     const result = await submitRegistration(payload);
-
-    // Send customer welcome email with login credentials (non-blocking)
-    if (result.new_account) {
-      try {
-        await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE_CUSTOMER, {
-          to_email:        result.client_username,
-          customer_name:   `${g('firstName')} ${g('lastName')}`,
-          ref_id:          result.ref_id,
-          client_username: result.client_username,
-          client_password: result.client_password,
-        });
-      } catch (e) {
-        console.warn('Customer welcome email failed (non-fatal):', e);
-      }
-    }
 
     // Show success
     document.getElementById('docRef').textContent = `Réf : ${result.ref_id}`;

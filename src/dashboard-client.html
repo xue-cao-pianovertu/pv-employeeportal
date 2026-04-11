@@ -49,6 +49,44 @@
       cursor: pointer;
     }
     .btn-logout:hover { background: rgba(201,168,76,0.1); }
+    .btn-chgpwd {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.75);
+      border-radius: 6px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .btn-chgpwd:hover { background: rgba(255,255,255,0.08); }
+
+    /* ── Password change drawer ──────────────────────────────── */
+    .pwd-drawer {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .pwd-drawer.open { display: block; }
+    .pwd-drawer h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #0d1f3c; }
+    .pwd-field { margin-bottom: 10px; }
+    .pwd-field label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .pwd-field input {
+      width: 100%; padding: 8px 10px; border: 1px solid #d1d5db;
+      border-radius: 6px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    }
+    .pwd-msg { font-size: 13px; margin-top: 8px; min-height: 18px; }
+    .pwd-msg.ok  { color: #16a34a; }
+    .pwd-msg.err { color: #dc2626; }
+    .btn-savepwd {
+      background: #0d1f3c; color: #fff; border: none; border-radius: 7px;
+      padding: 8px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; margin-top: 4px;
+    }
+    .btn-savepwd:disabled { opacity: 0.6; cursor: default; }
 
     /* ── Page content ────────────────────────────────────────── */
     .page-inner {
@@ -67,20 +105,6 @@
       color: #6b7280;
       margin-bottom: 20px;
     }
-
-    /* ── Badge ───────────────────────────────────────────────── */
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    .badge-potential  { background: #f3f4f6; color: #374151; }
-    .badge-completed  { background: #dbeafe; color: #1e40af; }
-    .badge-paid       { background: #dcfce7; color: #166534; }
-    .badge-partial    { background: #fef9ee; color: #92400e; }
 
     /* ── Registration cards ──────────────────────────────────── */
     .cards { display: flex; flex-direction: column; gap: 12px; }
@@ -263,6 +287,7 @@
     </div>
     <div class="hd-right">
       <span class="user-badge" id="userBadge"></span>
+      <button class="btn-chgpwd" onclick="togglePwdDrawer()">Changer le mot de passe</button>
       <button class="btn-logout" onclick="logout()">Déconnexion</button>
     </div>
   </header>
@@ -270,6 +295,25 @@
   <div class="page-inner">
     <div class="page-title">Mes enregistrements</div>
     <div class="page-sub" id="pageSub">Chargement…</div>
+
+    <div class="pwd-drawer" id="pwdDrawer">
+      <h3>Changer le mot de passe</h3>
+      <div class="pwd-field">
+        <label for="pwdCurrent">Mot de passe actuel</label>
+        <input type="password" id="pwdCurrent" autocomplete="current-password">
+      </div>
+      <div class="pwd-field">
+        <label for="pwdNew">Nouveau mot de passe</label>
+        <input type="password" id="pwdNew" autocomplete="new-password">
+      </div>
+      <div class="pwd-field">
+        <label for="pwdConfirm">Confirmer le nouveau mot de passe</label>
+        <input type="password" id="pwdConfirm" autocomplete="new-password">
+      </div>
+      <div class="pwd-msg" id="pwdMsg"></div>
+      <button class="btn-savepwd" id="pwdBtn" onclick="submitPwdChange()">Enregistrer</button>
+    </div>
+
     <div id="content">
       <div class="loading-wrap"><div class="spinner"></div></div>
     </div>
@@ -286,6 +330,121 @@
   </div>
 
   <script>
+    // ── Translations ──────────────────────────────────────────
+    const DC = {
+      fr: {
+        title: 'Espace client', pageTitle: 'Mes enregistrements', loading: 'Chargement…',
+        changePwd: 'Changer le mot de passe', logout: 'Déconnexion',
+        nReg: n => `${n} enregistrement${n !== 1 ? 's' : ''}`,
+        noReg: 'Aucun enregistrement', noRegSub: 'Vos enregistrements de piano apparaîtront ici.',
+        errLoad: 'Erreur de chargement', errLoadSub: 'Veuillez réessayer plus tard.',
+        yes: 'Oui', no: 'Non', asap: 'Dès que possible',
+        sReg: 'Enregistrement', sClient: 'Client', sLivraison: 'Livraison', sPiano: 'Piano',
+        fRef: 'Référence', fDate: "Date d'enregistrement", fLang: 'Langue',
+        fNom: 'Nom', fEmail: 'Courriel', fTel: 'Téléphone', fTel2: 'Téléphone 2',
+        fAddr: 'Adresse', f40km: 'Dans 40 km', fFloor: 'Étage', fElev: 'Ascenseur',
+        fStepsOut: 'Marches ext.', fStepsIn: 'Marches int.', fTurns: 'Virages escalier',
+        fCrane: 'Grue requise', fDelivery: 'Livraison', fCollect: 'Collecte ancien piano',
+        fCollectDesc: 'Marque ancien piano', fRecycle: 'Recyclage',
+        fDelivNotes: 'Notes livraison', fMoverNotes: 'Notes déménageur',
+        fCat: 'Catégorie', fCatModel: 'Modèle catalogue', fMake: 'Marque',
+        fModel: 'Modèle', fSerial: 'N° de série', fColor: 'Couleur / Fini',
+        fPurchase: "Date d'achat", fBench: 'Banc', fAccessories: 'Autres accessoires',
+        fPianoNotes: 'Notes piano',
+        humNote: `Le piano acoustique doit être gardé en tout temps à un taux d'humidité entre <b style="color:#92400e">40 % et 55 %</b> et une température entre <b style="color:#92400e">18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.`,
+        pwdTitle: 'Changer le mot de passe', pwdCurrent: 'Mot de passe actuel',
+        pwdNew: 'Nouveau mot de passe', pwdConfirm: 'Confirmer le nouveau mot de passe',
+        pwdSave: 'Enregistrer', pwdSaving: 'Enregistrement…',
+        pwdErrRequired: 'Tous les champs sont requis.',
+        pwdErrMatch: 'Les mots de passe ne correspondent pas.',
+        pwdErrLength: 'Le nouveau mot de passe doit contenir au moins 6 caractères.',
+        pwdSuccess: 'Mot de passe modifié avec succès.',
+        pwdErrServer: 'Erreur lors du changement.',
+        pwdErrNetwork: 'Erreur réseau. Veuillez réessayer.',
+      },
+      en: {
+        title: 'Client Portal', pageTitle: 'My registrations', loading: 'Loading…',
+        changePwd: 'Change password', logout: 'Sign out',
+        nReg: n => `${n} registration${n !== 1 ? 's' : ''}`,
+        noReg: 'No registrations', noRegSub: 'Your piano registrations will appear here.',
+        errLoad: 'Loading error', errLoadSub: 'Please try again later.',
+        yes: 'Yes', no: 'No', asap: 'As soon as possible',
+        sReg: 'Registration', sClient: 'Customer', sLivraison: 'Delivery', sPiano: 'Piano',
+        fRef: 'Reference', fDate: 'Registration date', fLang: 'Language',
+        fNom: 'Name', fEmail: 'Email', fTel: 'Phone', fTel2: 'Phone 2',
+        fAddr: 'Address', f40km: 'Within 40 km', fFloor: 'Floor', fElev: 'Elevator',
+        fStepsOut: 'Steps outside', fStepsIn: 'Steps inside', fTurns: 'Stair turns',
+        fCrane: 'Crane required', fDelivery: 'Delivery', fCollect: 'Collect old piano',
+        fCollectDesc: 'Old piano brand', fRecycle: 'Recycling',
+        fDelivNotes: 'Delivery notes', fMoverNotes: 'Mover notes',
+        fCat: 'Category', fCatModel: 'Catalogue model', fMake: 'Brand',
+        fModel: 'Model', fSerial: 'Serial no.', fColor: 'Colour / Finish',
+        fPurchase: 'Purchase date', fBench: 'Bench', fAccessories: 'Other accessories',
+        fPianoNotes: 'Piano notes',
+        humNote: `The acoustic piano must be kept between <b style="color:#92400e">40% and 55% humidity</b> and <b style="color:#92400e">18°C and 26°C</b> at all times. Failure to do so may void the warranty.`,
+        pwdTitle: 'Change password', pwdCurrent: 'Current password',
+        pwdNew: 'New password', pwdConfirm: 'Confirm new password',
+        pwdSave: 'Save', pwdSaving: 'Saving…',
+        pwdErrRequired: 'All fields are required.',
+        pwdErrMatch: 'Passwords do not match.',
+        pwdErrLength: 'New password must be at least 6 characters.',
+        pwdSuccess: 'Password changed successfully.',
+        pwdErrServer: 'Error changing password.',
+        pwdErrNetwork: 'Network error. Please try again.',
+      },
+      zh: {
+        title: '客户空间', pageTitle: '我的注册', loading: '加载中…',
+        changePwd: '修改密码', logout: '退出登录',
+        nReg: n => `${n} 条注册`,
+        noReg: '暂无注册记录', noRegSub: '您的钢琴注册记录将在此显示。',
+        errLoad: '加载失败', errLoadSub: '请稍后重试。',
+        yes: '是', no: '否', asap: '尽快',
+        sReg: '注册', sClient: '客户', sLivraison: '送货', sPiano: '钢琴',
+        fRef: '参考编号', fDate: '注册日期', fLang: '语言',
+        fNom: '姓名', fEmail: '电子邮箱', fTel: '电话', fTel2: '电话 2',
+        fAddr: '地址', f40km: '40公里范围内', fFloor: '楼层', fElev: '电梯',
+        fStepsOut: '室外台阶', fStepsIn: '室内台阶', fTurns: '楼梯转弯',
+        fCrane: '需要起重机', fDelivery: '送货', fCollect: '回收旧钢琴',
+        fCollectDesc: '旧钢琴品牌', fRecycle: '回收处理',
+        fDelivNotes: '送货备注', fMoverNotes: '搬运备注',
+        fCat: '类别', fCatModel: '目录型号', fMake: '品牌',
+        fModel: '型号', fSerial: '序列号', fColor: '颜色/饰面',
+        fPurchase: '购买日期', fBench: '琴凳', fAccessories: '其他配件',
+        fPianoNotes: '钢琴备注',
+        humNote: `原声钢琴必须始终保持在 <b style="color:#92400e">40% 至 55% 湿度</b> 和 <b style="color:#92400e">18°C 至 26°C</b> 之间。否则可能导致保修失效。`,
+        pwdTitle: '修改密码', pwdCurrent: '当前密码',
+        pwdNew: '新密码', pwdConfirm: '确认新密码',
+        pwdSave: '保存', pwdSaving: '保存中…',
+        pwdErrRequired: '所有字段均为必填。',
+        pwdErrMatch: '两次密码不一致。',
+        pwdErrLength: '新密码至少需要6个字符。',
+        pwdSuccess: '密码修改成功。',
+        pwdErrServer: '修改密码时出错。',
+        pwdErrNetwork: '网络错误，请重试。',
+      },
+    };
+
+    let lang = 'fr';
+    const t = key => DC[lang]?.[key] ?? DC.fr[key];
+
+    function dateLocale() {
+      return lang === 'zh' ? 'zh-Hans-CN' : lang === 'en' ? 'en-CA' : 'fr-CA';
+    }
+
+    function applyDashboardLang() {
+      document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang;
+      document.querySelector('.hd-title').textContent     = t('title');
+      document.querySelector('.page-title').textContent   = t('pageTitle');
+      document.querySelector('.btn-chgpwd').textContent   = t('changePwd');
+      document.querySelector('.btn-logout').textContent   = t('logout');
+      document.querySelector('#pwdDrawer h3').textContent = t('pwdTitle');
+      document.querySelector('label[for="pwdCurrent"]').textContent = t('pwdCurrent');
+      document.querySelector('label[for="pwdNew"]').textContent     = t('pwdNew');
+      document.querySelector('label[for="pwdConfirm"]').textContent = t('pwdConfirm');
+      const pwdBtn = document.getElementById('pwdBtn');
+      if (pwdBtn && !pwdBtn.disabled) pwdBtn.textContent = t('pwdSave');
+    }
+
     // ── Auth guard ────────────────────────────────────────────
     const token    = localStorage.getItem('pv_token');
     const role     = localStorage.getItem('pv_role');
@@ -318,49 +477,37 @@
         }
 
         allRows = await res.json();
+        lang = allRows[0]?.language || 'fr';
+        localStorage.setItem('pv_lang', lang);
+        applyDashboardLang();
         renderCards();
       } catch {
         document.getElementById('pageSub').textContent = '';
         document.getElementById('content').innerHTML =
-          '<div class="empty-state"><strong>Erreur de chargement</strong>Veuillez réessayer plus tard.</div>';
+          `<div class="empty-state"><strong>${t('errLoad')}</strong>${t('errLoadSub')}</div>`;
       }
-    }
-
-    // ── Status helpers ────────────────────────────────────────
-    const statusMap = {
-      potential:      ['badge-potential', 'En attente'],
-      completed:      ['badge-completed', 'Complété'],
-      paid:           ['badge-paid',      'Payé'],
-      partially_paid: ['badge-partial',   'Part. payé'],
-    };
-
-    function statusBadge(status) {
-      const [cls, lbl] = statusMap[status || 'potential'] || statusMap.potential;
-      return `<span class="badge ${cls}">${lbl}</span>`;
     }
 
     // ── Render cards ──────────────────────────────────────────
     function renderCards() {
       const sub = document.getElementById('pageSub');
-      sub.textContent = allRows.length
-        ? `${allRows.length} enregistrement${allRows.length !== 1 ? 's' : ''}`
-        : '';
+      sub.textContent = allRows.length ? t('nReg')(allRows.length) : '';
 
       const content = document.getElementById('content');
 
       if (allRows.length === 0) {
         content.innerHTML = `
           <div class="empty-state">
-            <strong>Aucun enregistrement</strong>
-            Vos enregistrements de piano apparaîtront ici.
+            <strong>${t('noReg')}</strong>
+            ${t('noRegSub')}
           </div>`;
         return;
       }
 
       content.innerHTML = `<div class="cards">${allRows.map(r => {
-        const date  = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-CA') : '—';
-        const piano = [r.piano_make, r.piano_model].filter(Boolean).join(' ') || r.type_name_fr || '—';
-        const cat   = r.category_name_fr || '—';
+        const date  = r.created_at ? new Date(r.created_at).toLocaleDateString(dateLocale()) : '—';
+        const piano = [r.piano_make, r.piano_model].filter(Boolean).join(' ') || r[`type_name_${lang}`] || r.type_name_fr || '—';
+        const cat   = r[`category_name_${lang}`] || r.category_name_fr || '—';
         const city  = [r.delivery_city, r.delivery_province].filter(Boolean).join(', ');
 
         return `
@@ -373,7 +520,6 @@
             <div class="card-cat">${cat}</div>
             <div class="card-footer">
               <span class="card-addr">${city || '—'}</span>
-              ${statusBadge(r.status)}
             </div>
           </div>`;
       }).join('')}</div>`;
@@ -388,8 +534,6 @@
       document.getElementById('overlay').classList.add('open');
       document.getElementById('panel').classList.add('open');
       if (r.signature_blob_name) loadSignature(r.id, r.signature_blob_name);
-      if (r.warranty_pdf_blob)   loadPdfLink(`pdfWar-${r.id}`, r.warranty_pdf_blob);
-      if (r.tradeup_pdf_blob)    loadPdfLink(`pdfTrd-${r.id}`, r.tradeup_pdf_blob);
     }
 
     function closePanel() {
@@ -399,37 +543,35 @@
 
     function fv(val, fallback = '—') {
       if (val === null || val === undefined || val === '') return fallback;
-      if (val === true  || val === 1)  return 'Oui';
-      if (val === false || val === 0)  return 'Non';
+      if (val === true  || val === 1)  return t('yes');
+      if (val === false || val === 0)  return t('no');
       if (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}/))
-        return new Date(val).toLocaleDateString('fr-CA');
+        return new Date(val).toLocaleDateString(dateLocale());
       return val;
     }
 
     function buildPanelHTML(r) {
       const name        = `${r.customer_last_name || ''} ${r.customer_first_name || ''}`.trim();
       const delivAsap   = r.delivery_asap;
-      const delivDate   = r.delivery_date ? new Date(r.delivery_date).toLocaleDateString('fr-CA') : null;
+      const delivDate   = r.delivery_date ? new Date(r.delivery_date).toLocaleDateString(dateLocale()) : null;
+      const catName     = r[`category_name_${lang}`] || r.category_name_fr;
+      const typeName    = r[`type_name_${lang}`] || r.type_name_fr;
 
       return `
-        <!-- ── STATUT ───────────────────────────────────────── -->
+        <!-- ── ENREGISTREMENT ───────────────────────────────── -->
         <div class="panel-section">
-          <div class="panel-section-title">Statut</div>
+          <div class="panel-section-title">${t('sReg')}</div>
           <div class="field-grid">
             <div class="field-item">
-              <span class="field-label">Référence</span>
+              <span class="field-label">${t('fRef')}</span>
               <span class="field-value mono" style="color:#c9a84c;font-weight:600">${r.ref_id}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Statut</span>
-              <span class="field-value">${statusBadge(r.status)}</span>
-            </div>
-            <div class="field-item">
-              <span class="field-label">Date d'enregistrement</span>
+              <span class="field-label">${t('fDate')}</span>
               <span class="field-value">${fv(r.created_at)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Langue</span>
+              <span class="field-label">${t('fLang')}</span>
               <span class="field-value">${r.language || '—'}</span>
             </div>
           </div>
@@ -437,23 +579,23 @@
 
         <!-- ── CLIENT ──────────────────────────────────────── -->
         <div class="panel-section">
-          <div class="panel-section-title">Client</div>
+          <div class="panel-section-title">${t('sClient')}</div>
           <div class="field-grid">
             <div class="field-item field-full">
-              <span class="field-label">Nom</span>
+              <span class="field-label">${t('fNom')}</span>
               <span class="field-value">${name || '—'}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Courriel</span>
+              <span class="field-label">${t('fEmail')}</span>
               <span class="field-value">${fv(r.customer_email)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Téléphone</span>
+              <span class="field-label">${t('fTel')}</span>
               <span class="field-value">${fv(r.customer_phone1)}</span>
             </div>
             ${r.customer_phone2 ? `
             <div class="field-item">
-              <span class="field-label">Téléphone 2</span>
+              <span class="field-label">${t('fTel2')}</span>
               <span class="field-value">${r.customer_phone2}</span>
             </div>` : ''}
           </div>
@@ -461,65 +603,65 @@
 
         <!-- ── LIVRAISON ────────────────────────────────────── -->
         <div class="panel-section">
-          <div class="panel-section-title">Livraison</div>
+          <div class="panel-section-title">${t('sLivraison')}</div>
           <div class="field-grid">
             <div class="field-item field-full">
-              <span class="field-label">Adresse</span>
+              <span class="field-label">${t('fAddr')}</span>
               <span class="field-value">${[r.delivery_street, r.delivery_apt ? '#'+r.delivery_apt : null, r.delivery_city, r.delivery_province, r.delivery_postal].filter(Boolean).join(', ') || '—'}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Dans 40 km</span>
+              <span class="field-label">${t('f40km')}</span>
               <span class="field-value">${fv(r.within_40km)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Étage</span>
+              <span class="field-label">${t('fFloor')}</span>
               <span class="field-value">${fv(r.delivery_floor)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Ascenseur</span>
+              <span class="field-label">${t('fElev')}</span>
               <span class="field-value">${fv(r.delivery_elevator)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Marches ext.</span>
+              <span class="field-label">${t('fStepsOut')}</span>
               <span class="field-value">${r.steps_outside ?? '—'}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Marches int.</span>
+              <span class="field-label">${t('fStepsIn')}</span>
               <span class="field-value">${r.steps_inside ?? '—'}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Virages escalier</span>
+              <span class="field-label">${t('fTurns')}</span>
               <span class="field-value">${r.stair_turns ?? '—'}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Grue requise</span>
+              <span class="field-label">${t('fCrane')}</span>
               <span class="field-value">${fv(r.crane_required)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Livraison</span>
-              <span class="field-value">${delivAsap ? 'Dès que possible' : (delivDate || '—')}</span>
+              <span class="field-label">${t('fDelivery')}</span>
+              <span class="field-value">${delivAsap ? t('asap') : (delivDate || '—')}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Collecte ancien piano</span>
+              <span class="field-label">${t('fCollect')}</span>
               <span class="field-value">${fv(r.collect_piano)}</span>
             </div>
             ${r.collect_piano && r.collect_desc ? `
             <div class="field-item">
-              <span class="field-label">Marque ancien piano</span>
+              <span class="field-label">${t('fCollectDesc')}</span>
               <span class="field-value">${r.collect_desc}</span>
             </div>` : '<div class="field-item"></div>'}
             <div class="field-item">
-              <span class="field-label">Recyclage</span>
+              <span class="field-label">${t('fRecycle')}</span>
               <span class="field-value">${fv(r.recycle_piano)}</span>
             </div>
             ${r.delivery_notes ? `
             <div class="field-item field-full">
-              <span class="field-label">Notes livraison</span>
+              <span class="field-label">${t('fDelivNotes')}</span>
               <span class="field-value">${r.delivery_notes}</span>
             </div>` : ''}
             ${r.mover_notes ? `
             <div class="field-item field-full">
-              <span class="field-label">Notes déménageur</span>
+              <span class="field-label">${t('fMoverNotes')}</span>
               <span class="field-value">${r.mover_notes}</span>
             </div>` : ''}
           </div>
@@ -527,54 +669,58 @@
 
         <!-- ── PIANO ────────────────────────────────────────── -->
         <div class="panel-section">
-          <div class="panel-section-title">Piano</div>
+          <div class="panel-section-title">${t('sPiano')}</div>
           <div class="field-grid">
             <div class="field-item">
-              <span class="field-label">Catégorie</span>
-              <span class="field-value">${fv(r.category_name_fr)}</span>
+              <span class="field-label">${t('fCat')}</span>
+              <span class="field-value">${fv(catName)}</span>
             </div>
-            ${r.type_name_fr ? `
+            ${typeName ? `
             <div class="field-item">
-              <span class="field-label">Modèle catalogue</span>
-              <span class="field-value">${r.type_name_fr}</span>
+              <span class="field-label">${t('fCatModel')}</span>
+              <span class="field-value">${typeName}</span>
             </div>` : '<div class="field-item"></div>'}
             <div class="field-item">
-              <span class="field-label">Marque</span>
+              <span class="field-label">${t('fMake')}</span>
               <span class="field-value">${fv(r.piano_make)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Modèle</span>
+              <span class="field-label">${t('fModel')}</span>
               <span class="field-value">${fv(r.piano_model)}</span>
             </div>
             ${r.piano_serial ? `
             <div class="field-item">
-              <span class="field-label">N° de série</span>
+              <span class="field-label">${t('fSerial')}</span>
               <span class="field-value mono">${r.piano_serial}</span>
             </div>` : ''}
             <div class="field-item">
-              <span class="field-label">Couleur / Fini</span>
+              <span class="field-label">${t('fColor')}</span>
               <span class="field-value">${fv(r.piano_color)}</span>
             </div>
             <div class="field-item">
-              <span class="field-label">Date d'achat</span>
+              <span class="field-label">${t('fPurchase')}</span>
               <span class="field-value">${fv(r.purchase_date)}</span>
             </div>
             ${r.bench_name ? `
             <div class="field-item">
-              <span class="field-label">Banc</span>
+              <span class="field-label">${t('fBench')}</span>
               <span class="field-value">${r.bench_name}</span>
             </div>` : ''}
             ${r.accessories ? `
             <div class="field-item field-full">
-              <span class="field-label">Autres accessoires</span>
+              <span class="field-label">${t('fAccessories')}</span>
               <span class="field-value">${r.accessories}</span>
             </div>` : ''}
             ${r.piano_notes ? `
             <div class="field-item field-full">
-              <span class="field-label">Notes piano</span>
+              <span class="field-label">${t('fPianoNotes')}</span>
               <span class="field-value">${r.piano_notes}</span>
             </div>` : ''}
           </div>
+          ${r.humidity_confirmed ? `
+          <div style="margin-top:10px;background:rgba(146,64,14,0.06);border:1px solid rgba(146,64,14,0.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#78350f">
+            ${t('humNote')}
+          </div>` : ''}
         </div>
 
         <!-- ── DOCUMENTS & SIGNATURE ──────────────────────── -->
@@ -585,7 +731,7 @@
               <span class="field-label">Garantie PDF</span>
               <span class="field-value">
                 ${r.warranty_pdf_blob
-                  ? `<span id="pdfWar-${r.id}" style="font-size:11px;color:#9ca3af">Chargement…</span>`
+                  ? `<button onclick="openClientPdf('${r.warranty_pdf_blob}', this)" style="background:none;border:none;color:#c9a84c;font-size:12px;cursor:pointer;padding:0;text-align:left;font-family:'DM Sans',sans-serif">↓ ${r.warranty_pdf_blob.split('/').pop()}</button>`
                   : '—'}
               </span>
             </div>
@@ -593,7 +739,7 @@
               <span class="field-label">Échange PDF</span>
               <span class="field-value">
                 ${r.tradeup_pdf_blob
-                  ? `<span id="pdfTrd-${r.id}" style="font-size:11px;color:#9ca3af">Chargement…</span>`
+                  ? `<button onclick="openClientPdf('${r.tradeup_pdf_blob}', this)" style="background:none;border:none;color:#c9a84c;font-size:12px;cursor:pointer;padding:0;text-align:left;font-family:'DM Sans',sans-serif">↓ ${r.tradeup_pdf_blob.split('/').pop()}</button>`
                   : '—'}
               </span>
             </div>
@@ -603,7 +749,7 @@
             </div>
             <div class="field-item">
               <span class="field-label">Signé le</span>
-              <span class="field-value">${fv(r.signed_at)}</span>
+              <span class="field-value">${r.signed_at ? new Date(r.signed_at).toLocaleString('fr-CA') : '—'}</span>
             </div>
             <div class="field-item">
               <span class="field-label">Humidité confirmée</span>
@@ -624,22 +770,18 @@
         </div>`;
     }
 
-    // Load PDF download links after panel opens
-    async function loadPdfLink(elementId, blobName) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
+    // Fetch fresh SAS URL on click and open PDF in new tab
+    async function openClientPdf(blobName, btn) {
+      const orig = btn.textContent;
+      btn.textContent = 'Chargement…';
+      btn.disabled = true;
       try {
         const res  = await fetch(`${API_BASE}/api/GetPdfUrl?blob=${encodeURIComponent(blobName)}`);
         const data = await res.json();
-        if (data.url) {
-          const short = blobName.split('/').pop();
-          el.outerHTML = `<a href="${data.url}" target="_blank" download style="font-size:12px;color:#c9a84c;word-break:break-all">${short}</a>`;
-        } else {
-          el.textContent = blobName;
-        }
-      } catch {
-        el.textContent = blobName;
-      }
+        if (data.url) window.open(data.url, '_blank');
+      } catch { /* ignore */ }
+      btn.textContent = orig;
+      btn.disabled = false;
     }
 
     // Load signature image after panel opens
@@ -657,6 +799,60 @@
       } catch {
         box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Erreur de chargement</span>';
       }
+    }
+
+    // ── Password change ───────────────────────────────────────
+    function togglePwdDrawer() {
+      document.getElementById('pwdDrawer').classList.toggle('open');
+    }
+
+    async function submitPwdChange() {
+      const current = document.getElementById('pwdCurrent').value;
+      const newPwd  = document.getElementById('pwdNew').value;
+      const confirm = document.getElementById('pwdConfirm').value;
+      const msg     = document.getElementById('pwdMsg');
+      const btn     = document.getElementById('pwdBtn');
+
+      msg.className = 'pwd-msg';
+      msg.textContent = '';
+
+      if (!current || !newPwd || !confirm) {
+        msg.className = 'pwd-msg err'; msg.textContent = t('pwdErrRequired'); return;
+      }
+      if (newPwd !== confirm) {
+        msg.className = 'pwd-msg err'; msg.textContent = t('pwdErrMatch'); return;
+      }
+      if (newPwd.length < 6) {
+        msg.className = 'pwd-msg err'; msg.textContent = t('pwdErrLength'); return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = t('pwdSaving');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/ChangePassword`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Token': `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ current_password: current, new_password: newPwd })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.className = 'pwd-msg ok'; msg.textContent = t('pwdSuccess');
+          document.getElementById('pwdCurrent').value = '';
+          document.getElementById('pwdNew').value = '';
+          document.getElementById('pwdConfirm').value = '';
+        } else {
+          msg.className = 'pwd-msg err'; msg.textContent = data.error || t('pwdErrServer');
+        }
+      } catch {
+        msg.className = 'pwd-msg err'; msg.textContent = t('pwdErrNetwork');
+      }
+      btn.disabled = false;
+      btn.textContent = t('pwdSave');
     }
 
     loadRegistrations();

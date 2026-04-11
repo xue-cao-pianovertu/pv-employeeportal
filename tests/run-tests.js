@@ -61,6 +61,19 @@ async function patchAuth(path, body, tok) {
   return { res, data: await res.json() };
 }
 
+async function patchXToken(path, body, tok) {
+  const res = await fetch(`${BASE}/api/${path}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Token': `Bearer ${tok}`,
+      'Authorization': `Bearer ${tok}`,
+    },
+    body: JSON.stringify(body),
+  });
+  return { res, data: await res.json() };
+}
+
 // ── Test suite ────────────────────────────────────────────────
 
 console.log(`\n${BOLD}Piano Vertu — API Tests${RESET}`);
@@ -183,8 +196,9 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     const row = data[0];
     assert(row.ref_id,    'ref_id missing');
     assert(row.created_at,'created_at missing');
-    assert('status' in row, 'status field missing');
-    assert('price'  in row, 'price field missing');
+    assert('payment_status'  in row, 'payment_status field missing');
+    assert('delivery_status' in row, 'delivery_status field missing');
+    assert('price'           in row, 'price field missing');
   });
 
   await test('GET /api/GetRegistrations includes the test registration', async () => {
@@ -211,7 +225,8 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
       cheque_to_collect: false,
       google_review:    true,
       fully_paid:       false,
-      status:           'completed',
+      payment_status:   'fully_paid',
+      delivery_status:  'delivered',
       staff_notes:      'Test automatisé',
     }, adminToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
@@ -221,7 +236,8 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
   await test('PATCH /api/UpdateRegistration — unknown id returns 404', async () => {
     const { res } = await patch('UpdateRegistration', {
       id: 999999, surcharge_amount: 0, cheque_to_collect: false,
-      google_review: false, fully_paid: false, status: 'potential',
+      google_review: false, fully_paid: false,
+      payment_status: 'not_paid', delivery_status: 'to_plan',
     });
     assert(res.status === 404, `expected 404, got ${res.status}`);
   });
@@ -384,7 +400,6 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     const row = data[0];
     assert(row.ref_id,        'ref_id missing');
     assert(row.created_at,    'created_at missing');
-    assert('status' in row,   'status field missing');
     assert(!('price'        in row), 'staff field price should not be present');
     assert(!('invoice_number' in row), 'staff field invoice_number should not be present');
     assert(!('staff_notes'  in row), 'staff field staff_notes should not be present');
@@ -400,6 +415,89 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
       headers: { 'Authorization': 'Bearer invalid.token.here' },
     });
     assert(res.status === 401, `expected 401, got ${res.status}`);
+  });
+
+  // 11. GetFormData — has_tradeup (requires DB migration to be run first)
+  console.log(`\n${BOLD}GetFormData — has_tradeup${RESET}`);
+
+  await test('GET /api/GetFormData categories include has_tradeup field', async () => {
+    const { res, data } = await get('GetFormData?lang=fr');
+    assert(res.ok, `HTTP ${res.status}`);
+    assert(data.categories.every(c => 'has_tradeup' in c), 'has_tradeup field missing from categories');
+    const cat1 = data.categories.find(c => c.id === 1);
+    const cat3 = data.categories.find(c => c.id === 3);
+    assert(cat1 && cat1.has_tradeup === true, 'category id=1 should have has_tradeup=true');
+    assert(cat3 && cat3.has_tradeup === true, 'category id=3 should have has_tradeup=true');
+  });
+
+  // 12. ChangePassword
+  console.log(`\n${BOLD}ChangePassword${RESET}`);
+
+  const newPassword = testPassword + 'X';
+
+  await test('PATCH /api/ChangePassword — no token returns 401', async () => {
+    const { res } = await patch('ChangePassword', { current_password: 'x', new_password: 'y' });
+    assert(res.status === 401, `expected 401, got ${res.status}`);
+  });
+
+  await test('PATCH /api/ChangePassword — missing fields returns 400', async () => {
+    assert(customerToken, 'no customerToken');
+    const { res } = await patchXToken('ChangePassword', {}, customerToken);
+    assert(res.status === 400, `expected 400, got ${res.status}`);
+  });
+
+  await test('PATCH /api/ChangePassword — wrong current password returns 403', async () => {
+    assert(customerToken, 'no customerToken');
+    const { res } = await patchXToken('ChangePassword', { current_password: 'wrongpwd', new_password: 'newpwd123' }, customerToken);
+    assert(res.status === 403, `expected 403, got ${res.status}`);
+  });
+
+  await test('PATCH /api/ChangePassword — correct change returns success', async () => {
+    assert(customerToken, 'no customerToken');
+    const { res, data } = await patchXToken('ChangePassword', { current_password: testPassword, new_password: newPassword }, customerToken);
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.success === true, 'success not true');
+  });
+
+  await test('Login with new password works after ChangePassword', async () => {
+    const { res, data } = await post('Login', { username: testEmail, password: newPassword });
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.token, 'token missing');
+    customerToken = data.token;
+    // Reset back to original so suite is idempotent
+    await patchXToken('ChangePassword', { current_password: newPassword, new_password: testPassword }, customerToken);
+  });
+
+  // 13. ResetClientPassword
+  console.log(`\n${BOLD}ResetClientPassword${RESET}`);
+
+  await test('PATCH /api/ResetClientPassword — no token returns 401', async () => {
+    const { res } = await patch('ResetClientPassword', { customer_email: testEmail });
+    assert(res.status === 401, `expected 401, got ${res.status}`);
+  });
+
+  await test('PATCH /api/ResetClientPassword — customer token returns 403', async () => {
+    assert(customerToken, 'no customerToken');
+    const { res } = await patchAuth('ResetClientPassword', { customer_email: testEmail }, customerToken);
+    assert(res.status === 403, `expected 403, got ${res.status}`);
+  });
+
+  await test('PATCH /api/ResetClientPassword — unknown email returns 404', async () => {
+    const { res } = await patchAuth('ResetClientPassword', { customer_email: 'nobody@nobody.invalid' }, adminToken);
+    assert(res.status === 404, `expected 404, got ${res.status}`);
+  });
+
+  await test('PATCH /api/ResetClientPassword — admin generates new 8-char password', async () => {
+    const { res, data } = await patchAuth('ResetClientPassword', { customer_email: testEmail }, adminToken);
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.success === true, 'success not true');
+    assert(typeof data.new_password === 'string' && data.new_password.length === 8,
+      `new_password should be 8 chars, got: ${JSON.stringify(data.new_password)}`);
+    // Verify new password works
+    const { res: lr, data: ld } = await post('Login', { username: testEmail, password: data.new_password });
+    assert(lr.ok, `Login with reset password failed: HTTP ${lr.status}`);
+    // Reset back to original so suite is idempotent
+    await patchXToken('ChangePassword', { current_password: data.new_password, new_password: testPassword }, ld.token);
   });
 
   // ── Summary ───────────────────────────────────────────────

@@ -2,10 +2,12 @@
 // form.js — dropdowns, category/type, surcharge, steppers, checkboxes
 // ─────────────────────────────────────────────
 
-import { updatePdfGate } from './pdf.js';
+import { updatePdfGate, resetPdfGate, unlockForConsignment } from './pdf.js';
 
 // ── State ─────────────────────────────────────
 export const cnts = { sout: 0, sin: 0, turns: 0 };
+let _isConsignment = false;
+export const getIsConsignment = () => _isConsignment;
 const STEP_T = 10;
 
 // Injected from main
@@ -98,10 +100,13 @@ export function onCatChange(categoryId) {
   makeEditRow.style.display = 'none';
 
   if (!category) {
+    _isConsignment = false;
+    document.getElementById('consignSigNote').style.display = 'none';
     const makeFieldCell = document.getElementById('make')?.closest('.field');
     if (makeFieldCell) makeFieldCell.style.display = '';
     document.getElementById('pdfGate').style.display = 'none';
     document.getElementById('tradeupGate').style.display = 'none';
+    resetPdfGate();
     return;
   }
 
@@ -129,14 +134,33 @@ export function onCatChange(categoryId) {
   c4.style.display = category.has_warranty ? 'block' : 'none';
   c5.style.display = 'block';
 
-  // Show/hide PDF gates
-  document.getElementById('pdfGate').style.display = category.has_warranty ? 'block' : 'none';
-  document.getElementById('tradeupGate').style.display = 'block';
+  // Signature instruction — consignment-specific text when no warranty
+  _isConsignment = !category.has_warranty;
+  const sigInstrEl = document.getElementById('sigInstr');
+  if (sigInstrEl) {
+    const t = _getL(_getLang());
+    sigInstrEl.textContent = _isConsignment ? t.sigInstrConsign : t.sigInstr;
+  }
 
-  // For used/consignment categories with warranty, load category-level PDF immediately
-  if (usesManualEntry && category.has_warranty) {
+  // Consignment notice in c5 + immediate sig unlock
+  document.getElementById('consignSigNote').style.display = _isConsignment ? 'block' : 'none';
+  if (_isConsignment) unlockForConsignment();
+
+  // Show/hide PDF gates
+  document.getElementById('tradeupGate').style.display = category.has_tradeup ? 'block' : 'none';
+
+  if (!category.has_warranty) {
+    // No warranty — hide gate
+    document.getElementById('pdfGate').style.display = 'none';
+  } else if (usesManualEntry) {
+    // Used/consignment: load category-level PDF immediately
+    document.getElementById('pdfGate').style.display = 'block';
     const url = data.pdfs.warranty['used_piano'];
     updatePdfGate(url, 'warranty-used.pdf');
+  } else {
+    // Type-based (Acoustique neuf, Numérique): hide gate until type is selected
+    document.getElementById('pdfGate').style.display = 'none';
+    resetPdfGate();
   }
 }
 
@@ -150,9 +174,12 @@ export function onTypeChange(pianoTypeId) {
   const brand = typeOpt?.dataset.brand || '';
   if (brand) setMake(brand, true);
 
-  // Update warranty PDF
+  // Update warranty PDF — show gate only when URL available
   const url = data.pdfs.warranty[`new_piano_warranty_${pianoTypeId}`];
-  if (url) updatePdfGate(url, `warranty-type-${pianoTypeId}.pdf`);
+  if (url) {
+    document.getElementById('pdfGate').style.display = 'block';
+    updatePdfGate(url, `warranty-type-${pianoTypeId}.pdf`);
+  }
 }
 
 // ── Make field helper ─────────────────────────

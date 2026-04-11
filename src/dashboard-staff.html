@@ -133,10 +133,13 @@
       font-weight: 500;
       white-space: nowrap;
     }
-    .badge-potential  { background: #f3f4f6; color: #374151; }
-    .badge-completed  { background: #dbeafe; color: #1e40af; }
-    .badge-paid       { background: #dcfce7; color: #166534; }
-    .badge-partial    { background: #fef9ee; color: #92400e; }
+    .badge-not-paid       { background: #f3f4f6; color: #374151; }
+    .badge-partially-paid { background: #fef9ee; color: #92400e; }
+    .badge-fully-paid     { background: #dcfce7; color: #166534; }
+    .badge-financing      { background: #dbeafe; color: #1e40af; }
+    .badge-to-plan        { background: #f3f4f6; color: #374151; }
+    .badge-sent-mover     { background: #fef9ee; color: #92400e; }
+    .badge-delivered      { background: #dcfce7; color: #166534; }
     .empty-state {
       padding: 48px;
       text-align: center;
@@ -393,12 +396,18 @@
       </svg>
       <input class="search-input" id="searchInput" type="text" placeholder="Rechercher réf, client, piano…" oninput="renderTable()">
     </div>
-    <select class="filter-select" id="filterPaid" onchange="renderTable()">
-      <option value="">Tous les statuts</option>
-      <option value="potential">Potentiel</option>
-      <option value="completed">Complété</option>
-      <option value="paid">Payé</option>
+    <select class="filter-select" id="filterPayment" onchange="renderTable()">
+      <option value="">Tous paiements</option>
+      <option value="not_paid">Non payé</option>
       <option value="partially_paid">Part. payé</option>
+      <option value="fully_paid">Entièrement payé</option>
+      <option value="store_financing">Financement magasin</option>
+    </select>
+    <select class="filter-select" id="filterDelivery" onchange="renderTable()">
+      <option value="">Toutes livraisons</option>
+      <option value="to_plan">À planifier</option>
+      <option value="sent_to_mover">Chez déménageur</option>
+      <option value="delivered">Livré</option>
     </select>
     <span class="count-badge" id="countBadge"></span>
   </div>
@@ -414,7 +423,8 @@
           <th>Piano</th>
           <th>Catégorie</th>
           <th>Facture</th>
-          <th>Statut</th>
+          <th>Paiement</th>
+          <th>Livraison</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -438,8 +448,9 @@
   <script>
     // ── Auth guard ────────────────────────────────────────────
     const token    = localStorage.getItem('pv_token');
+    const role     = localStorage.getItem('pv_role');
     const fullName = localStorage.getItem('pv_full_name');
-    if (!token) window.location.replace('/login-staff.html');
+    if (!token || role === 'customer') window.location.replace('/login-staff.html');
     document.getElementById('userBadge').textContent = fullName || '';
 
     const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
@@ -464,8 +475,9 @@
 
     // ── Render table ──────────────────────────────────────────
     function renderTable() {
-      const q      = document.getElementById('searchInput').value.toLowerCase();
-      const filter = document.getElementById('filterPaid').value;
+      const q         = document.getElementById('searchInput').value.toLowerCase();
+      const filterPay = document.getElementById('filterPayment').value;
+      const filterDel = document.getElementById('filterDelivery').value;
 
       const rows = allRows.filter(r => {
         const text = [
@@ -474,7 +486,8 @@
           r.category_name_fr
         ].join(' ').toLowerCase();
         if (q && !text.includes(q)) return false;
-        if (filter && (r.status || 'potential') !== filter) return false;
+        if (filterPay && (r.payment_status || 'not_paid') !== filterPay) return false;
+        if (filterDel && (r.delivery_status || 'to_plan')  !== filterDel) return false;
         return true;
       });
 
@@ -488,14 +501,19 @@
         const piano = [r.piano_make, r.piano_model].filter(Boolean).join(' ') || r.type_name_fr || '—';
         const cat   = r.category_name_fr || '—';
         const inv   = r.invoice_number || '—';
-        const statusMap = {
-          potential:     ['badge-potential', 'Potentiel'],
-          completed:     ['badge-completed', 'Complété'],
-          paid:          ['badge-paid',      'Payé'],
-          partially_paid:['badge-partial',   'Part. payé'],
+        const paymentMap = {
+          not_paid:        ['badge-not-paid',       'Non payé'],
+          partially_paid:  ['badge-partially-paid', 'Part. payé'],
+          fully_paid:      ['badge-fully-paid',     'Entièrement payé'],
+          store_financing: ['badge-financing',      'Financement magasin'],
         };
-        const [badgeCls, badgeLbl] = statusMap[r.status || 'potential'] || statusMap.potential;
-        const paid = `<span class="badge ${badgeCls}">${badgeLbl}</span>`;
+        const deliveryMap = {
+          to_plan:       ['badge-to-plan',    'À planifier'],
+          sent_to_mover: ['badge-sent-mover', 'Chez déménageur'],
+          delivered:     ['badge-delivered',  'Livré'],
+        };
+        const [pc, pl] = paymentMap[r.payment_status || 'not_paid'] || paymentMap.not_paid;
+        const [dc, dl] = deliveryMap[r.delivery_status || 'to_plan'] || deliveryMap.to_plan;
         return `<tr onclick="openPanel(${r.id})">
           <td style="font-family:monospace;font-size:12px;color:#c9a84c;font-weight:600">${r.ref_id}</td>
           <td style="color:#6b7280">${date}</td>
@@ -504,7 +522,8 @@
           <td>${piano}</td>
           <td>${cat}</td>
           <td>${inv}</td>
-          <td>${paid}</td>
+          <td><span class="badge ${pc}">${pl}</span></td>
+          <td><span class="badge ${dc}">${dl}</span></td>
         </tr>`;
       }).join('');
     }
@@ -547,6 +566,7 @@
           <div class="panel-section-title">
             Client
             <button type="button" class="modifier-btn" onclick="toggleEdit('clientEdit-${r.id}')">Modifier</button>
+            <button type="button" class="modifier-btn" style="margin-left:6px" onclick="resetClientPwd('${r.customer_email}', ${r.id})">Réinit. mot de passe</button>
           </div>
           <div class="field-grid">
             <div class="field-item field-full"><span class="field-label">Nom</span><span class="field-value">${name || '—'}</span></div>
@@ -554,6 +574,7 @@
             <div class="field-item"><span class="field-label">Téléphone</span><span class="field-value">${fv(r.customer_phone1)}</span></div>
             <div class="field-item field-full"><span class="field-label">Comment nous a-t-il connu</span><span class="field-value">${fv(r.heard_from)}</span></div>
           </div>
+          <div id="resetPwdBox-${r.id}" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:7px;font-size:13px"></div>
           <form id="clientEdit-${r.id}" class="staff-form" style="display:none;margin-top:12px" onsubmit="saveClient(event, ${r.id})">
             <div class="staff-row">
               <div class="staff-field"><label>Prénom</label><input type="text" name="customer_first_name" value="${r.customer_first_name || ''}"></div>
@@ -677,8 +698,7 @@
           <div class="field-grid">
             <div class="field-item"><span class="field-label">Garantie PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.warranty_pdf_blob)}</span></div>
             <div class="field-item"><span class="field-label">Échange PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.tradeup_pdf_blob)}</span></div>
-            <div class="field-item"><span class="field-label">Type signature</span><span class="field-value">${fv(r.signature_type)}</span></div>
-            <div class="field-item"><span class="field-label">Signé le</span><span class="field-value">${fv(r.signed_at)}</span></div>
+            <div class="field-item"><span class="field-label">Signé le</span><span class="field-value">${r.signed_at ? new Date(r.signed_at).toLocaleString('fr-CA') : '—'}</span></div>
             <div class="field-item"><span class="field-label">Humidité confirmée</span><span class="field-value">${fv(r.humidity_confirmed)}</span></div>
           </div>
           ${r.signature_blob_name ? `
@@ -687,10 +707,6 @@
             <div id="sigBox-${r.id}" style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;background:#fafafa;min-height:60px">
               <span style="font-size:12px;color:#9ca3af">Chargement…</span>
             </div>
-          </div>` : r.signature_type === 'typed' ? `
-          <div style="margin-top:12px">
-            <div class="field-label" style="margin-bottom:6px">Signature (tapée)</div>
-            <div style="font-family:'Playfair Display',serif;font-size:20px;color:#0d1f3c;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa">${r.customer_first_name || ''} ${r.customer_last_name || ''}</div>
           </div>` : ''}
         </div>
 
@@ -738,12 +754,20 @@
             </div>
             <div class="staff-row">
               <div class="staff-field">
-                <label>Statut</label>
-                <select name="status">
-                  <option value="potential"${(r.status||'potential')==='potential'?' selected':''}>Potentiel</option>
-                  <option value="completed"${r.status==='completed'?' selected':''}>Complété</option>
-                  <option value="paid"${r.status==='paid'?' selected':''}>Payé</option>
-                  <option value="partially_paid"${r.status==='partially_paid'?' selected':''}>Part. payé</option>
+                <label>Statut paiement</label>
+                <select name="payment_status">
+                  <option value="not_paid"${(r.payment_status||'not_paid')==='not_paid'?' selected':''}>Non payé</option>
+                  <option value="partially_paid"${r.payment_status==='partially_paid'?' selected':''}>Part. payé</option>
+                  <option value="fully_paid"${r.payment_status==='fully_paid'?' selected':''}>Entièrement payé</option>
+                  <option value="store_financing"${r.payment_status==='store_financing'?' selected':''}>Financement magasin</option>
+                </select>
+              </div>
+              <div class="staff-field">
+                <label>Statut livraison</label>
+                <select name="delivery_status">
+                  <option value="to_plan"${(r.delivery_status||'to_plan')==='to_plan'?' selected':''}>À planifier</option>
+                  <option value="sent_to_mover"${r.delivery_status==='sent_to_mover'?' selected':''}>Chez déménageur</option>
+                  <option value="delivered"${r.delivery_status==='delivered'?' selected':''}>Livré</option>
                 </select>
               </div>
             </div>
@@ -755,10 +779,6 @@
               <label class="check-item">
                 <input type="checkbox" name="google_review" ${r.google_review ? 'checked' : ''}>
                 Avis Google demandé
-              </label>
-              <label class="check-item">
-                <input type="checkbox" name="fully_paid" ${r.fully_paid ? 'checked' : ''}>
-                Entièrement payé
               </label>
             </div>
             <div class="staff-field full">
@@ -799,9 +819,9 @@
         price:            form.price.value !== '' ? parseFloat(form.price.value) : null,
         cheque_to_collect: form.cheque_to_collect.checked,
         google_review:     form.google_review.checked,
-        fully_paid:        form.fully_paid.checked,
         staff_notes:       form.staff_notes.value.trim()     || null,
-        status:            form.status.value                 || 'potential',
+        payment_status:    form.payment_status.value         || 'not_paid',
+        delivery_status:   form.delivery_status.value        || 'to_plan',
       };
 
       try {
@@ -844,6 +864,31 @@
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    async function resetClientPwd(email, regId) {
+      if (!email) { showToast('Courriel client introuvable'); return; }
+      const box = document.getElementById(`resetPwdBox-${regId}`);
+      box.textContent = 'Réinitialisation…';
+      box.style.display = 'block';
+      try {
+        const res = await fetch(`${API_BASE}/api/ResetClientPassword`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ customer_email: email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          box.innerHTML = `Nouveau mot de passe&nbsp;: <strong style="font-family:monospace">${data.new_password}</strong>`;
+          box.style.background = '#f0fdf4'; box.style.borderColor = '#86efac';
+        } else {
+          box.textContent = data.error || 'Erreur lors de la réinitialisation';
+          box.style.background = '#fef2f2'; box.style.borderColor = '#fca5a5';
+        }
+      } catch {
+        box.textContent = 'Erreur réseau';
+        box.style.background = '#fef2f2'; box.style.borderColor = '#fca5a5';
+      }
     }
 
     async function saveClient(e, id) {
@@ -985,7 +1030,8 @@
       fully_paid:         'Entièrement payé',
       staff_notes:        'Notes personnel',
       piano_serial:       'N° de série',
-      status:             'Statut',
+      payment_status:     'Paiement',
+      delivery_status:    'Livraison',
       customer_first_name:'Prénom',
       customer_last_name: 'Nom',
       customer_email:     'Courriel',

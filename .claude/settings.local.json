@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"http://localhost:7072/api/GetBenches\")",
+      "Bash(node tests/run-tests.js)",
+      "Bash(head -20 grep -n \"pv_role\\\\|pv_token\\\\|location\\\\|redirect\\\\|role\" /Users/pianovertu/pv-employeeportal/src/dashboard-staff.html)",
+      "Bash(head -10 grep -n \"pv_role\\\\|pv_token\\\\|location\\\\|redirect\\\\|role\" /Users/pianovertu/pv-employeeportal/src/dashboard-client.html)",
+      "Bash(grep -l \"emailjs\\\\|EmailJS\\\\|service_\\\\|template_\" /Users/pianovertu/pv-employeeportal/src/login-*.html /Users/pianovertu/pv-employeeportal/src/dashboard-*.html)"
+    ]
+  }
+}

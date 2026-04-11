@@ -46,7 +46,7 @@ public class GetRegistrations
                     r.invoice_number, r.from_location, r.old_piano_dest,
                     r.surcharge_amount, r.cheque_to_collect,
                     r.google_review, r.fully_paid, r.staff_notes,
-                    r.status, r.price,
+                    r.payment_status, r.delivery_status, r.price,
                     r.created_at,
                     cat.name_fr  AS category_name_fr,
                     cat.name_en  AS category_name_en,

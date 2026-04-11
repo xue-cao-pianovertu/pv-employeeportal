@@ -3,7 +3,6 @@
 // ─────────────────────────────────────────────
 
 export let hasSig = false;
-export let typeMode = false;
 
 let cv, ctx;
 
@@ -88,10 +87,3 @@ export function getSignatureDataUrl() {
   return hasSig ? cv.toDataURL() : null;
 }
 
-export function toggleType(getLang, getL) {
-  typeMode = !typeMode;
-  document.getElementById('typedNameRow').style.display = typeMode ? 'block' : 'none';
-  document.querySelector('.sig-wrap').style.display = typeMode ? 'none' : 'block';
-  const t = getL(getLang());
-  document.getElementById('typeToggle').textContent = typeMode ? t.drawMode : t.typeMode;
-}

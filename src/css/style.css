@@ -91,7 +91,7 @@ textarea{resize:none;min-height:72px;font-size:14px}
 .pdf-badge{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:10px;background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.35);color:var(--gold-light);white-space:nowrap;transition:all .4s;flex-shrink:0}
 .pdf-badge.read{background:rgba(31,107,74,0.2);border-color:rgba(31,107,74,0.4);color:#4ade80}
 .pdf-wrap{height:340px;position:relative;background:#e0e0e0}
-.pdf-iframe{width:100%;height:100%;border:none}
+.pdf-iframe{width:100%;height:100%;border:none;display:block;min-width:0}
 .pdf-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(13,31,60,0.93),rgba(22,43,80,0.89));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:5;padding:20px;text-align:center;transition:opacity .4s}
 .pdf-overlay.gone{opacity:0;pointer-events:none}
 .pdf-overlay p{font-size:13px;color:rgba(200,216,240,0.75);line-height:1.6}
