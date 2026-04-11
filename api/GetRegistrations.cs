@@ -50,6 +50,7 @@ public class GetRegistrations
                     r.created_at,
                     cat.name_fr  AS category_name_fr,
                     cat.name_en  AS category_name_en,
+                    cat.has_warranty AS category_has_warranty,
                     pt.name_fr   AS type_name_fr,
                     pt.name_en   AS type_name_en,
                     pt.brand_name AS type_brand,

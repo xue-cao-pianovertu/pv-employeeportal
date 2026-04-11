@@ -190,7 +190,8 @@ window.doSubmit = async function () {
   const manualEntry = document.getElementById('makeEditRow').style.display !== 'none';
   if (manualEntry ? !g('makeEdit') : !g('make')) return showErr(t.eMake);
   if (!document.getElementById('asapCheck').checked && !g('deliveryDate')) return showErr(t.eDelDate);
-  if (!document.getElementById('humCheck').checked) return showErr(t.eHum);
+  const humidityVisible = document.getElementById('c4').style.display !== 'none';
+  if (humidityVisible && !document.getElementById('humCheck').checked) return showErr(t.eHum);
   const warrantyVisible = document.getElementById('pdfGate').style.display !== 'none';
   const tradeupVisible  = document.getElementById('tradeupGate').style.display !== 'none';
   if (warrantyVisible && !getPdfRead()) return showErr(t.eNotRead);

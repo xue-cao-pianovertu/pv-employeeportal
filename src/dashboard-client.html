@@ -352,6 +352,7 @@
         fPurchase: "Date d'achat", fBench: 'Banc', fAccessories: 'Autres accessoires',
         fPianoNotes: 'Notes piano',
         humNote: `Le piano acoustique doit être gardé en tout temps à un taux d'humidité entre <b style="color:#92400e">40 % et 55 %</b> et une température entre <b style="color:#92400e">18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.`,
+        noWarrantyNote: `Ce piano est en consignation — aucune garantie n'est incluse.`,
         pwdTitle: 'Changer le mot de passe', pwdCurrent: 'Mot de passe actuel',
         pwdNew: 'Nouveau mot de passe', pwdConfirm: 'Confirmer le nouveau mot de passe',
         pwdSave: 'Enregistrer', pwdSaving: 'Enregistrement…',
@@ -382,6 +383,7 @@
         fPurchase: 'Purchase date', fBench: 'Bench', fAccessories: 'Other accessories',
         fPianoNotes: 'Piano notes',
         humNote: `The acoustic piano must be kept between <b style="color:#92400e">40% and 55% humidity</b> and <b style="color:#92400e">18°C and 26°C</b> at all times. Failure to do so may void the warranty.`,
+        noWarrantyNote: `This piano is on consignment — no warranty is included.`,
         pwdTitle: 'Change password', pwdCurrent: 'Current password',
         pwdNew: 'New password', pwdConfirm: 'Confirm new password',
         pwdSave: 'Save', pwdSaving: 'Saving…',
@@ -412,6 +414,7 @@
         fPurchase: '购买日期', fBench: '琴凳', fAccessories: '其他配件',
         fPianoNotes: '钢琴备注',
         humNote: `原声钢琴必须始终保持在 <b style="color:#92400e">40% 至 55% 湿度</b> 和 <b style="color:#92400e">18°C 至 26°C</b> 之间。否则可能导致保修失效。`,
+        noWarrantyNote: `此钢琴为寄售钢琴——不含保修。`,
         pwdTitle: '修改密码', pwdCurrent: '当前密码',
         pwdNew: '新密码', pwdConfirm: '确认新密码',
         pwdSave: '保存', pwdSaving: '保存中…',
@@ -717,7 +720,7 @@
               <span class="field-value">${r.piano_notes}</span>
             </div>` : ''}
           </div>
-          ${r.humidity_confirmed ? `
+          ${r.humidity_confirmed && r.category_has_warranty ? `
           <div style="margin-top:10px;background:rgba(146,64,14,0.06);border:1px solid rgba(146,64,14,0.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#78350f">
             ${t('humNote')}
           </div>` : ''}
@@ -726,7 +729,12 @@
         <!-- ── DOCUMENTS & SIGNATURE ──────────────────────── -->
         <div class="panel-section">
           <div class="panel-section-title">Documents &amp; Signature</div>
+          ${!r.category_has_warranty ? `
+          <div style="background:rgba(100,116,139,0.08);border:1px solid rgba(100,116,139,0.2);border-radius:8px;padding:9px 12px;font-size:12px;color:#475569;margin-bottom:10px">
+            ${t('noWarrantyNote')}
+          </div>` : ''}
           <div class="field-grid">
+            ${r.category_has_warranty ? `
             <div class="field-item">
               <span class="field-label">Garantie PDF</span>
               <span class="field-value">
@@ -742,19 +750,16 @@
                   ? `<button onclick="openClientPdf('${r.tradeup_pdf_blob}', this)" style="background:none;border:none;color:#c9a84c;font-size:12px;cursor:pointer;padding:0;text-align:left;font-family:'DM Sans',sans-serif">↓ ${r.tradeup_pdf_blob.split('/').pop()}</button>`
                   : '—'}
               </span>
-            </div>
-            <div class="field-item">
-              <span class="field-label">Type signature</span>
-              <span class="field-value">${fv(r.signature_type)}</span>
-            </div>
+            </div>` : ''}
             <div class="field-item">
               <span class="field-label">Signé le</span>
               <span class="field-value">${r.signed_at ? new Date(r.signed_at).toLocaleString('fr-CA') : '—'}</span>
             </div>
+            ${r.category_has_warranty ? `
             <div class="field-item">
               <span class="field-label">Humidité confirmée</span>
               <span class="field-value">${fv(r.humidity_confirmed)}</span>
-            </div>
+            </div>` : ''}
           </div>
           ${r.signature_blob_name ? `
           <div style="margin-top:12px">

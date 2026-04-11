@@ -142,16 +142,16 @@ export function onCatChange(categoryId) {
     sigInstrEl.textContent = _isConsignment ? t.sigInstrConsign : t.sigInstr;
   }
 
-  // Consignment notice in c5 + immediate sig unlock
+  // Consignment notice in c5
   document.getElementById('consignSigNote').style.display = _isConsignment ? 'block' : 'none';
-  if (_isConsignment) unlockForConsignment();
 
   // Show/hide PDF gates
   document.getElementById('tradeupGate').style.display = category.has_tradeup ? 'block' : 'none';
 
   if (!category.has_warranty) {
-    // No warranty — hide gate
+    // No warranty — hide gate, then immediately unlock sig
     document.getElementById('pdfGate').style.display = 'none';
+    unlockForConsignment();
   } else if (usesManualEntry) {
     // Used/consignment: load category-level PDF immediately
     document.getElementById('pdfGate').style.display = 'block';

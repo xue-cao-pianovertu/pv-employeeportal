@@ -695,11 +695,17 @@
         <!-- ── DOCUMENTS & SIGNATURE ──────────────────────── -->
         <div class="panel-section">
           <div class="panel-section-title">Documents &amp; Signature</div>
+          ${!r.category_has_warranty ? `
+          <div style="background:rgba(100,116,139,0.08);border:1px solid rgba(100,116,139,0.2);border-radius:8px;padding:9px 12px;font-size:12px;color:#475569;margin-bottom:10px">
+            Aucune garantie — piano en consignation.
+          </div>` : ''}
           <div class="field-grid">
+            ${r.category_has_warranty ? `
             <div class="field-item"><span class="field-label">Garantie PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.warranty_pdf_blob)}</span></div>
-            <div class="field-item"><span class="field-label">Échange PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.tradeup_pdf_blob)}</span></div>
+            <div class="field-item"><span class="field-label">Échange PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.tradeup_pdf_blob)}</span></div>` : ''}
             <div class="field-item"><span class="field-label">Signé le</span><span class="field-value">${r.signed_at ? new Date(r.signed_at).toLocaleString('fr-CA') : '—'}</span></div>
-            <div class="field-item"><span class="field-label">Humidité confirmée</span><span class="field-value">${fv(r.humidity_confirmed)}</span></div>
+            ${r.category_has_warranty ? `
+            <div class="field-item"><span class="field-label">Humidité confirmée</span><span class="field-value">${fv(r.humidity_confirmed)}</span></div>` : ''}
           </div>
           ${r.signature_blob_name ? `
           <div style="margin-top:12px">
