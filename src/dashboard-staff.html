@@ -49,6 +49,38 @@
       cursor: pointer;
     }
     .btn-logout:hover { background: rgba(201,168,76,0.1); }
+    .btn-chgpwd {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.75);
+      border-radius: 6px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .btn-chgpwd:hover { background: rgba(255,255,255,0.08); }
+    .pwd-drawer {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+      padding: 16px 18px; margin: 0 20px 0; display: none; max-width: 380px;
+    }
+    .pwd-drawer.open { display: block; }
+    .pwd-drawer h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #0d1f3c; }
+    .pwd-field { margin-bottom: 10px; }
+    .pwd-field label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .pwd-field input {
+      width: 100%; padding: 8px 10px; border: 1px solid #d1d5db;
+      border-radius: 6px; font-size: 14px; font-family: 'DM Sans', sans-serif; box-sizing: border-box;
+    }
+    .pwd-msg { font-size: 13px; margin-top: 8px; min-height: 18px; }
+    .pwd-msg.ok  { color: #16a34a; }
+    .pwd-msg.err { color: #dc2626; }
+    .btn-savepwd {
+      background: #0d1f3c; color: #fff; border: none; border-radius: 7px;
+      padding: 8px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; margin-top: 4px;
+    }
+    .btn-savepwd:disabled { opacity: 0.6; cursor: default; }
 
     /* ── Toolbar ─────────────────────────────────────────────── */
     .toolbar {
@@ -387,9 +419,28 @@
     </div>
     <div class="hd-right">
       <span class="user-badge" id="userBadge"></span>
+      <button class="btn-chgpwd" onclick="togglePwdDrawer()">Mot de passe</button>
       <button class="btn-logout" onclick="logout()">Déconnexion</button>
     </div>
   </header>
+
+  <div class="pwd-drawer" id="pwdDrawer">
+    <h3>Changer le mot de passe</h3>
+    <div class="pwd-field">
+      <label for="pwdCurrent">Mot de passe actuel</label>
+      <input type="password" id="pwdCurrent" autocomplete="current-password">
+    </div>
+    <div class="pwd-field">
+      <label for="pwdNew">Nouveau mot de passe</label>
+      <input type="password" id="pwdNew" autocomplete="new-password">
+    </div>
+    <div class="pwd-field">
+      <label for="pwdConfirm">Confirmer le nouveau mot de passe</label>
+      <input type="password" id="pwdConfirm" autocomplete="new-password">
+    </div>
+    <div class="pwd-msg" id="pwdMsg"></div>
+    <button class="btn-savepwd" id="pwdBtn" onclick="submitPwdChange()">Enregistrer</button>
+  </div>
 
   <div class="toolbar">
     <div class="search-wrap">
@@ -463,6 +514,59 @@
       window.location.replace('/login-staff.html');
     }
 
+    function togglePwdDrawer() {
+      document.getElementById('pwdDrawer').classList.toggle('open');
+    }
+
+    async function submitPwdChange() {
+      const current = document.getElementById('pwdCurrent').value;
+      const newPwd  = document.getElementById('pwdNew').value;
+      const confirm = document.getElementById('pwdConfirm').value;
+      const msg     = document.getElementById('pwdMsg');
+      const btn     = document.getElementById('pwdBtn');
+
+      msg.className = 'pwd-msg';
+      msg.textContent = '';
+
+      if (!current || !newPwd || !confirm) {
+        msg.className = 'pwd-msg err'; msg.textContent = 'Tous les champs sont requis.'; return;
+      }
+      if (newPwd !== confirm) {
+        msg.className = 'pwd-msg err'; msg.textContent = 'Les mots de passe ne correspondent pas.'; return;
+      }
+      if (newPwd.length < 6) {
+        msg.className = 'pwd-msg err'; msg.textContent = 'Le nouveau mot de passe doit contenir au moins 6 caractères.'; return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Enregistrement…';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/ChangePassword`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Token': `Bearer ${token}`
+          },
+          body: JSON.stringify({ current_password: current, new_password: newPwd })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.className = 'pwd-msg ok'; msg.textContent = 'Mot de passe modifié avec succès.';
+          document.getElementById('pwdCurrent').value = '';
+          document.getElementById('pwdNew').value = '';
+          document.getElementById('pwdConfirm').value = '';
+        } else {
+          msg.className = 'pwd-msg err'; msg.textContent = data.error || 'Erreur lors du changement de mot de passe.';
+        }
+      } catch {
+        msg.className = 'pwd-msg err'; msg.textContent = 'Erreur réseau, veuillez réessayer.';
+      }
+      btn.disabled = false;
+      btn.textContent = 'Enregistrer';
+    }
+
     // ── Load registrations ────────────────────────────────────
     async function loadRegistrations() {
       try {
@@ -490,6 +594,7 @@
         if (q && !text.includes(q)) return false;
         if (filterPay && (r.payment_status || 'not_paid') !== filterPay) return false;
         if (filterDel && (r.delivery_status || 'to_plan')  !== filterDel) return false;
+        if (role === 'staff' && r.test_data) return false;
         return true;
       });
 
@@ -498,7 +603,7 @@
       document.getElementById('emptyState').style.display = rows.length ? 'none' : 'block';
 
       tbody.innerHTML = rows.map(r => {
-        const date  = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-CA') : '—';
+        const date  = r.created_at ? new Date(r.created_at + 'Z').toLocaleDateString('fr-CA') : '—';
         const name  = `${r.customer_last_name || ''} ${r.customer_first_name || ''}`.trim() || '—';
         const piano = [r.piano_make, r.piano_model].filter(Boolean).join(' ') || r.type_name_fr || '—';
         const cat   = r.category_name_fr || '—';
@@ -516,7 +621,8 @@
         };
         const [pc, pl] = paymentMap[r.payment_status || 'not_paid'] || paymentMap.not_paid;
         const [dc, dl] = deliveryMap[r.delivery_status || 'to_plan'] || deliveryMap.to_plan;
-        return `<tr onclick="openPanel(${r.id})">
+        const trBg = (role === 'admin' && r.test_data) ? ' style="background:#eff6ff"' : '';
+        return `<tr onclick="openPanel(${r.id})"${trBg}>
           <td style="font-family:monospace;font-size:12px;color:#c9a84c;font-weight:600">${r.ref_id}</td>
           <td style="color:#6b7280">${date}</td>
           <td>${name}</td>
@@ -704,8 +810,8 @@
           <div class="field-grid">
             ${r.category_has_warranty ? `
             <div class="field-item"><span class="field-label">Garantie PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.warranty_pdf_blob)}</span></div>
-            <div class="field-item"><span class="field-label">Échange PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.tradeup_pdf_blob)}</span></div>` : ''}
-            <div class="field-item"><span class="field-label">Signé le</span><span class="field-value">${r.signed_at ? new Date(r.signed_at).toLocaleString('fr-CA') : '—'}</span></div>
+            ${r.tradeup_pdf_blob && r.category_has_tradeup && !['Fazioli','Bechstein','Bösendorfer','Schimmel','Shigeru Kawai','Blüthner','Mason & Hamlin','Estonia'].includes(r.type_brand) ? `<div class="field-item"><span class="field-label">Échange PDF</span><span class="field-value mono" style="font-size:11px">${fv(r.tradeup_pdf_blob)}</span></div>` : ''}` : ''}
+            <div class="field-item"><span class="field-label">Signé le</span><span class="field-value">${r.signed_at ? new Date(r.signed_at + 'Z').toLocaleString('fr-CA') : '—'}</span></div>
             ${r.category_has_warranty ? `
             <div class="field-item"><span class="field-label">Humidité confirmée</span><span class="field-value">${fv(r.humidity_confirmed)}</span></div>` : ''}
           </div>
@@ -758,6 +864,12 @@
               <div class="staff-field">
                 <label>Montant surcharge ($)</label>
                 <input type="number" step="0.01" name="surcharge_amount" value="${r.surcharge_amount || 0}">
+              </div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-field">
+                <label>Accordages convenus à l'achat</label>
+                <input type="number" min="0" step="1" name="tuning_sessions_agreed" value="${r.tuning_sessions_agreed || 0}">
               </div>
             </div>
             <div class="staff-row">
@@ -828,8 +940,9 @@
         cheque_to_collect: form.cheque_to_collect.checked,
         google_review:     form.google_review.checked,
         staff_notes:       form.staff_notes.value.trim()     || null,
-        payment_status:    form.payment_status.value         || 'not_paid',
-        delivery_status:   form.delivery_status.value        || 'to_plan',
+        payment_status:          form.payment_status.value         || 'not_paid',
+        delivery_status:         form.delivery_status.value        || 'to_plan',
+        tuning_sessions_agreed:  parseInt(form.tuning_sessions_agreed.value) || 0,
       };
 
       try {
@@ -1039,7 +1152,8 @@
       staff_notes:        'Notes personnel',
       piano_serial:       'N° de série',
       payment_status:     'Paiement',
-      delivery_status:    'Livraison',
+      delivery_status:           'Livraison',
+      tuning_sessions_agreed:    'Accordages convenus',
       customer_first_name:'Prénom',
       customer_last_name: 'Nom',
       customer_email:     'Courriel',
@@ -1087,7 +1201,7 @@
         }
         box.innerHTML = data.map(entry => {
           const changes = JSON.parse(entry.changes_json);
-          const date    = new Date(entry.changed_at).toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' });
+          const date    = new Date(entry.changed_at + 'Z').toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' });
           const sectionLabels = { client: 'client', livraison: 'livraison', piano: 'piano', staff: 'personnel' };
           const sectionLabel = sectionLabels[entry.section] || entry.section;
           const lines   = Object.entries(changes).map(([field, { old: o, new: n }]) => {

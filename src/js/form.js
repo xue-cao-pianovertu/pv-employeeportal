@@ -2,7 +2,7 @@
 // form.js — dropdowns, category/type, surcharge, steppers, checkboxes
 // ─────────────────────────────────────────────
 
-import { updatePdfGate, resetPdfGate, unlockForConsignment } from './pdf.js';
+import { updatePdfGate, resetPdfGate, unlockForConsignment, resetTradeupGate } from './pdf.js';
 
 // ── State ─────────────────────────────────────
 export const cnts = { sout: 0, sin: 0, turns: 0 };
@@ -54,6 +54,7 @@ export function populatePianoTypes(categoryId) {
     opt.value = pt.id;
     opt.textContent = pt[`name_${lang}`];
     if (pt.brand_name) opt.dataset.brand = pt.brand_name;
+    opt.dataset.hasTradeup = pt.has_tradeup !== false ? 'true' : 'false';
     sel.appendChild(opt);
   });
 
@@ -179,6 +180,15 @@ export function onTypeChange(pianoTypeId) {
   if (url) {
     document.getElementById('pdfGate').style.display = 'block';
     updatePdfGate(url, `warranty-type-${pianoTypeId}.pdf`);
+  }
+
+  // Override tradeup gate visibility based on type-level has_tradeup flag
+  const catId    = parseInt(document.getElementById('pianoCategory').value);
+  const category = data.categories.find(c => c.id === catId);
+  if (category?.has_tradeup) {
+    const typeHasTradeup = typeOpt?.dataset.hasTradeup !== 'false';
+    document.getElementById('tradeupGate').style.display = typeHasTradeup ? 'block' : 'none';
+    resetTradeupGate(); // resets read state + re-evaluates sig unlock
   }
 }
 

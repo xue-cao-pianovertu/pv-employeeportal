@@ -230,7 +230,15 @@ public class SubmitRegistration
 
             if (existing == 0 && !string.IsNullOrEmpty(payload.CustomerEmail))
             {
-                generatedPassword = GeneratePassword();
+                var firstName = (payload.CustomerFirstName ?? "").Trim().ToLower()
+                    .Replace(" ", "").Replace("é","e").Replace("è","e").Replace("ê","e")
+                    .Replace("à","a").Replace("â","a").Replace("ù","u").Replace("û","u")
+                    .Replace("î","i").Replace("ï","i").Replace("ô","o").Replace("ç","c");
+                var lastName = (payload.CustomerLastName ?? "").Trim().ToLower()
+                    .Replace(" ", "").Replace("é","e").Replace("è","e").Replace("ê","e")
+                    .Replace("à","a").Replace("â","a").Replace("ù","u").Replace("û","u")
+                    .Replace("î","i").Replace("ï","i").Replace("ô","o").Replace("ç","c");
+                generatedPassword = $"{firstName}_{lastName}_pianovertu";
                 var fullName = $"{payload.CustomerFirstName} {payload.CustomerLastName}".Trim();
                 var createUserCmd = new SqlCommand(
                     "INSERT INTO dbo.Users (username, password, role, full_name) " +

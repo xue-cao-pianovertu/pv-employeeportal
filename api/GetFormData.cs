@@ -70,7 +70,7 @@ namespace PV.AZFunction
 
                 // Piano types (active only)
                 using (var cmd = new SqlCommand(
-                    "SELECT id, category_id, name_fr, name_en, name_zh, brand_name " +
+                    "SELECT id, category_id, name_fr, name_en, name_zh, brand_name, has_tradeup " +
                     "FROM dbo.PianoType WHERE is_active = 1", conn))
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
@@ -83,7 +83,8 @@ namespace PV.AZFunction
                             name_fr     = reader.GetString(2),
                             name_en     = reader.GetString(3),
                             name_zh     = reader.GetString(4),
-                            brand_name  = reader.GetString(5)
+                            brand_name  = reader.GetString(5),
+                            has_tradeup = reader.GetBoolean(6)
                         });
                     }
                 }

@@ -25,7 +25,6 @@ Two surfaces:
 | Backend | Azure Functions C# (.NET 8, isolated worker model) |
 | Database | Azure SQL |
 | Blob Storage | Azure Blob Storage — `pianovertustorageaccount`, containers: `warranty-pdfs`, `signatures` |
-| Email | EmailJS — Service: `service_bmg9k6m`, Template: `template_8dmr44f`, Key: `yJlzhbDnT4L72MyLn` |
 | Auth | JWT (HmacSha256, 8h expiry) — secret in `JwtSecret` app setting |
 
 ---
@@ -56,12 +55,13 @@ pv-employeeportal/
 │   ├── SubmitRegistration.cs   ← ✅
 │   ├── Login.cs                ← ✅
 │   ├── GetRegistrations.cs     ← ✅
-│   ├── UpdateRegistration.cs   ← ✅ (staff fields + status + price + audit)
+│   ├── UpdateRegistration.cs   ← ✅ (staff fields + payment_status + delivery_status + price + audit)
 │   ├── UpdateClientInfo.cs     ← ✅ (client fields + audit)
 │   ├── UpdateLivraison.cs      ← ✅ (delivery fields + audit)
 │   ├── UpdatePiano.cs          ← ✅ (piano fields + audit)
 │   ├── GetAuditLog.cs          ← ✅ (GET /api/GetAuditLog?id=)
 │   ├── GetSignatureUrl.cs      ← ✅ (GET /api/GetSignatureUrl?blob=)
+│   ├── GetMyRegistrations.cs   ← ✅ (GET /api/GetMyRegistrations — customer-scoped)
 │   ├── Program.cs
 │   ├── host.json
 │   ├── local.settings.json     ← NOT committed (contains secrets)
@@ -69,11 +69,12 @@ pv-employeeportal/
 ├── sql/
 │   ├── create_registrations_table.sql  ← ✅ run
 │   ├── create_users_table.sql          ← ✅ run
-│   ├── add_status_column.sql           ← ✅ run (status NVARCHAR(20) DEFAULT 'potential')
+│   ├── add_status_column.sql           ← ✅ run (status NVARCHAR(20) DEFAULT 'potential' — legacy, unused)
 │   ├── add_price_column.sql            ← ✅ run (price DECIMAL(10,2) NULL)
-│   └── create_audit_log_table.sql      ← ✅ run
+│   ├── create_audit_log_table.sql      ← ✅ run
+│   └── add_payment_delivery_status.sql ← ✅ run
 ├── tests/
-│   └── run-tests.js            ← 30 automated tests (node tests/run-tests.js)
+│   └── run-tests.js            ← 42 automated tests (node tests/run-tests.js)
 ├── staticwebapp.config.json
 └── .github/workflows/          ← CI/CD (watch for duplicate files — causes double triggers)
 ```
@@ -106,7 +107,9 @@ pv-employeeportal/
 | `WarrantyPdf` | Warranty PDFs: `type_id` (new/digital) or `category_id` (used) → blob name |
 | `TradeUpPdf` | Trade-up/exchange policy PDFs → blob name |
 | `PdfDocuments` | Consolidated PDF reference table |
-| `Registrations` | ✅ All form fields + signature/PDF blob names + staff fields + status + price |
+| `Registrations` | ✅ All form fields + signature/PDF blob names + staff fields + payment_status + delivery_status + price |
+| `PaymentStatus` | Payment status lookup: `not_paid` / `partially_paid` / `fully_paid` / `store_financing` |
+| `DeliveryStatus` | Delivery status lookup: `to_plan` / `sent_to_mover` / `delivered` |
 | `Users` | ✅ username, password (plain text until Phase 6), role, full_name |
 | `AuditLog` | ✅ registration_id, changed_by, changed_at, section, changes_json |
 
@@ -120,7 +123,9 @@ pv-employeeportal/
 
 ### Registrations table key columns
 - `ref_id` — format `PV-YYYY-MM-DD-XXXX` (server-generated, sequential per day)
-- `status` — `NVARCHAR(20) NOT NULL DEFAULT 'potential'` — values: `potential | completed | paid | partially_paid`
+- `payment_status` — `NVARCHAR(20) NOT NULL DEFAULT 'not_paid'` — FK → `dbo.PaymentStatus`: `not_paid | partially_paid | fully_paid | store_financing`
+- `delivery_status` — `NVARCHAR(20) NOT NULL DEFAULT 'to_plan'` — FK → `dbo.DeliveryStatus`: `to_plan | sent_to_mover | delivered`
+- `status` — legacy column, still in DB, not used by API or UI
 - `price` — `DECIMAL(10,2) NULL` — sale price entered by staff
 - `signature_blob_name` — blob in `signatures` container
 - `warranty_pdf_blob` / `tradeup_pdf_blob` — looked up server-side, never sent from client
@@ -165,14 +170,14 @@ pv-employeeportal/
 ### `GetRegistrations` ✅
 - `GET /api/GetRegistrations` — all registrations newest-first
 - LEFT JOINs with `PianoCategory`, `PianoType`, `bench`
-- Returns all columns including `status`, `price`, `signature_blob_name`
+- Returns all columns including `payment_status`, `delivery_status`, `price`, `signature_blob_name`, `category_has_warranty`
 
 ### `UpdateRegistration` ✅
 - `PATCH /api/UpdateRegistration` — staff fields
-- Fields: `invoice_number`, `from_location`, `old_piano_dest`, `surcharge_amount`, `cheque_to_collect`, `google_review`, `fully_paid`, `staff_notes`, `piano_serial`, `status`, `price`
+- Fields: `invoice_number`, `from_location`, `old_piano_dest`, `surcharge_amount`, `cheque_to_collect`, `google_review`, `fully_paid`, `staff_notes`, `piano_serial`, `payment_status`, `delivery_status`, `price`
 - `from_location` options: 5193 – Tradition, 5223 – Signature, 3830 – Expérience, 5473 – Warehouse, Client pick up / Collecte par client
 - `old_piano_dest` options: above + Recycle / Éco-Centre, Deuxième livraison
-- `status` defaults to `"potential"` if not sent (never NULL)
+- `payment_status` defaults to `"not_paid"` if not sent; `delivery_status` defaults to `"to_plan"` (both NOT NULL FK columns)
 - Reads JWT `Authorization` header to log `changed_by`
 - SELECTs old values → diffs → writes to `AuditLog` if changed
 
@@ -207,6 +212,13 @@ pv-employeeportal/
 - Returns 30-min SAS URL for a blob in the `signatures` container
 - Returns `{ url }`
 
+### `GetMyRegistrations` ✅
+- `GET /api/GetMyRegistrations` — registrations for the authenticated customer only
+- Auth: reads `X-Token` header first (falls back to `Authorization` for local dev — see SWA note above)
+- JOINs `Users` on `customer_email` → filters by JWT `sub` claim (user id)
+- Returns same fields as `GetRegistrations` plus trilingual category/type/bench names
+- 401 if token missing or invalid
+
 ### Shared helpers in `UpdateRegistration.cs`
 - `UpdateRegistration.GetUsername(req)` — extracts `unique_name` from JWT without full validation (Phase 6 will add full validation)
 - `UpdateRegistration.WriteAuditLog(conn, regId, changedBy, section, changes)` — called by all Update* functions
@@ -228,17 +240,21 @@ Azure Static Web Apps does **not** forward the `Authorization` header to managed
 ## Staff Dashboard (`dashboard-staff.html`)
 
 ### Table
-- Columns: Réf, Date, Client, Téléphone, Piano, Catégorie, Facture, Statut
+- Columns: Réf, Date, Client, Téléphone, Piano, Catégorie, Facture, Paiement, Livraison
 - Search bar filters all text columns live
-- Status filter dropdown: Tous / Potentiel / Complété / Payé / Part. payé
+- Payment filter dropdown: Tous paiements / Non payé / Part. payé / Entièrement payé / Financement magasin
+- Delivery filter dropdown: Toutes livraisons / À planifier / Chez déménageur / Livré
 
 ### Status badges
 | Value | Badge |
 |---|---|
-| `potential` | Gray — Potentiel |
-| `completed` | Blue — Complété |
-| `paid` | Green — Payé |
+| `not_paid` | Gray — Non payé |
 | `partially_paid` | Amber — Part. payé |
+| `fully_paid` | Green — Entièrement payé |
+| `store_financing` | Blue — Financement magasin |
+| `to_plan` | Gray — À planifier |
+| `sent_to_mover` | Amber — Chez déménageur |
+| `delivered` | Green — Livré |
 
 ### Detail panel sections
 Each customer-entered section has a **Modifier** button that toggles an inline edit form:
@@ -323,7 +339,7 @@ node tests/run-tests.js
 # Requires functions running on port 7072
 ```
 
-34 tests covering: GetFormData, SubmitRegistration, Login, GetRegistrations, UpdateRegistration, UpdateClientInfo, UpdateLivraison, UpdatePiano, GetAuditLog, GetMyRegistrations.
+42 tests covering: GetFormData, SubmitRegistration, Login, GetRegistrations, UpdateRegistration, UpdateClientInfo, UpdateLivraison, UpdatePiano, GetAuditLog, GetMyRegistrations, staff role access.
 
 Tests use `patchAuth()` helper (sends `Authorization` header) for all staff endpoints. `adminToken` is captured during Login test and reused. `customerToken` is captured separately for `GetMyRegistrations` tests.
 
@@ -345,11 +361,12 @@ Tests use `patchAuth()` helper (sends `Authorization` header) for all staff endp
 - `GET /api/GetMyRegistrations` ✅ working — uses `X-Token` header to bypass SWA Authorization stripping
 
 ### Phase 5 — Staff portal ✅ COMPLETE
-- Full registrations table with search + status filter
+- Full registrations table with search + payment/delivery filters
 - Detail panel with all registration data
 - Editable sections: Client, Livraison, Piano, Champs personnel
 - Audit trail: who changed what, per field, per section
-- Status: potential / completed / paid / partially paid
+- Payment status: not_paid / partially_paid / fully_paid / store_financing
+- Delivery status: to_plan / sent_to_mover / delivered
 - Price field tracked by staff
 
 ### Phase 6 — Security hardening (before go-live)
@@ -412,32 +429,5 @@ cd api && func start
 7. **Follow existing function structure** — use `GetBenches.cs` as the pattern for new HTTP trigger functions
 8. **JWT secret** — always read from `JwtSecret` env var, never hardcode
 9. **Audit logging** — all staff-side UPDATE functions must: SELECT old values → diff → call `UpdateRegistration.WriteAuditLog()` if changed
-10. **status field** — always default to `"potential"` if not provided, never pass NULL (NOT NULL column)
+10. **payment_status / delivery_status** — always default to `"not_paid"` / `"to_plan"` if not provided (NOT NULL FK columns). The legacy `status` column remains in DB but is not used by the API.
 
-
-
-current status:
-⏺ Phase 4 is complete. Here's what was built:                                                                                                                 
-                                                                                          
-  src/dashboard-client.html                                                                                                                                   
-  - Auth guard: redirects to /login-client.html if no token or role !== customer                                                                              
-  - Fetches GET /api/GetMyRegistrations with Authorization: Bearer <token> header                                                                             
-  - Displays registrations as clickable cards showing: ref_id, date, piano name, category, city, status badge                                                 
-  - Status labels match staff dashboard (Potentiel / Complété / Payé / Part. payé) — "En attente" label used for customers instead of the internal "Potentiel"
-  - Detail panel (read-only, no editing): Statut, Client, Livraison, Piano, Documents & Signature sections                                                    
-  - Signature image loaded via GetSignatureUrl API — same pattern as staff dashboard                                                                          
-  - Staff fields excluded from view (no price, invoice, staff_notes)                                                                                          
-  - 401 response auto-logs the customer out                                                                                                                   
-                                                                                                                                                              
-  tests/run-tests.js — 4 new tests (34 total):                                                                                                                
-  - Re-login as customer → capture customerToken                                                                                                              
-  - GetMyRegistrations returns array with correct fields, no staff fields                                                                                     
-  - No token → 401                                                                                                                                            
-  - Invalid token → 401     
-
-
-  
-
-  currently: both point to index.html
-  client.pianovertu.com
-  staff.pianovertu.com bo

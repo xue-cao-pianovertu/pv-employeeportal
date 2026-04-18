@@ -453,7 +453,7 @@
     const role     = localStorage.getItem('pv_role');
     const fullName = localStorage.getItem('pv_full_name');
 
-    if (!token || role !== 'customer') {
+    if (!token || !role) {
       window.location.replace('/login-client.html');
     }
 
@@ -508,7 +508,7 @@
       }
 
       content.innerHTML = `<div class="cards">${allRows.map(r => {
-        const date  = r.created_at ? new Date(r.created_at).toLocaleDateString(dateLocale()) : '—';
+        const date  = r.created_at ? new Date(r.created_at + 'Z').toLocaleDateString(dateLocale()) : '—';
         const piano = [r.piano_make, r.piano_model].filter(Boolean).join(' ') || r[`type_name_${lang}`] || r.type_name_fr || '—';
         const cat   = r[`category_name_${lang}`] || r.category_name_fr || '—';
         const city  = [r.delivery_city, r.delivery_province].filter(Boolean).join(', ');
@@ -743,17 +743,16 @@
                   : '—'}
               </span>
             </div>
+            ${r.tradeup_pdf_blob && r.category_has_tradeup && !['Fazioli','Bechstein','Bösendorfer','Schimmel','Shigeru Kawai','Blüthner','Mason & Hamlin','Estonia'].includes(r.type_brand) ? `
             <div class="field-item">
               <span class="field-label">Échange PDF</span>
               <span class="field-value">
-                ${r.tradeup_pdf_blob
-                  ? `<button onclick="openClientPdf('${r.tradeup_pdf_blob}', this)" style="background:none;border:none;color:#c9a84c;font-size:12px;cursor:pointer;padding:0;text-align:left;font-family:'DM Sans',sans-serif">↓ ${r.tradeup_pdf_blob.split('/').pop()}</button>`
-                  : '—'}
+                <button onclick="openClientPdf('${r.tradeup_pdf_blob}', this)" style="background:none;border:none;color:#c9a84c;font-size:12px;cursor:pointer;padding:0;text-align:left;font-family:'DM Sans',sans-serif">↓ ${r.tradeup_pdf_blob.split('/').pop()}</button>
               </span>
-            </div>` : ''}
+            </div>` : ''}` : ''}
             <div class="field-item">
               <span class="field-label">Signé le</span>
-              <span class="field-value">${r.signed_at ? new Date(r.signed_at).toLocaleString('fr-CA') : '—'}</span>
+              <span class="field-value">${r.signed_at ? new Date(r.signed_at + 'Z').toLocaleString('fr-CA') : '—'}</span>
             </div>
             ${r.category_has_warranty ? `
             <div class="field-item">

@@ -227,7 +227,7 @@
         localStorage.setItem('pv_role',      data.role);
         localStorage.setItem('pv_full_name', data.full_name);
 
-        window.location.replace(data.role === 'customer' ? '/dashboard-client.html' : '/dashboard-staff.html');
+        window.location.replace('/dashboard-client.html');
       } catch {
         err.textContent = lc.errNetwork;
         err.style.display = 'block';

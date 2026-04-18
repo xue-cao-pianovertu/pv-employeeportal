@@ -25,6 +25,13 @@ export function unlockForConsignment() {
   tryUnlockSig();
 }
 
+export function resetTradeupGate() {
+  _tradeupRead   = false;
+  _tradeupOpened = false;
+  document.getElementById('sigLock')?.classList.remove('open');
+  tryUnlockSig(); // re-evaluates: if tradeup gate is now hidden, unlocks if warranty was already read
+}
+
 // On mobile, PDFs open in a new tab — timer is meaningless. Unlock immediately on click.
 const isMobile = () => 'ontouchstart' in window;
 

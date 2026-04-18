@@ -11,7 +11,7 @@ const RESET  = '\x1b[0m';
 const BOLD   = '\x1b[1m';
 
 let passed = 0, failed = 0;
-let testEmail, testPassword, testRegId, testRefId, adminToken;
+let testEmail, testPassword, testRegId, testRefId, adminToken, staffToken;
 
 async function test(name, fn) {
   try {
@@ -144,7 +144,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(res.ok, `HTTP ${res.status}`);
     assert(data.new_account === true, 'new_account not true');
     assert(data.client_username, 'client_username missing');
-    assert(data.client_password && data.client_password.length === 8, 'client_password invalid');
+    assert(data.client_password && data.client_password.endsWith('_pianovertu'), 'client_password invalid');
     testPassword = data.client_password;
     testEmail    = data.client_username;
   });
@@ -173,6 +173,16 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.token, 'token missing');
     assert(data.role === 'customer', `role should be customer, got ${data.role}`);
+  });
+
+  await test('POST /api/Login — staff credentials return token', async () => {
+    const { res, data } = await post('Login', { username: 'staff@pianovertu.com', password: 'changeme' });
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.token,     'token missing');
+    assert(data.role,      'role missing');
+    assert(data.full_name, 'full_name missing');
+    assert(data.role === 'staff', `role should be staff, got ${data.role}`);
+    staffToken = data.token;
   });
 
   await test('POST /api/Login — wrong password returns 401', async () => {
@@ -225,9 +235,10 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
       cheque_to_collect: false,
       google_review:    true,
       fully_paid:       false,
-      payment_status:   'fully_paid',
-      delivery_status:  'delivered',
-      staff_notes:      'Test automatisé',
+      payment_status:          'fully_paid',
+      delivery_status:         'delivered',
+      staff_notes:             'Test automatisé',
+      tuning_sessions_agreed:  2,
     }, adminToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.success, 'success not true');
@@ -417,7 +428,33 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(res.status === 401, `expected 401, got ${res.status}`);
   });
 
-  // 11. GetFormData — has_tradeup (requires DB migration to be run first)
+  // 11. Staff role access
+  console.log(`\n${BOLD}Staff role access${RESET}`);
+
+  await test('staff token can call UpdateRegistration', async () => {
+    assert(testRegId && staffToken, 'missing testRegId or staffToken');
+    const { res, data } = await patchAuth('UpdateRegistration', {
+      id: testRegId, surcharge_amount: 0, cheque_to_collect: false,
+      google_review: false, fully_paid: false,
+      payment_status: 'not_paid', delivery_status: 'to_plan',
+      staff_notes: 'Test staff role', tuning_sessions_agreed: 0,
+    }, staffToken);
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.success, 'success not true');
+  });
+
+  await test('staff token can call ResetClientPassword', async () => {
+    assert(staffToken && testEmail, 'missing staffToken or testEmail');
+    const { res, data } = await patchAuth('ResetClientPassword', { customer_email: testEmail }, staffToken);
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.success === true, 'success not true');
+    assert(typeof data.new_password === 'string' && data.new_password.length === 8, 'new_password invalid');
+    // Reset back so suite stays idempotent
+    const { data: ld } = await post('Login', { username: testEmail, password: data.new_password });
+    await patchXToken('ChangePassword', { current_password: data.new_password, new_password: testPassword }, ld.token);
+  });
+
+  // 12. GetFormData — has_tradeup (requires DB migration to be run first)
   console.log(`\n${BOLD}GetFormData — has_tradeup${RESET}`);
 
   await test('GET /api/GetFormData categories include has_tradeup field', async () => {
@@ -430,7 +467,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(cat3 && cat3.has_tradeup === true, 'category id=3 should have has_tradeup=true');
   });
 
-  // 12. ChangePassword
+  // 13. ChangePassword
   console.log(`\n${BOLD}ChangePassword${RESET}`);
 
   const newPassword = testPassword + 'X';
@@ -468,7 +505,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     await patchXToken('ChangePassword', { current_password: newPassword, new_password: testPassword }, customerToken);
   });
 
-  // 13. ResetClientPassword
+  // 14. ResetClientPassword
   console.log(`\n${BOLD}ResetClientPassword${RESET}`);
 
   await test('PATCH /api/ResetClientPassword — no token returns 401', async () => {

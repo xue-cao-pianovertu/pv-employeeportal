@@ -44,7 +44,8 @@ public class UpdateRegistration
             using (var selCmd = new SqlCommand(@"
                 SELECT invoice_number, from_location, old_piano_dest, surcharge_amount,
                        cheque_to_collect, google_review, fully_paid, staff_notes,
-                       piano_serial, payment_status, delivery_status, price
+                       piano_serial, payment_status, delivery_status, price,
+                       tuning_sessions_agreed
                 FROM dbo.Registrations WHERE id = @id", conn))
             {
                 selCmd.Parameters.AddWithValue("@id", body.Id);
@@ -64,6 +65,7 @@ public class UpdateRegistration
                 string?  oldPaymentStatus  = reader["payment_status"]    as string ?? "not_paid";
                 string?  oldDeliveryStatus = reader["delivery_status"]   as string ?? "to_plan";
                 decimal? oldPrice          = reader["price"] == DBNull.Value ? null : (decimal?)reader["price"];
+                int      oldTuning         = reader["tuning_sessions_agreed"] == DBNull.Value ? 0 : (int)reader["tuning_sessions_agreed"];
 
                 Diff(changes, "invoice_number",    oldInvoice,                body.InvoiceNumber);
                 Diff(changes, "from_location",     oldFrom,                   body.FromLocation);
@@ -78,6 +80,7 @@ public class UpdateRegistration
                 Diff(changes, "payment_status",    oldPaymentStatus,          body.PaymentStatus  ?? "not_paid");
                 Diff(changes, "delivery_status",   oldDeliveryStatus,         body.DeliveryStatus ?? "to_plan");
                 Diff(changes, "price",             oldPrice?.ToString("F2"),  body.Price?.ToString("F2"));
+                Diff(changes, "tuning_sessions_agreed", oldTuning.ToString(), body.TuningSessionsAgreed.ToString());
             }
 
             // ── Update ───────────────────────────────────────────────
@@ -94,7 +97,8 @@ public class UpdateRegistration
                     piano_serial      = COALESCE(@pianoSerial, piano_serial),
                     payment_status    = @paymentStatus,
                     delivery_status   = @deliveryStatus,
-                    price             = @price
+                    price                   = @price,
+                    tuning_sessions_agreed  = @tuningSessionsAgreed
                 WHERE id = @id", conn);
 
             cmd.Parameters.AddWithValue("@id",               body.Id);
@@ -109,7 +113,8 @@ public class UpdateRegistration
             cmd.Parameters.AddWithValue("@pianoSerial",      (object?)body.PianoSerial     ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@paymentStatus",    body.PaymentStatus  ?? "not_paid");
             cmd.Parameters.AddWithValue("@deliveryStatus",   body.DeliveryStatus ?? "to_plan");
-            cmd.Parameters.AddWithValue("@price",            (object?)body.Price           ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@price",                (object?)body.Price           ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@tuningSessionsAgreed", body.TuningSessionsAgreed);
 
             await cmd.ExecuteNonQueryAsync();
 
@@ -176,5 +181,6 @@ public class StaffUpdate
     public string?  PianoSerial     { get; set; }
     public string?  PaymentStatus   { get; set; }
     public string?  DeliveryStatus  { get; set; }
-    public decimal? Price           { get; set; }
+    public decimal? Price                  { get; set; }
+    public int      TuningSessionsAgreed  { get; set; }
 }

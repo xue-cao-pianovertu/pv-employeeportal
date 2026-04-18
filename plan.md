@@ -281,4 +281,86 @@ Replaced the single `status` field with two independent status fields, each back
 
 **Files changed:** `src/index.html`, `src/js/lang.js`, `src/js/pdf.js`, `src/js/form.js`
 
+---
+
+## 2026-04-12
+
+### Completed: 7 items ✅
+
+---
+
+### Feature: Split payment_status + delivery_status (staff dashboard cleanup)
+
+Following the status split, additional dashboard cleanup was done:
+
+- Removed "Type signature" field-item from Documents & Signature panel (typed signatures removed from form)
+- Removed typed-signature fallback block (`r.signature_type === 'typed'` ternary branch)
+- Removed "Entièrement payé" checkbox from `.check-row` and `fully_paid` from `saveStaff()` body (covered by `payment_status` dropdown)
+- "Financement" → "Financement magasin" for `store_financing` in filter dropdown, `paymentMap`, and edit form
+- "Payé" → "Entièrement payé" for `fully_paid` in same 3 locations
+
+**Files changed:** `src/dashboard-staff.html`
+
+---
+
+### Feature: Humidity disclaimer in client portal
+
+Piano humidity/temperature warning now appears in the client portal's piano detail section, conditional on `r.humidity_confirmed`. Added word "acoustique/acoustic/原声" to the disclaimer text in all 3 languages in both the registration form and client portal.
+
+**Fix:**
+- `src/js/lang.js`: `humNote` FR/EN/ZH updated to include "acoustique / acoustic / 原声"
+- `src/dashboard-client.html`: added `humNote` key to `DC` translations (FR/EN/ZH); rendered as amber box in piano section when `r.humidity_confirmed` is truthy
+
+**Files changed:** `src/js/lang.js`, `src/dashboard-client.html`
+
+---
+
+### Feature: Client login button on registration form
+
+Added "👤 Mon espace" link to the top bar of the registration form, left-aligned alongside the language switcher buttons.
+
+**Fix:**
+- `src/index.html`: wrapped lang buttons in inner `<div style="display:flex;gap:6px">`, added `<a href="/login-client.html" class="lang-btn">` on the left; added missing `</div>` closing tag for `.lang-switcher`
+- `src/css/style.css`: `.lang-switcher` changed from `justify-content:flex-end` to `justify-content:space-between;align-items:center`
+
+**Files changed:** `src/index.html`, `src/css/style.css`
+
+---
+
+### Bug fix: Consignment signature unlock race condition
+
+**Root cause:** `unlockForConsignment()` was called in `onCatChange()` before the tradeupGate visibility was updated. If switching from a category with tradeup, `tryUnlockSig()` saw `tradeupVisible = true` and refused to unlock.
+
+**Fix:**
+- `src/js/form.js`: moved `unlockForConsignment()` call to inside the `!category.has_warranty` branch of the pdfGate block — runs after all gates are hidden
+- `src/js/main.js`: humCheck validation now guarded by `c4` visibility — skipped when humidity section is hidden (consignment)
+
+**Files changed:** `src/js/form.js`, `src/js/main.js`
+
+---
+
+### Feature: Hide warranty/exchange/humidity fields for consignment in both portals
+
+When a registration's category has no warranty, the Garantie PDF, Échange PDF, and Humidité confirmée fields are hidden and replaced with a "no warranty" notice in the Documents & Signature section.
+
+**DB change:** Added `cat.has_warranty AS category_has_warranty` to SELECT in both API functions.
+
+**Fix:**
+- `api/GetRegistrations.cs`: added `cat.has_warranty AS category_has_warranty` to SELECT
+- `api/GetMyRegistrations.cs`: same
+- `src/dashboard-staff.html`: fields conditionally rendered on `r.category_has_warranty`; gray notice "Aucune garantie — piano en consignation." shown when false
+- `src/dashboard-client.html`: same conditional rendering; `noWarrantyNote` key added to `DC` translations (FR/EN/ZH); humidity disclaimer box also guarded by `r.category_has_warranty`
+
+**Files changed:** `api/GetRegistrations.cs`, `api/GetMyRegistrations.cs`, `src/dashboard-staff.html`, `src/dashboard-client.html`
+
+---
+
+### Bug fix: Staff dashboard mobile horizontal scroll
+
+**Root cause:** `.table-wrap` had `overflow: hidden`, preventing horizontal scroll on mobile.
+
+**Fix:**
+- `src/dashboard-staff.html`: `.table-wrap` changed to `overflow-x: auto; overflow-y: hidden` with `-webkit-overflow-scrolling: touch`; `table` given `min-width: 700px` so it doesn't collapse
+
+**Files changed:** `src/dashboard-staff.html`
 
