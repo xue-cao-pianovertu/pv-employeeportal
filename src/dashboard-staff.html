@@ -995,7 +995,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/ResetClientPassword`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
           body: JSON.stringify({ customer_email: email })
         });
         const data = await res.json();
