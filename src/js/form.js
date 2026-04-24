@@ -63,24 +63,6 @@ export function populatePianoTypes(categoryId) {
   if (row) row.style.display = filtered.length > 0 ? 'block' : 'none';
 }
 
-export function populateBenches() {
-  const sel = document.getElementById('benchModel');
-  const lang = _getLang();
-  const t = _getL(lang);
-  const data = _formData();
-
-  sel.innerHTML = `<option value="" id="opt-bench-ph">${t.sel}</option>`;
-  data.benches.forEach(b => {
-    const opt = document.createElement('option');
-    opt.value = b.id;
-    opt.textContent = b.name;
-    sel.appendChild(opt);
-  });
-  // Add "Other" at end
-  const autre = document.createElement('option');
-  autre.textContent = 'Autre / Other';
-  sel.appendChild(autre);
-}
 
 // ── Category change ───────────────────────────
 
@@ -252,7 +234,6 @@ export function initCheckboxes() {
     const update = () => {
       item.classList.toggle('checked', inp.checked);
       icon.textContent = inp.checked ? '✕' : '';
-      if (inp.id === 'acc-bench') revealEl('benchTypeRow', inp.checked);
     };
     inp.addEventListener('change', update);
     update();

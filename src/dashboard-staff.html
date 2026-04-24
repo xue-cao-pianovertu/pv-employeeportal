@@ -217,6 +217,26 @@
       font-size: 16px;
       color: #c9a84c;
     }
+    .btn-testdata {
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid rgba(255,255,255,0.3);
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: .3px;
+    }
+    .btn-testdata.is-test {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #93c5fd;
+    }
+    .btn-testdata.is-real {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.8);
+      border-color: rgba(255,255,255,0.3);
+    }
     .panel-close {
       background: none;
       border: none;
@@ -493,7 +513,10 @@
   <div class="panel" id="panel">
     <div class="panel-header">
       <h2 id="panelRef">—</h2>
-      <button class="panel-close" onclick="closePanel()">×</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="panelTestBtn"></span>
+        <button class="panel-close" onclick="closePanel()">×</button>
+      </div>
     </div>
     <div class="panel-body" id="panelBody"></div>
   </div>
@@ -643,10 +666,36 @@
 
       document.getElementById('panelRef').textContent = r.ref_id;
       document.getElementById('panelBody').innerHTML  = buildPanelHTML(r);
+      if (role === 'admin') {
+        const btn = document.getElementById('panelTestBtn');
+        btn.innerHTML = r.test_data
+          ? `<button class="btn-testdata is-test" onclick="toggleTestData(${r.id}, false)">⬤ Test — Marquer réel</button>`
+          : `<button class="btn-testdata is-real" onclick="toggleTestData(${r.id}, true)">Marquer comme test</button>`;
+      }
       document.getElementById('overlay').classList.add('open');
       document.getElementById('panel').classList.add('open');
       if (r.signature_blob_name) loadSignature(r.id, r.signature_blob_name);
       loadAuditLog(r.id);
+    }
+
+    async function toggleTestData(id, makeTest) {
+      try {
+        const res = await fetch(`${API_BASE}/api/SetTestData`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
+          body: JSON.stringify({ id, test_data: makeTest }),
+        });
+        if (res.ok) {
+          const row = allRows.find(x => x.id === id);
+          if (row) row.test_data = makeTest ? 1 : 0;
+          openPanel(id);
+          renderTable();
+          showToast(makeTest ? 'Marqué comme test' : 'Marqué comme réel');
+        } else {
+          const d = await res.json();
+          showToast('Erreur : ' + (d.error || 'Échec'));
+        }
+      } catch { showToast('Erreur réseau'); }
     }
 
     function closePanel() {
@@ -871,6 +920,13 @@
                 <label>Accordages convenus à l'achat</label>
                 <input type="number" min="0" step="1" name="tuning_sessions_agreed" value="${r.tuning_sessions_agreed || 0}">
               </div>
+              <div class="staff-field">
+                <label>Modèle banc</label>
+                <select name="bench_model_id">
+                  <option value="">— Aucun —</option>
+                  ${benchOptions.map(b => `<option value="${b.id}"${r.bench_model_id === b.id ? ' selected' : ''}>${b.name}</option>`).join('')}
+                </select>
+              </div>
             </div>
             <div class="staff-row">
               <div class="staff-field">
@@ -943,6 +999,7 @@
         payment_status:          form.payment_status.value         || 'not_paid',
         delivery_status:         form.delivery_status.value        || 'to_plan',
         tuning_sessions_agreed:  parseInt(form.tuning_sessions_agreed.value) || 0,
+        bench_model_id:          form.bench_model_id.value ? parseInt(form.bench_model_id.value) : null,
       };
 
       try {
@@ -1154,6 +1211,7 @@
       payment_status:     'Paiement',
       delivery_status:           'Livraison',
       tuning_sessions_agreed:    'Accordages convenus',
+      bench_model_id:            'Modèle banc',
       customer_first_name:'Prénom',
       customer_last_name: 'Nom',
       customer_email:     'Courriel',
@@ -1244,7 +1302,13 @@
       }
     }
 
-    loadRegistrations();
+    let benchOptions = [];
+    async function loadBenches() {
+      const res = await fetch(`${API_BASE}/api/GetBenches`);
+      if (res.ok) benchOptions = await res.json();
+    }
+
+    loadBenches().then(() => loadRegistrations());
   </script>
 </body>
 </html>

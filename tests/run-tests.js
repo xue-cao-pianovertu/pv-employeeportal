@@ -159,7 +159,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
   console.log(`\n${BOLD}Login${RESET}`);
 
   await test('POST /api/Login — admin credentials return token', async () => {
-    const { res, data } = await post('Login', { username: 'admin', password: 'changeme' });
+    const { res, data } = await post('Login', { username: 'admin', password: 'plschangeme' });
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.token,     'token missing');
     assert(data.role,      'role missing');
@@ -239,6 +239,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
       delivery_status:         'delivered',
       staff_notes:             'Test automatisé',
       tuning_sessions_agreed:  2,
+      bench_model_id:          null,
     }, adminToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.success, 'success not true');
@@ -428,6 +429,22 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(res.status === 401, `expected 401, got ${res.status}`);
   });
 
+  await test('GET /api/GetMyRegistrations — admin token returns 403 (customer only)', async () => {
+    assert(adminToken, 'no adminToken');
+    const res = await fetch(`${BASE}/api/GetMyRegistrations`, {
+      headers: { 'Authorization': `Bearer ${adminToken}` },
+    });
+    assert(res.status === 403, `expected 403, got ${res.status}`);
+  });
+
+  await test('GET /api/GetMyRegistrations — staff token returns 403 (customer only)', async () => {
+    assert(staffToken, 'no staffToken');
+    const res = await fetch(`${BASE}/api/GetMyRegistrations`, {
+      headers: { 'Authorization': `Bearer ${staffToken}` },
+    });
+    assert(res.status === 403, `expected 403, got ${res.status}`);
+  });
+
   // 11. Staff role access
   console.log(`\n${BOLD}Staff role access${RESET}`);
 
@@ -437,7 +454,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
       id: testRegId, surcharge_amount: 0, cheque_to_collect: false,
       google_review: false, fully_paid: false,
       payment_status: 'not_paid', delivery_status: 'to_plan',
-      staff_notes: 'Test staff role', tuning_sessions_agreed: 0,
+      staff_notes: 'Test staff role', tuning_sessions_agreed: 0, bench_model_id: null,
     }, staffToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.success, 'success not true');

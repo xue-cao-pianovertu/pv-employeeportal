@@ -453,7 +453,7 @@
     const role     = localStorage.getItem('pv_role');
     const fullName = localStorage.getItem('pv_full_name');
 
-    if (!token || !role) {
+    if (!token || role !== 'customer') {
       window.location.replace('/login-client.html');
     }
 

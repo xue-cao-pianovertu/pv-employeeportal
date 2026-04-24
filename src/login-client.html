@@ -227,7 +227,14 @@
         localStorage.setItem('pv_role',      data.role);
         localStorage.setItem('pv_full_name', data.full_name);
 
-        window.location.replace('/dashboard-client.html');
+        if (data.role === 'customer') {
+          window.location.replace('/dashboard-client.html');
+        } else {
+          ['pv_token','pv_role','pv_full_name'].forEach(k => localStorage.removeItem(k));
+          err.textContent = 'Ce portail est réservé aux clients.';
+          err.style.display = 'block';
+          btn.disabled = false;
+        }
       } catch {
         err.textContent = lc.errNetwork;
         err.style.display = 'block';

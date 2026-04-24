@@ -8,7 +8,7 @@ import { initPdf, openPdf, markRead, updatePdfGate, getPdfRead, getTradeupRead, 
 import { initSignature, clearSig, hasSig, getSignatureDataUrl } from './signature.js';
 import {
   initForm, initCheckboxes, initRadios,
-  populateCategories, populateBenches,
+  populateCategories,
   onCatChange, onTypeChange,
   step, calcSurcharge, revealEl, cnts, getIsConsignment
 } from './form.js';
@@ -94,7 +94,6 @@ async function loadFormData() {
   try {
     formData = await getFormData(lang);
     populateCategories();
-    populateBenches();
     if (formData.pdfs.tradeup) initTradeupPdf(formData.pdfs.tradeup);
     if (loadingEl) loadingEl.style.display = 'none';
   } catch (err) {
@@ -123,7 +122,6 @@ window.setLang = async function (l) {
   const savedTypeId = document.getElementById('pianoType').value;
 
   populateCategories();
-  populateBenches();
 
   // Restore saved selections
   if (savedCatId) {
@@ -156,11 +154,7 @@ const rb = name => document.querySelector(`input[name=${name}]:checked`)?.value 
 function accList() {
   const items = [];
   if (document.getElementById('acc-assembly').checked) items.push('Assemblage');
-  if (document.getElementById('acc-bench').checked) {
-    const bench = document.getElementById('benchModel');
-    const benchName = bench.options[bench.selectedIndex]?.text || '';
-    items.push('Banc' + (benchName ? ' (' + benchName + ')' : ''));
-  }
+  if (document.getElementById('acc-bench').checked) items.push('Banc');
   if (document.getElementById('acc-dampp').checked) items.push('Dampp-Chaser');
   if (document.getElementById('acc-adapter').checked) items.push('Adaptateur élec.');
   if (document.getElementById('acc-headphones').checked) items.push('Écouteurs');
@@ -242,8 +236,6 @@ window.doSubmit = async function () {
     piano_color: g('color') || '—',
     purchase_date: todayISO,
     accessories: accList(),
-    bench_model_id: parseInt(g('benchModel')) || null,
-    bench_notes: g('benchType') || '—',
     piano_notes: g('pianoNotes') || '—',
     humidity_confirmed: true,
     signature_type: 'drawn',
