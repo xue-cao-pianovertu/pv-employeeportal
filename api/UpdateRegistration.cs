@@ -159,7 +159,8 @@ public class UpdateRegistration
 
     internal static string GetUsername(HttpRequest req)
     {
-        var auth = req.Headers["Authorization"].ToString();
+        var auth = req.Headers["X-Token"].ToString();
+        if (!auth.StartsWith("Bearer ")) auth = req.Headers["Authorization"].ToString();
         if (!auth.StartsWith("Bearer ")) return "inconnu";
         try
         {

@@ -1005,7 +1005,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/UpdateRegistration`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
           body: JSON.stringify(body),
         });
         if (res.ok) {
@@ -1086,7 +1086,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/UpdateClientInfo`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
           body: JSON.stringify(body),
         });
         if (res.ok) {
@@ -1138,7 +1138,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/UpdateLivraison`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
           body: JSON.stringify(body),
         });
         if (res.ok) {
@@ -1176,7 +1176,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/UpdatePiano`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
           body: JSON.stringify(body),
         });
         if (res.ok) {
