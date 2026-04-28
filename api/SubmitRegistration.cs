@@ -136,7 +136,7 @@ public class SubmitRegistration
                 INSERT INTO dbo.Registrations (
                     ref_id, language,
                     customer_last_name, customer_first_name, customer_email,
-                    customer_phone1, customer_phone2, heard_from,
+                    customer_phone1, customer_phone2, heard_from, referred_by_teacher,
                     delivery_street, delivery_apt, delivery_city, delivery_province, delivery_postal,
                     within_40km, delivery_floor, delivery_elevator,
                     steps_outside, steps_inside, stair_turns, mover_notes,
@@ -151,7 +151,7 @@ public class SubmitRegistration
                 ) VALUES (
                     @refId, @language,
                     @customerLastName, @customerFirstName, @customerEmail,
-                    @customerPhone1, @customerPhone2, @heardFrom,
+                    @customerPhone1, @customerPhone2, @heardFrom, @referredByTeacher,
                     @deliveryStreet, @deliveryApt, @deliveryCity, @deliveryProvince, @deliveryPostal,
                     @within40km, @deliveryFloor, @deliveryElevator,
                     @stepsOutside, @stepsInside, @stairTurns, @moverNotes,
@@ -172,7 +172,8 @@ public class SubmitRegistration
             insertCmd.Parameters.AddWithValue("@customerEmail",      payload.CustomerEmail     ?? "");
             insertCmd.Parameters.AddWithValue("@customerPhone1",     (object?)payload.CustomerPhone1  ?? DBNull.Value);
             insertCmd.Parameters.AddWithValue("@customerPhone2",     (object?)payload.CustomerPhone2  ?? DBNull.Value);
-            insertCmd.Parameters.AddWithValue("@heardFrom",          (object?)payload.HeardFrom       ?? DBNull.Value);
+            insertCmd.Parameters.AddWithValue("@heardFrom",          (object?)payload.HeardFrom          ?? DBNull.Value);
+            insertCmd.Parameters.AddWithValue("@referredByTeacher",  (object?)payload.ReferredByTeacher  ?? DBNull.Value);
             insertCmd.Parameters.AddWithValue("@deliveryStreet",     payload.DeliveryStreet   ?? "");
             insertCmd.Parameters.AddWithValue("@deliveryApt",        (object?)payload.DeliveryApt      ?? DBNull.Value);
             insertCmd.Parameters.AddWithValue("@deliveryCity",       (object?)payload.DeliveryCity     ?? DBNull.Value);
@@ -285,6 +286,7 @@ public class RegistrationPayload
     public string?  CustomerPhone1      { get; set; }
     public string?  CustomerPhone2      { get; set; }
     public string?  HeardFrom           { get; set; }
+    public string?  ReferredByTeacher   { get; set; }
     public string?  DeliveryStreet      { get; set; }
     public string?  DeliveryApt         { get; set; }
     public string?  DeliveryCity        { get; set; }

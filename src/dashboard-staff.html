@@ -730,6 +730,7 @@
             <div class="field-item"><span class="field-label">Courriel</span><span class="field-value">${fv(r.customer_email)}</span></div>
             <div class="field-item"><span class="field-label">Téléphone</span><span class="field-value">${fv(r.customer_phone1)}</span></div>
             <div class="field-item field-full"><span class="field-label">Comment nous a-t-il connu</span><span class="field-value">${fv(r.heard_from)}</span></div>
+            ${r.referred_by_teacher ? `<div class="field-item field-full"><span class="field-label">Recommandé par (professeur)</span><span class="field-value">${fv(r.referred_by_teacher)}</span></div>` : ''}
           </div>
           <div id="resetPwdBox-${r.id}" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:7px;font-size:13px"></div>
           <form id="clientEdit-${r.id}" class="staff-form" style="display:none;margin-top:12px" onsubmit="saveClient(event, ${r.id})">
@@ -742,6 +743,7 @@
               <div class="staff-field"><label>Téléphone</label><input type="tel" name="customer_phone1" value="${r.customer_phone1 || ''}"></div>
             </div>
             <div class="staff-field full"><label>Comment nous a-t-il connu</label><input type="text" name="heard_from" value="${r.heard_from || ''}"></div>
+            <div class="staff-field full"><label>Recommandé par (professeur)</label><input type="text" name="referred_by_teacher" value="${r.referred_by_teacher || ''}" placeholder="Nom du professeur"></div>
             <div style="display:flex;gap:10px;align-items:center">
               <button type="submit" class="save-btn" id="saveClientBtn-${r.id}">Sauvegarder</button>
               <button type="button" class="cancel-btn" onclick="toggleEdit('clientEdit-${r.id}')">Annuler</button>
@@ -1081,7 +1083,8 @@
         customer_last_name:  form.customer_last_name.value.trim()  || null,
         customer_email:      form.customer_email.value.trim()      || null,
         customer_phone1:     form.customer_phone1.value.trim()     || null,
-        heard_from:          form.heard_from.value.trim()          || null,
+        heard_from:            form.heard_from.value.trim()           || null,
+        referred_by_teacher:   form.referred_by_teacher.value.trim() || null,
       };
       try {
         const res = await fetch(`${API_BASE}/api/UpdateClientInfo`, {
@@ -1217,7 +1220,8 @@
       customer_email:     'Courriel',
       customer_phone1:    'Téléphone',
       customer_phone2:    'Téléphone 2',
-      heard_from:         'Comment connu',
+      heard_from:           'Comment connu',
+      referred_by_teacher:  'Recommandé par (prof.)',
       delivery_street:    'Rue',
       delivery_apt:       'Appartement',
       delivery_city:      'Ville',

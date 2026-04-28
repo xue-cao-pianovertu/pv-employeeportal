@@ -26,7 +26,7 @@ public class GetRegistrations
                     r.id, r.ref_id, r.language,
                     r.customer_last_name, r.customer_first_name,
                     r.customer_email, r.customer_phone1, r.customer_phone2,
-                    r.heard_from,
+                    r.heard_from, r.referred_by_teacher,
                     r.delivery_street, r.delivery_apt, r.delivery_city,
                     r.delivery_province, r.delivery_postal,
                     r.within_40km, r.delivery_floor, r.delivery_elevator,

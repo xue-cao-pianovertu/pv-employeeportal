@@ -42,7 +42,7 @@ public class UpdateClientInfo
             var changes = new Dictionary<string, string?[]>();
             using (var selCmd = new SqlCommand(@"
                 SELECT customer_first_name, customer_last_name, customer_email,
-                       customer_phone1, customer_phone2, heard_from
+                       customer_phone1, customer_phone2, heard_from, referred_by_teacher
                 FROM dbo.Registrations WHERE id = @id", conn))
             {
                 selCmd.Parameters.AddWithValue("@id", body.Id);
@@ -56,6 +56,7 @@ public class UpdateClientInfo
                 Diff(changes, "customer_phone1",     reader["customer_phone1"]      as string, body.CustomerPhone1);
                 Diff(changes, "customer_phone2",     reader["customer_phone2"]      as string, body.CustomerPhone2);
                 Diff(changes, "heard_from",          reader["heard_from"]           as string, body.HeardFrom);
+                Diff(changes, "referred_by_teacher", reader["referred_by_teacher"]  as string, body.ReferredByTeacher);
             }
 
             // ── Update ───────────────────────────────────────────────
@@ -66,7 +67,8 @@ public class UpdateClientInfo
                     customer_email      = @email,
                     customer_phone1     = @phone1,
                     customer_phone2     = @phone2,
-                    heard_from          = @heardFrom
+                    heard_from           = @heardFrom,
+                    referred_by_teacher  = @referredByTeacher
                 WHERE id = @id", conn);
 
             cmd.Parameters.AddWithValue("@id",        body.Id);
@@ -75,7 +77,8 @@ public class UpdateClientInfo
             cmd.Parameters.AddWithValue("@email",      (object?)body.CustomerEmail     ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@phone1",     (object?)body.CustomerPhone1    ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@phone2",     (object?)body.CustomerPhone2    ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@heardFrom",  (object?)body.HeardFrom         ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@heardFrom",         (object?)body.HeardFrom          ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@referredByTeacher", (object?)body.ReferredByTeacher  ?? DBNull.Value);
 
             await cmd.ExecuteNonQueryAsync();
 
@@ -108,4 +111,5 @@ public class ClientUpdate
     public string?  CustomerPhone1      { get; set; }
     public string?  CustomerPhone2      { get; set; }
     public string?  HeardFrom           { get; set; }
+    public string?  ReferredByTeacher   { get; set; }
 }

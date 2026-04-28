@@ -34,6 +34,7 @@ export const L = {
     l_pianoNotes: 'Notes (piano)',
     sel: 'Sélectionner…',
     l_heard: 'Comment avez-vous entendu parler de nous ?',
+    l_referred: 'Recommandé par un professeur ? (nom)',
     l_km40: 'Dans un rayon de 40 km du magasin',
     l_asap: 'Dès que possible (ASAP)', l_datefrom: 'À partir du',
     l_pcat: 'Catégorie', l_ptype: 'Type',
@@ -108,6 +109,7 @@ export const L = {
     l_pianoNotes: 'Notes (piano)',
     sel: 'Select…',
     l_heard: 'How did you hear about us?',
+    l_referred: 'Recommended by a teacher? (name)',
     l_km40: 'Within 40 km of the store',
     l_asap: 'As soon as possible (ASAP)', l_datefrom: 'Starting from',
     l_pcat: 'Category', l_ptype: 'Type',
@@ -182,6 +184,7 @@ export const L = {
     l_pianoNotes: '备注（钢琴）',
     sel: '选择…',
     l_heard: '您是如何了解我们的？',
+    l_referred: '由老师推荐？（姓名）',
     l_km40: '距店铺40公里范围内',
     l_asap: '尽快（ASAP）', l_datefrom: '最早日期',
     l_pcat: '类别', l_ptype: '类型',
@@ -263,6 +266,7 @@ export function applyLang(lang, deps) {
   s('l-ln', t.l_ln); s('l-fn', t.l_fn); s('l-em', t.l_em);
   s('l-p1', t.l_p1); s('l-p2', t.l_p2);
   s('l-heard', t.l_heard);
+  s('l-referred', t.l_referred);
 
   // Section 2 — Delivery
   s('l-addr', t.l_addr); s('l-apt', t.l_apt); s('l-city', t.l_city);
