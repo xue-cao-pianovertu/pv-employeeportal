@@ -248,7 +248,7 @@ window.doSubmit = async function () {
 
     // Show success
     document.getElementById('docRef').textContent = `Réf : ${result.ref_id}`;
-    if (result.new_account) {
+    if (result.client_username && result.client_password) {
       document.getElementById('newAccUser').textContent = result.client_username;
       document.getElementById('newAccPass').textContent = result.client_password;
       document.getElementById('newAccountBox').style.display = 'block';

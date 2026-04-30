@@ -89,6 +89,8 @@ export function onCatChange(categoryId) {
     if (makeFieldCell) makeFieldCell.style.display = '';
     document.getElementById('pdfGate').style.display = 'none';
     document.getElementById('tradeupGate').style.display = 'none';
+    const dampReset = document.getElementById('acc-item-dampp');
+    if (dampReset) dampReset.style.display = '';
     resetPdfGate();
     return;
   }
@@ -114,7 +116,14 @@ export function onCatChange(categoryId) {
 
   // Consignment note + humidity/warranty card visibility
   consignNote.style.display = !category.has_warranty ? 'block' : 'none';
-  c4.style.display = category.has_warranty ? 'block' : 'none';
+  c4.style.display = (category.has_warranty && category.has_humidity_notice) ? 'block' : 'none';
+
+  // Dampp-Chaser — acoustic only, hide for digital/hybrid
+  const dampItem = document.getElementById('acc-item-dampp');
+  if (dampItem) {
+    dampItem.style.display = category.has_humidity_notice ? '' : 'none';
+    if (!category.has_humidity_notice) document.getElementById('acc-dampp').checked = false;
+  }
   c5.style.display = 'block';
 
   // Signature instruction — consignment-specific text when no warranty

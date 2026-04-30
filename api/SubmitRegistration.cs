@@ -223,7 +223,10 @@ public class SubmitRegistration
             await insertCmd.ExecuteNonQueryAsync();
 
             // ── 6. Create customer account if first registration ──────────────
-            string? generatedPassword = null;
+            string? clientUsername = null;
+            string? clientPassword = null;
+            bool isNewAccount = false;
+
             var checkCmd = new SqlCommand(
                 "SELECT COUNT(1) FROM dbo.Users WHERE username = @email", conn);
             checkCmd.Parameters.AddWithValue("@email", payload.CustomerEmail ?? "");
@@ -231,34 +234,40 @@ public class SubmitRegistration
 
             if (existing == 0 && !string.IsNullOrEmpty(payload.CustomerEmail))
             {
-                var firstName = (payload.CustomerFirstName ?? "").Trim().ToLower()
-                    .Replace(" ", "").Replace("é","e").Replace("è","e").Replace("ê","e")
-                    .Replace("à","a").Replace("â","a").Replace("ù","u").Replace("û","u")
-                    .Replace("î","i").Replace("ï","i").Replace("ô","o").Replace("ç","c");
-                var lastName = (payload.CustomerLastName ?? "").Trim().ToLower()
-                    .Replace(" ", "").Replace("é","e").Replace("è","e").Replace("ê","e")
-                    .Replace("à","a").Replace("â","a").Replace("ù","u").Replace("û","u")
-                    .Replace("î","i").Replace("ï","i").Replace("ô","o").Replace("ç","c");
-                generatedPassword = $"{firstName}_{lastName}_pianovertu";
+                clientPassword = $"{NormalizeForUsername(payload.CustomerFirstName ?? "")}_{NormalizeForUsername(payload.CustomerLastName ?? "")}_pianovertu";
+                clientUsername = payload.CustomerEmail;
+                isNewAccount   = true;
                 var fullName = $"{payload.CustomerFirstName} {payload.CustomerLastName}".Trim();
                 var createUserCmd = new SqlCommand(
                     "INSERT INTO dbo.Users (username, password, role, full_name) " +
                     "VALUES (@username, @password, 'customer', @fullName)", conn);
-                createUserCmd.Parameters.AddWithValue("@username", payload.CustomerEmail);
-                createUserCmd.Parameters.AddWithValue("@password", generatedPassword);
+                createUserCmd.Parameters.AddWithValue("@username", clientUsername);
+                createUserCmd.Parameters.AddWithValue("@password", clientPassword);
                 createUserCmd.Parameters.AddWithValue("@fullName", fullName);
                 await createUserCmd.ExecuteNonQueryAsync();
                 _logger.LogInformation("Customer account created: {Email}", payload.CustomerEmail);
+            }
+            else if (existing > 0 && !string.IsNullOrEmpty(payload.CustomerEmail))
+            {
+                var lookupCmd = new SqlCommand(
+                    "SELECT TOP 1 username, password FROM dbo.Users WHERE username = @email", conn);
+                lookupCmd.Parameters.AddWithValue("@email", payload.CustomerEmail);
+                using var lr = await lookupCmd.ExecuteReaderAsync();
+                if (await lr.ReadAsync())
+                {
+                    clientUsername = lr.GetString(0);
+                    clientPassword = lr.IsDBNull(1) ? null : lr.GetString(1);
+                }
             }
 
             _logger.LogInformation("Registration saved: {RefId}", refId);
             return new OkObjectResult(new
             {
-                ref_id           = refId,
-                success          = true,
-                new_account      = generatedPassword != null,
-                client_username  = generatedPassword != null ? payload.CustomerEmail : null,
-                client_password  = generatedPassword
+                ref_id          = refId,
+                success         = true,
+                new_account     = isNewAccount,
+                client_username = clientUsername,
+                client_password = clientPassword
             });
         }
         catch (Exception ex)
@@ -268,13 +277,11 @@ public class SubmitRegistration
         }
     }
 
-    private static string GeneratePassword()
-    {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        var bytes = new byte[8];
-        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
-        return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
-    }
+    private static string NormalizeForUsername(string s) =>
+        s.Trim().ToLower()
+         .Replace(" ", "").Replace("é","e").Replace("è","e").Replace("ê","e")
+         .Replace("à","a").Replace("â","a").Replace("ù","u").Replace("û","u")
+         .Replace("î","i").Replace("ï","i").Replace("ô","o").Replace("ç","c");
 }
 
 public class RegistrationPayload

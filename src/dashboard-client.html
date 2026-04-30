@@ -720,7 +720,7 @@
               <span class="field-value">${r.piano_notes}</span>
             </div>` : ''}
           </div>
-          ${r.humidity_confirmed && r.category_has_warranty ? `
+          ${r.humidity_confirmed && r.category_has_warranty && r.category_has_humidity_notice ? `
           <div style="margin-top:10px;background:rgba(146,64,14,0.06);border:1px solid rgba(146,64,14,0.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#78350f">
             ${t('humNote')}
           </div>` : ''}

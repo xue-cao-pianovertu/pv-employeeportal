@@ -49,7 +49,7 @@ namespace PV.AZFunction
 
                 // Categories
                 using (var cmd = new SqlCommand(
-                    "SELECT id, name_fr, name_en, name_zh, has_warranty, allows_manual_entry, has_tradeup " +
+                    "SELECT id, name_fr, name_en, name_zh, has_warranty, allows_manual_entry, has_tradeup, has_humidity_notice " +
                     "FROM dbo.PianoCategory", conn))
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
@@ -61,9 +61,10 @@ namespace PV.AZFunction
                             name_fr            = reader.GetString(1),
                             name_en            = reader.GetString(2),
                             name_zh            = reader.GetString(3),
-                            has_warranty       = reader.GetBoolean(4),
+                            has_warranty        = reader.GetBoolean(4),
                             allows_manual_entry = reader.GetBoolean(5),
-                            has_tradeup        = reader.GetBoolean(6)
+                            has_tradeup         = reader.GetBoolean(6),
+                            has_humidity_notice = reader.GetBoolean(7)
                         });
                     }
                 }
