@@ -351,6 +351,7 @@
         fModel: 'Modèle', fSerial: 'N° de série', fColor: 'Couleur / Fini',
         fPurchase: "Date d'achat", fBench: 'Banc', fAccessories: 'Autres accessoires',
         fPianoNotes: 'Notes piano',
+        fSalesStaff: 'Qui vous a aidé(e)',
         humNote: `Le piano acoustique doit être gardé en tout temps à un taux d'humidité entre <b style="color:#92400e">40 % et 55 %</b> et une température entre <b style="color:#92400e">18 °C et 26 °C</b>. En cas contraire, la garantie pourrait être annulée.`,
         noWarrantyNote: `Ce piano est en consignation — aucune garantie n'est incluse.`,
         pwdTitle: 'Changer le mot de passe', pwdCurrent: 'Mot de passe actuel',
@@ -382,6 +383,7 @@
         fModel: 'Model', fSerial: 'Serial no.', fColor: 'Colour / Finish',
         fPurchase: 'Purchase date', fBench: 'Bench', fAccessories: 'Other accessories',
         fPianoNotes: 'Piano notes',
+        fSalesStaff: 'Who helped you?',
         humNote: `The acoustic piano must be kept between <b style="color:#92400e">40% and 55% humidity</b> and <b style="color:#92400e">18°C and 26°C</b> at all times. Failure to do so may void the warranty.`,
         noWarrantyNote: `This piano is on consignment — no warranty is included.`,
         pwdTitle: 'Change password', pwdCurrent: 'Current password',
@@ -413,6 +415,7 @@
         fModel: '型号', fSerial: '序列号', fColor: '颜色/饰面',
         fPurchase: '购买日期', fBench: '琴凳', fAccessories: '其他配件',
         fPianoNotes: '钢琴备注',
+        fSalesStaff: '谁为您提供了帮助',
         humNote: `原声钢琴必须始终保持在 <b style="color:#92400e">40% 至 55% 湿度</b> 和 <b style="color:#92400e">18°C 至 26°C</b> 之间。否则可能导致保修失效。`,
         noWarrantyNote: `此钢琴为寄售钢琴——不含保修。`,
         pwdTitle: '修改密码', pwdCurrent: '当前密码',
@@ -600,6 +603,11 @@
             <div class="field-item">
               <span class="field-label">${t('fTel2')}</span>
               <span class="field-value">${r.customer_phone2}</span>
+            </div>` : ''}
+            ${(r.sales_staff_names || r.sales_staff_other) ? `
+            <div class="field-item field-full">
+              <span class="field-label">${t('fSalesStaff')}</span>
+              <span class="field-value">${[r.sales_staff_names, r.sales_staff_other ? r.sales_staff_other + ' (autre)' : null].filter(Boolean).join(', ')}</span>
             </div>` : ''}
           </div>
         </div>

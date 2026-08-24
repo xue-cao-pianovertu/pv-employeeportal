@@ -11,6 +11,10 @@
     {
       "route": "/dashboard",
       "rewrite": "/dashboard-client.html"
+    },
+    {
+      "route": "/prospect",
+      "rewrite": "/prospect.html"
     }
   ],
   "navigationFallback": {

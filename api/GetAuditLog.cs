@@ -15,8 +15,11 @@ public class GetAuditLog
     public async Task<IActionResult> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
-        if (!int.TryParse(req.Query["id"], out var regId))
-            return new BadRequestObjectResult(new { error = "id parameter required" });
+        bool isLead = int.TryParse(req.Query["lead_id"], out var leadId);
+        bool isReg  = int.TryParse(req.Query["id"],      out var regId);
+
+        if (!isLead && !isReg)
+            return new BadRequestObjectResult(new { error = "id or lead_id parameter required" });
 
         var sqlConn = Environment.GetEnvironmentVariable("SqlConnectionString");
         try
@@ -24,12 +27,25 @@ public class GetAuditLog
             using var conn = new SqlConnection(sqlConn);
             await conn.OpenAsync();
 
-            var cmd = new SqlCommand(@"
-                SELECT id, changed_by, changed_at, section, changes_json
-                FROM dbo.AuditLog
-                WHERE registration_id = @regId
-                ORDER BY changed_at DESC", conn);
-            cmd.Parameters.AddWithValue("@regId", regId);
+            SqlCommand cmd;
+            if (isLead)
+            {
+                cmd = new SqlCommand(@"
+                    SELECT id, changed_by, changed_at, section, changes_json
+                    FROM dbo.AuditLog
+                    WHERE lead_id = @id
+                    ORDER BY changed_at DESC", conn);
+                cmd.Parameters.AddWithValue("@id", leadId);
+            }
+            else
+            {
+                cmd = new SqlCommand(@"
+                    SELECT id, changed_by, changed_at, section, changes_json
+                    FROM dbo.AuditLog
+                    WHERE registration_id = @id
+                    ORDER BY changed_at DESC", conn);
+                cmd.Parameters.AddWithValue("@id", regId);
+            }
 
             var rows = new List<Dictionary<string, object?>>();
             using var reader = await cmd.ExecuteReaderAsync();

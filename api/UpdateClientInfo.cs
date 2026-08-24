@@ -42,7 +42,8 @@ public class UpdateClientInfo
             var changes = new Dictionary<string, string?[]>();
             using (var selCmd = new SqlCommand(@"
                 SELECT customer_first_name, customer_last_name, customer_email,
-                       customer_phone1, customer_phone2, heard_from, referred_by_teacher
+                       customer_phone1, customer_phone2, heard_from, referred_by_teacher,
+                       sales_staff_other
                 FROM dbo.Registrations WHERE id = @id", conn))
             {
                 selCmd.Parameters.AddWithValue("@id", body.Id);
@@ -57,18 +58,32 @@ public class UpdateClientInfo
                 Diff(changes, "customer_phone2",     reader["customer_phone2"]      as string, body.CustomerPhone2);
                 Diff(changes, "heard_from",          reader["heard_from"]           as string, body.HeardFrom);
                 Diff(changes, "referred_by_teacher", reader["referred_by_teacher"]  as string, body.ReferredByTeacher);
+                Diff(changes, "sales_staff_other",   reader["sales_staff_other"]    as string, body.SalesStaffOther);
+            }
+
+            // ── Read old sales staff assignment for audit diff ────────
+            string oldSalesStaffNames = "";
+            using (var selStaff = new SqlCommand(@"
+                SELECT STRING_AGG(ss.name, ', ')
+                FROM   dbo.RegistrationSalesStaff rss
+                JOIN   dbo.SalesStaff ss ON ss.id = rss.sales_staff_id
+                WHERE  rss.registration_id = @id", conn))
+            {
+                selStaff.Parameters.AddWithValue("@id", body.Id);
+                oldSalesStaffNames = (await selStaff.ExecuteScalarAsync())?.ToString() ?? "";
             }
 
             // ── Update ───────────────────────────────────────────────
             var cmd = new SqlCommand(@"
                 UPDATE dbo.Registrations SET
-                    customer_first_name = @firstName,
-                    customer_last_name  = @lastName,
-                    customer_email      = @email,
+                    customer_first_name = COALESCE(@firstName, customer_first_name),
+                    customer_last_name  = COALESCE(@lastName,  customer_last_name),
+                    customer_email      = COALESCE(@email,     customer_email),
                     customer_phone1     = @phone1,
                     customer_phone2     = @phone2,
                     heard_from           = @heardFrom,
-                    referred_by_teacher  = @referredByTeacher
+                    referred_by_teacher  = @referredByTeacher,
+                    sales_staff_other    = @salesStaffOther
                 WHERE id = @id", conn);
 
             cmd.Parameters.AddWithValue("@id",        body.Id);
@@ -79,8 +94,40 @@ public class UpdateClientInfo
             cmd.Parameters.AddWithValue("@phone2",     (object?)body.CustomerPhone2    ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@heardFrom",         (object?)body.HeardFrom          ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@referredByTeacher", (object?)body.ReferredByTeacher  ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@salesStaffOther",   (object?)body.SalesStaffOther    ?? DBNull.Value);
 
             await cmd.ExecuteNonQueryAsync();
+
+            // ── Update sales staff junction table ─────────────────────
+            if (body.SalesStaffIds != null)
+            {
+                var delCmd = new SqlCommand(
+                    "DELETE FROM dbo.RegistrationSalesStaff WHERE registration_id = @id", conn);
+                delCmd.Parameters.AddWithValue("@id", body.Id.Value);
+                await delCmd.ExecuteNonQueryAsync();
+
+                foreach (var staffId in body.SalesStaffIds)
+                {
+                    var jCmd = new SqlCommand(
+                        "INSERT INTO dbo.RegistrationSalesStaff (registration_id, sales_staff_id) VALUES (@regId, @staffId)",
+                        conn);
+                    jCmd.Parameters.AddWithValue("@regId",   body.Id.Value);
+                    jCmd.Parameters.AddWithValue("@staffId", staffId);
+                    await jCmd.ExecuteNonQueryAsync();
+                }
+
+                // Compute new names for audit diff
+                string newSalesStaffNames = "";
+                using var selNew = new SqlCommand(@"
+                    SELECT STRING_AGG(ss.name, ', ')
+                    FROM   dbo.RegistrationSalesStaff rss
+                    JOIN   dbo.SalesStaff ss ON ss.id = rss.sales_staff_id
+                    WHERE  rss.registration_id = @id", conn);
+                selNew.Parameters.AddWithValue("@id", body.Id.Value);
+                newSalesStaffNames = (await selNew.ExecuteScalarAsync())?.ToString() ?? "";
+
+                Diff(changes, "sales_staff", oldSalesStaffNames, newSalesStaffNames);
+            }
 
             // ── Audit log ────────────────────────────────────────────
             if (changes.Count > 0)
@@ -104,12 +151,14 @@ public class UpdateClientInfo
 
 public class ClientUpdate
 {
-    public int?     Id                  { get; set; }
-    public string?  CustomerFirstName   { get; set; }
-    public string?  CustomerLastName    { get; set; }
-    public string?  CustomerEmail       { get; set; }
-    public string?  CustomerPhone1      { get; set; }
-    public string?  CustomerPhone2      { get; set; }
-    public string?  HeardFrom           { get; set; }
-    public string?  ReferredByTeacher   { get; set; }
+    public int?         Id                  { get; set; }
+    public string?      CustomerFirstName   { get; set; }
+    public string?      CustomerLastName    { get; set; }
+    public string?      CustomerEmail       { get; set; }
+    public string?      CustomerPhone1      { get; set; }
+    public string?      CustomerPhone2      { get; set; }
+    public string?      HeardFrom           { get; set; }
+    public string?      ReferredByTeacher   { get; set; }
+    public List<int>?   SalesStaffIds       { get; set; }
+    public string?      SalesStaffOther     { get; set; }
 }

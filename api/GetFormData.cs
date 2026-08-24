@@ -105,6 +105,22 @@ namespace PV.AZFunction
                     }
                 }
 
+                // Sales staff (active only)
+                var salesStaff = new List<object>();
+                using (var cmd = new SqlCommand(
+                    "SELECT id, name FROM dbo.SalesStaff WHERE is_active = 1 ORDER BY name", conn))
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        salesStaff.Add(new
+                        {
+                            id   = reader.GetInt32(0),
+                            name = reader.GetString(1)
+                        });
+                    }
+                }
+
                 // Warranty PDFs — fetch blob names for current language
                 using (var cmd = new SqlCommand(
                     "SELECT type_id, category_id, blob_name " +
@@ -157,6 +173,7 @@ namespace PV.AZFunction
                     categories,
                     pianoTypes,
                     benches,
+                    salesStaff,
                     pdfs = new
                     {
                         warranty = warrantyUrls,   // keys: "type_1", "type_2", "cat_3" etc.

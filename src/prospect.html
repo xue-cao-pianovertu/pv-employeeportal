@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Piano Vertu — Restez en contact</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f0eee9;
+      color: #0d1f3c;
+      min-height: 100svh;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+      background: #0d1f3c;
+      padding: 28px 24px 36px;
+      text-align: center;
+    }
+    .hero-logo {
+      height: 140px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #c9a84c;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .hero-sub {
+      font-size: 13px;
+      color: rgba(200,216,240,0.75);
+      line-height: 1.55;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Form card ────────────────────────────────────────── */
+    .form-wrap {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+    .form-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 32px 28px;
+      box-shadow: 0 4px 24px rgba(13,31,60,0.08);
+    }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .field input[type=text],
+    .field input[type=email],
+    .field input[type=tel],
+    .field input[type=date],
+    .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #0d1f3c;
+      background: #fff;
+      transition: border-color .15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .field input:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: #c9a84c;
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: #0d1f3c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:hover:not(:disabled) { background: #1a3460; }
+    .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    /* Spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Field error */
+    .field-error { font-size: 12px; color: #dc2626; margin-top: 4px; display: none; }
+    .field-error.visible { display: block; }
+    .field input.invalid, .field textarea.invalid { border-color: #dc2626; }
+
+    /* Success state */
+    .success-state {
+      display: none;
+      text-align: center;
+      padding: 16px 0;
+    }
+    .success-icon {
+      width: 60px; height: 60px;
+      background: rgba(201,168,76,0.12);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 26px;
+    }
+    .success-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #0d1f3c;
+      margin-bottom: 10px;
+    }
+    .success-msg {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e293b;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .2s, transform .2s;
+      z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 480px) {
+      .field-row { grid-template-columns: 1fr; }
+      .form-card { padding: 24px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="lang-switcher" style="max-width:560px;margin:0 auto 20px">
+      <span></span>
+      <div style="display:flex;gap:6px">
+        <button class="lang-btn active" id="btn-fr" onclick="setLang('fr')">🇫🇷 FR</button>
+        <button class="lang-btn"        id="btn-en" onclick="setLang('en')">🇨🇦 EN</button>
+        <button class="lang-btn"        id="btn-zh" onclick="setLang('zh')">🇨🇳 中文</button>
+      </div>
+    </div>
+    <img src="/img/logo.png" alt="Piano Vertu" class="hero-logo">
+    <h1 class="hero-title" id="heroTitle">Trouvons ensemble le piano qui vous correspond</h1>
+    <p class="hero-sub" id="heroSub">Laissez vos coordonnées — notre équipe vous accompagnera dans votre sélection.</p>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-card">
+
+      <form id="prospectForm" onsubmit="submitProspect(event)" novalidate>
+
+        <div class="field-row">
+          <div class="field">
+            <label id="lblFirstName">Prénom <span style="color:#dc2626">*</span></label>
+            <input type="text" id="firstName" autocomplete="given-name">
+            <div class="field-error" id="errFirstName"></div>
+          </div>
+          <div class="field">
+            <label id="lblLastName">Nom <span style="color:#dc2626">*</span></label>
+            <input type="text" id="lastName" autocomplete="family-name">
+            <div class="field-error" id="errLastName"></div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label id="lblEmail">Courriel <span style="color:#dc2626">*</span></label>
+            <input type="email" id="email" autocomplete="email">
+            <div class="field-error" id="errEmail"></div>
+          </div>
+          <div class="field">
+            <label id="lblPhone">Téléphone</label>
+            <input type="tel" id="phone" autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="field">
+          <label id="lblContactType">Type de contact <span style="color:#dc2626">*</span></label>
+          <select id="contactTypeSelect" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;color:#0d1f3c;background:#fff;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer">
+            <option value="" id="ctOptEmpty">— Sélectionner —</option>
+            <option value="visit" id="ctOptVisit">🏪 Visite en magasin</option>
+            <option value="call"  id="ctOptCall" >📞 Appel téléphonique</option>
+            <option value="email" id="ctOptEmail">✉️ Courriel</option>
+            <option value="web"   id="ctOptWeb"  >🌐 Formulaire web</option>
+            <option value="other" id="ctOptOther">💬 Autre</option>
+          </select>
+          <div class="field-error" id="errContactType"></div>
+        </div>
+
+        <div class="field">
+          <label id="lblContactDate">Date de la visite / de l'appel <span style="color:#dc2626">*</span></label>
+          <input type="date" id="contactDate">
+          <div class="field-error" id="errContactDate"></div>
+        </div>
+
+        <div class="field">
+          <label id="lblPianoInterest">Piano qui vous intéresse</label>
+          <textarea id="pianoInterest" id="pianoInterest" placeholder="Ex. : piano à queue, piano droit numérique, instrument d'occasion…"></textarea>
+        </div>
+
+        <div class="field">
+          <label id="lblNotes">Notes supplémentaires</label>
+          <textarea id="customerNotes"></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Envoyer</button>
+
+      </form>
+
+      <div class="success-state" id="successState">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title" id="successTitle">Merci !</h2>
+        <p class="success-msg" id="successMsg">Nous avons bien reçu votre message. Notre équipe vous contactera sous peu.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const T = {
+      fr: {
+        heroTitle:    'Trouvons ensemble le piano qui vous correspond',
+        heroSub:      'Laissez vos coordonnées — notre équipe vous accompagnera dans votre sélection.',
+        firstName:    'Prénom',
+        lastName:     'Nom',
+        email:        'Courriel',
+        phone:        'Téléphone',
+        contactType:  'Type de contact',
+        ctEmpty:      '— Sélectionner —',
+        ctVisit:      '🏪 Visite en magasin',
+        ctCall:       '📞 Appel téléphonique',
+        ctEmail:      '✉️ Courriel reçu',
+        ctWeb:        '🌐 Formulaire web',
+        ctOther:      '💬 Autre',
+        contactDate:  "Date de la visite / de l'appel",
+        pianoInterest:'Piano qui vous intéresse',
+        pianoPH:      "Ex. : piano à queue, piano droit numérique, instrument d'occasion…",
+        notes:        'Notes supplémentaires',
+        submit:       'Envoyer',
+        submitting:   'Envoi en cours…',
+        successTitle: 'Merci !',
+        successMsg:   'Nous avons bien reçu votre message. Notre équipe vous contactera sous peu.',
+        errRequired:  'Ce champ est requis.',
+        errEmail:     'Veuillez entrer un courriel valide.',
+        errDate:      'Veuillez sélectionner une date.',
+        errType:      'Veuillez sélectionner un type de contact.',
+        errServer:    'Une erreur est survenue. Veuillez réessayer.',
+      },
+      en: {
+        heroTitle:    'Let’s find the piano that’s right for you',
+        heroSub:      'Leave your details — our specialists will guide you personally.',
+        firstName:    'First name',
+        lastName:     'Last name',
+        email:        'Email',
+        phone:        'Phone',
+        contactType:  'Contact type',
+        ctEmpty:      '— Select —',
+        ctVisit:      '🏪 Store visit',
+        ctCall:       '📞 Phone call',
+        ctEmail:      '✉️ Email received',
+        ctWeb:        '🌐 Website query',
+        ctOther:      '💬 Other',
+        contactDate:  'Date of visit / call',
+        pianoInterest:'Piano you are interested in',
+        pianoPH:      'E.g.: grand piano, digital upright, used instrument…',
+        notes:        'Additional notes',
+        submit:       'Submit',
+        submitting:   'Sending…',
+        successTitle: 'Thank you!',
+        successMsg:   'We received your message. Our team will get in touch with you soon.',
+        errRequired:  'This field is required.',
+        errEmail:     'Please enter a valid email address.',
+        errDate:      'Please select a date.',
+        errType:      'Please select a contact type.',
+        errServer:    'An error occurred. Please try again.',
+      },
+      zh: {
+        heroTitle:    '为您甄选专属钢琴',
+        heroSub:      '请留下您的联系方式，我们的团队将竭诚为您提供一对一服务。',
+        firstName:    '名',
+        lastName:     '姓',
+        email:        '电子邮件',
+        phone:        '电话',
+        contactType:  '联系方式',
+        ctEmpty:      '— 请选择 —',
+        ctVisit:      '🏪 到店参观',
+        ctCall:       '📞 电话咨询',
+        ctEmail:      '✉️ 收到邮件',
+        ctWeb:        '🌐 网站咨询',
+        ctOther:      '💬 其他',
+        contactDate:  '参观 / 来电日期',
+        pianoInterest:'感兴趣的钢琴',
+        pianoPH:      '例如：三角钢琴、数码立式钢琴、二手乐器…',
+        notes:        '备注',
+        submit:       '提交',
+        submitting:   '发送中…',
+        successTitle: '谢谢！',
+        successMsg:   '我们已收到您的信息，我们的团队将尽快与您联系。',
+        errRequired:  '此项为必填项。',
+        errEmail:     '请输入有效的电子邮件地址。',
+        errDate:      '请选择日期。',
+        errType:      '请选择联系方式。',
+        errServer:    '发生错误，请重试。',
+      }
+    };
+
+    let currentLang = 'fr';
+
+    function setLang(l) {
+      currentLang = l;
+      ['fr','en','zh'].forEach(x =>
+        document.getElementById('btn-' + x).classList.toggle('active', x === l));
+      if (l === 'zh') {
+        document.body.style.fontFamily = "'Noto Serif SC', 'DM Sans', sans-serif";
+      } else {
+        document.body.style.fontFamily = "'DM Sans', sans-serif";
+      }
+      applyTranslations();
+    }
+
+    function applyTranslations() {
+      const t = T[currentLang];
+      const req = ` <span style="color:#dc2626">*</span>`;
+      document.getElementById('heroTitle').textContent     = t.heroTitle;
+      document.getElementById('heroSub').textContent       = t.heroSub;
+      document.getElementById('lblFirstName').innerHTML    = t.firstName + req;
+      document.getElementById('lblLastName').innerHTML     = t.lastName  + req;
+      document.getElementById('lblEmail').innerHTML        = t.email     + req;
+      document.getElementById('lblPhone').textContent      = t.phone;
+      document.getElementById('lblContactType').innerHTML  = t.contactType + req;
+      document.getElementById('ctOptEmpty').textContent = t.ctEmpty;
+      document.getElementById('ctOptVisit').textContent = t.ctVisit;
+      document.getElementById('ctOptCall').textContent  = t.ctCall;
+      document.getElementById('ctOptEmail').textContent = t.ctEmail;
+      document.getElementById('ctOptWeb').textContent   = t.ctWeb;
+      document.getElementById('ctOptOther').textContent = t.ctOther;
+      document.getElementById('lblContactDate').innerHTML  = t.contactDate + req;
+      document.getElementById('lblPianoInterest').textContent = t.pianoInterest;
+      document.getElementById('pianoInterest').placeholder    = t.pianoPH;
+      document.getElementById('lblNotes').textContent      = t.notes;
+      const btn = document.getElementById('submitBtn');
+      if (!btn.disabled) btn.textContent = t.submit;
+      document.getElementById('successTitle').textContent = t.successTitle;
+      document.getElementById('successMsg').textContent   = t.successMsg;
+    }
+
+    function clearErrors() {
+      ['errFirstName','errLastName','errEmail','errContactType','errContactDate'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'field-error';
+        el.textContent = '';
+      });
+      ['firstName','lastName','email','contactDate'].forEach(id =>
+        document.getElementById(id).classList.remove('invalid'));
+    }
+
+    function showError(fieldId, errId, msg) {
+      document.getElementById(fieldId).classList.add('invalid');
+      const err = document.getElementById(errId);
+      err.textContent = msg;
+      err.className = 'field-error visible';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function submitProspect(e) {
+      e.preventDefault();
+      clearErrors();
+      const t = T[currentLang];
+      let valid = true;
+
+      const firstName    = document.getElementById('firstName').value.trim();
+      const lastName     = document.getElementById('lastName').value.trim();
+      const email        = document.getElementById('email').value.trim();
+      const phone        = document.getElementById('phone').value.trim();
+      const contactType  = document.getElementById('contactTypeSelect').value || null;
+      const contactDate  = document.getElementById('contactDate').value;
+      const pianoInterest= document.getElementById('pianoInterest').value.trim();
+      const customerNotes= document.getElementById('customerNotes').value.trim();
+
+      if (!firstName) { showError('firstName', 'errFirstName', t.errRequired); valid = false; }
+      if (!lastName)  { showError('lastName',  'errLastName',  t.errRequired); valid = false; }
+      if (!email) {
+        showError('email', 'errEmail', t.errRequired); valid = false;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError('email', 'errEmail', t.errEmail); valid = false;
+      }
+      if (!contactType) {
+        const err = document.getElementById('errContactType');
+        err.textContent = t.errType;
+        err.className = 'field-error visible';
+        valid = false;
+      }
+      if (!contactDate) {
+        showError('contactDate', 'errContactDate', t.errDate); valid = false;
+      }
+
+      if (!valid) return;
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span>${t.submitting}`;
+
+      const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+      try {
+        const res = await fetch(`${API_BASE}/api/SubmitLead`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            language:       currentLang.toUpperCase(),
+            first_name:     firstName,
+            last_name:      lastName,
+            email:          email,
+            phone:          phone || null,
+            contact_type:   contactType,
+            contact_date:   contactDate,
+            piano_interest: pianoInterest || null,
+            customer_notes: customerNotes || null
+          })
+        });
+
+        if (res.ok) {
+          document.getElementById('prospectForm').style.display = 'none';
+          document.getElementById('successState').style.display = 'block';
+        } else {
+          showToast(t.errServer);
+          btn.disabled = false;
+          btn.textContent = t.submit;
+        }
+      } catch {
+        showToast(t.errServer);
+        btn.disabled = false;
+        btn.textContent = t.submit;
+      }
+    }
+
+    // Set today's date as default (but not future dates enforced — up to staff to validate)
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('contactDate').value = today;
+    document.getElementById('contactDate').max   = today;
+  </script>
+
+</body>
+</html>

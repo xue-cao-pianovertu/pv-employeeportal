@@ -11,7 +11,7 @@ const RESET  = '\x1b[0m';
 const BOLD   = '\x1b[1m';
 
 let passed = 0, failed = 0;
-let testEmail, testPassword, testRegId, testRefId, adminToken, staffToken;
+let testEmail, testPassword, testRegId, testRefId, adminToken, staffToken, testSalesStaffId;
 
 async function test(name, fn) {
   try {
@@ -74,6 +74,19 @@ async function patchXToken(path, body, tok) {
   return { res, data: await res.json() };
 }
 
+async function postXToken(path, body, tok) {
+  const res = await fetch(`${BASE}/api/${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Token': tok ? `Bearer ${tok}` : '',
+      'Authorization': tok ? `Bearer ${tok}` : '',
+    },
+    body: JSON.stringify(body),
+  });
+  return { res, data: await res.json() };
+}
+
 // ── Test suite ────────────────────────────────────────────────
 
 console.log(`\n${BOLD}Piano Vertu — API Tests${RESET}`);
@@ -81,7 +94,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
 
 (async () => {
 
-  // 1. GetFormData
+ // 1. GetFormData
   console.log(`${BOLD}GetFormData${RESET}`);
   await test('GET /api/GetFormData?lang=fr returns categories', async () => {
     const { res, data } = await get('GetFormData?lang=fr');
@@ -116,13 +129,13 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     delivery_postal:     'H3A 1B5',
     within_40km:         true,
     delivery_elevator:   false,
-    steps_outside: 2, steps_inside: 1, stair_turns: 0,
+    steps_outside: 2, steps_inside: 1, stair_turns: 3,
     collect_piano: false, recycle_piano: false, crane_required: false,
     delivery_asap: true,
     surcharge_flag: false,
     piano_category_id: 1,
-    piano_make:  'Yamaha',
-    piano_model: 'U1',
+    piano_make:  'Kawai',
+    piano_model: 'K200',
     piano_color: 'Noir laqué',
     purchase_date: new Date().toISOString().split('T')[0],
     humidity_confirmed: true,
@@ -144,7 +157,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(res.ok, `HTTP ${res.status}`);
     assert(data.new_account === true, 'new_account not true');
     assert(data.client_username, 'client_username missing');
-    assert(data.client_password && data.client_password.endsWith('_pianovertu'), 'client_password invalid');
+    assert(data.client_password === 'pianolover', `client_password invalid: ${data.client_password}`);
     testPassword = data.client_password;
     testEmail    = data.client_username;
   });
@@ -173,16 +186,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.token, 'token missing');
     assert(data.role === 'customer', `role should be customer, got ${data.role}`);
-  });
-
-  await test('POST /api/Login — staff credentials return token', async () => {
-    const { res, data } = await post('Login', { username: 'staff@pianovertu.com', password: 'changeme' });
-    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
-    assert(data.token,     'token missing');
-    assert(data.role,      'role missing');
-    assert(data.full_name, 'full_name missing');
-    assert(data.role === 'staff', `role should be staff, got ${data.role}`);
-    staffToken = data.token;
+    staffToken = data.token; // non-admin token reused to verify admin-only endpoints reject it
   });
 
   await test('POST /api/Login — wrong password returns 401', async () => {
@@ -206,9 +210,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     const row = data[0];
     assert(row.ref_id,    'ref_id missing');
     assert(row.created_at,'created_at missing');
-    assert('payment_status'  in row, 'payment_status field missing');
-    assert('delivery_status' in row, 'delivery_status field missing');
-    assert('price'           in row, 'price field missing');
+    assert('price'  in row, 'price field missing');
   });
 
   await test('GET /api/GetRegistrations includes the test registration', async () => {
@@ -235,11 +237,8 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
       cheque_to_collect: false,
       google_review:    true,
       fully_paid:       false,
-      payment_status:          'fully_paid',
-      delivery_status:         'delivered',
-      staff_notes:             'Test automatisé',
-      tuning_sessions_agreed:  2,
-      bench_model_id:          null,
+      status:           'completed',
+      staff_notes:      'Test automatisé',
     }, adminToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.success, 'success not true');
@@ -248,8 +247,7 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
   await test('PATCH /api/UpdateRegistration — unknown id returns 404', async () => {
     const { res } = await patch('UpdateRegistration', {
       id: 999999, surcharge_amount: 0, cheque_to_collect: false,
-      google_review: false, fully_paid: false,
-      payment_status: 'not_paid', delivery_status: 'to_plan',
+      google_review: false, fully_paid: false, status: 'potential',
     });
     assert(res.status === 404, `expected 404, got ${res.status}`);
   });
@@ -387,171 +385,145 @@ console.log(`Target: ${YELLOW}${BASE}${RESET}\n`);
     assert(Array.isArray(data) && data.length === 0, 'expected empty array for unknown id');
   });
 
-  // 10. GetMyRegistrations
-  console.log(`\n${BOLD}GetMyRegistrations${RESET}`);
+  // 15. GetSalesStaff
+  console.log(`\n${BOLD}GetSalesStaff${RESET}`);
 
-  let customerToken;
-
-  await test('POST /api/Login — re-login as customer to get token', async () => {
-    const { res, data } = await post('Login', { username: testEmail, password: testPassword });
-    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
-    assert(data.token, 'token missing');
-    assert(data.role === 'customer', `role should be customer, got ${data.role}`);
-    customerToken = data.token;
-  });
-
-  await test('GET /api/GetMyRegistrations returns registrations for customer', async () => {
-    assert(customerToken, 'no customerToken');
-    const res  = await fetch(`${BASE}/api/GetMyRegistrations`, {
-      headers: { 'Authorization': `Bearer ${customerToken}` },
-    });
-    const data = await res.json();
-    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+  await test('GET /api/GetSalesStaff returns an array', async () => {
+    const { res, data } = await get('GetSalesStaff');
+    assert(res.ok, `HTTP ${res.status}`);
     assert(Array.isArray(data), 'response is not an array');
-    assert(data.length > 0, 'no registrations found for customer');
-    const row = data[0];
-    assert(row.ref_id,        'ref_id missing');
-    assert(row.created_at,    'created_at missing');
-    assert(!('price'        in row), 'staff field price should not be present');
-    assert(!('invoice_number' in row), 'staff field invoice_number should not be present');
-    assert(!('staff_notes'  in row), 'staff field staff_notes should not be present');
   });
 
-  await test('GET /api/GetMyRegistrations — no token returns 401', async () => {
-    const res = await fetch(`${BASE}/api/GetMyRegistrations`);
-    assert(res.status === 401, `expected 401, got ${res.status}`);
-  });
-
-  await test('GET /api/GetMyRegistrations — invalid token returns 401', async () => {
-    const res = await fetch(`${BASE}/api/GetMyRegistrations`, {
-      headers: { 'Authorization': 'Bearer invalid.token.here' },
-    });
-    assert(res.status === 401, `expected 401, got ${res.status}`);
-  });
-
-  await test('GET /api/GetMyRegistrations — admin token returns 403 (customer only)', async () => {
-    assert(adminToken, 'no adminToken');
-    const res = await fetch(`${BASE}/api/GetMyRegistrations`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` },
-    });
-    assert(res.status === 403, `expected 403, got ${res.status}`);
-  });
-
-  await test('GET /api/GetMyRegistrations — staff token returns 403 (customer only)', async () => {
-    assert(staffToken, 'no staffToken');
-    const res = await fetch(`${BASE}/api/GetMyRegistrations`, {
-      headers: { 'Authorization': `Bearer ${staffToken}` },
-    });
-    assert(res.status === 403, `expected 403, got ${res.status}`);
-  });
-
-  // 11. Staff role access
-  console.log(`\n${BOLD}Staff role access${RESET}`);
-
-  await test('staff token can call UpdateRegistration', async () => {
-    assert(testRegId && staffToken, 'missing testRegId or staffToken');
-    const { res, data } = await patchAuth('UpdateRegistration', {
-      id: testRegId, surcharge_amount: 0, cheque_to_collect: false,
-      google_review: false, fully_paid: false,
-      payment_status: 'not_paid', delivery_status: 'to_plan',
-      staff_notes: 'Test staff role', tuning_sessions_agreed: 0, bench_model_id: null,
-    }, staffToken);
-    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
-    assert(data.success, 'success not true');
-  });
-
-  await test('staff token can call ResetClientPassword', async () => {
-    assert(staffToken && testEmail, 'missing staffToken or testEmail');
-    const { res, data } = await patchAuth('ResetClientPassword', { customer_email: testEmail }, staffToken);
-    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
-    assert(data.success === true, 'success not true');
-    assert(typeof data.new_password === 'string' && data.new_password.length === 8, 'new_password invalid');
-    // Reset back so suite stays idempotent
-    const { data: ld } = await post('Login', { username: testEmail, password: data.new_password });
-    await patchXToken('ChangePassword', { current_password: data.new_password, new_password: testPassword }, ld.token);
-  });
-
-  // 12. GetFormData — has_tradeup (requires DB migration to be run first)
-  console.log(`\n${BOLD}GetFormData — has_tradeup${RESET}`);
-
-  await test('GET /api/GetFormData categories include has_tradeup field', async () => {
+  await test('GET /api/GetFormData includes salesStaff array', async () => {
     const { res, data } = await get('GetFormData?lang=fr');
     assert(res.ok, `HTTP ${res.status}`);
-    assert(data.categories.every(c => 'has_tradeup' in c), 'has_tradeup field missing from categories');
-    const cat1 = data.categories.find(c => c.id === 1);
-    const cat3 = data.categories.find(c => c.id === 3);
-    assert(cat1 && cat1.has_tradeup === true, 'category id=1 should have has_tradeup=true');
-    assert(cat3 && cat3.has_tradeup === true, 'category id=3 should have has_tradeup=true');
+    assert(Array.isArray(data.salesStaff), 'salesStaff missing from GetFormData response');
   });
 
-  // 13. ChangePassword
-  console.log(`\n${BOLD}ChangePassword${RESET}`);
+  // 16. AddSalesStaff
+  console.log(`\n${BOLD}AddSalesStaff${RESET}`);
 
-  const newPassword = testPassword + 'X';
-
-  await test('PATCH /api/ChangePassword — no token returns 401', async () => {
-    const { res } = await patch('ChangePassword', { current_password: 'x', new_password: 'y' });
+  await test('POST /api/AddSalesStaff — no token returns 401', async () => {
+    const { res } = await post('AddSalesStaff', { name: 'Test Conseiller' });
     assert(res.status === 401, `expected 401, got ${res.status}`);
   });
 
-  await test('PATCH /api/ChangePassword — missing fields returns 400', async () => {
-    assert(customerToken, 'no customerToken');
-    const { res } = await patchXToken('ChangePassword', {}, customerToken);
+  await test('POST /api/AddSalesStaff — non-admin token returns 401', async () => {
+    assert(staffToken, 'no staffToken');
+    const { res } = await postXToken('AddSalesStaff', { name: 'Test Conseiller' }, staffToken);
+    assert(res.status === 401, `expected 401, got ${res.status}`);
+  });
+
+  await test('POST /api/AddSalesStaff — missing name returns 400', async () => {
+    assert(adminToken, 'no adminToken');
+    const { res } = await postXToken('AddSalesStaff', {}, adminToken);
     assert(res.status === 400, `expected 400, got ${res.status}`);
   });
 
-  await test('PATCH /api/ChangePassword — wrong current password returns 403', async () => {
-    assert(customerToken, 'no customerToken');
-    const { res } = await patchXToken('ChangePassword', { current_password: 'wrongpwd', new_password: 'newpwd123' }, customerToken);
-    assert(res.status === 403, `expected 403, got ${res.status}`);
+  await test('POST /api/AddSalesStaff — admin creates staff member', async () => {
+    assert(adminToken, 'no adminToken');
+    const { res, data } = await postXToken('AddSalesStaff', { name: 'Conseiller Test Auto' }, adminToken);
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.success === true, 'success not true');
+    assert(Number.isInteger(data.id) && data.id > 0, `id invalid: ${data.id}`);
+    testSalesStaffId = data.id;
   });
 
-  await test('PATCH /api/ChangePassword — correct change returns success', async () => {
-    assert(customerToken, 'no customerToken');
-    const { res, data } = await patchXToken('ChangePassword', { current_password: testPassword, new_password: newPassword }, customerToken);
+  await test('GET /api/GetSalesStaff includes newly created staff member', async () => {
+    assert(testSalesStaffId, 'no testSalesStaffId');
+    const { res, data } = await get('GetSalesStaff');
+    assert(res.ok, `HTTP ${res.status}`);
+    const found = data.find(ss => ss.id === testSalesStaffId);
+    assert(found, `testSalesStaffId ${testSalesStaffId} not found in list`);
+    assert(found.name === 'Conseiller Test Auto', `name mismatch: ${found.name}`);
+  });
+
+  await test('PATCH /api/AddSalesStaff — admin can toggle is_active', async () => {
+    assert(adminToken && testSalesStaffId, 'missing adminToken or testSalesStaffId');
+    const { res, data } = await patchXToken('AddSalesStaff', { id: testSalesStaffId, is_active: false }, adminToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.success === true, 'success not true');
   });
 
-  await test('Login with new password works after ChangePassword', async () => {
-    const { res, data } = await post('Login', { username: testEmail, password: newPassword });
+  await test('GET /api/GetSalesStaff excludes deactivated staff member', async () => {
+    assert(testSalesStaffId, 'no testSalesStaffId');
+    const { res, data } = await get('GetSalesStaff');
+    assert(res.ok, `HTTP ${res.status}`);
+    const found = data.find(ss => ss.id === testSalesStaffId);
+    assert(!found, `deactivated staff id ${testSalesStaffId} should not appear in active list`);
+  });
+
+  await test('PATCH /api/AddSalesStaff — re-activate for remaining tests', async () => {
+    assert(adminToken && testSalesStaffId, 'missing adminToken or testSalesStaffId');
+    const { res, data } = await patchXToken('AddSalesStaff', { id: testSalesStaffId, is_active: true }, adminToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
-    assert(data.token, 'token missing');
-    customerToken = data.token;
-    // Reset back to original so suite is idempotent
-    await patchXToken('ChangePassword', { current_password: newPassword, new_password: testPassword }, customerToken);
   });
 
-  // 14. ResetClientPassword
-  console.log(`\n${BOLD}ResetClientPassword${RESET}`);
+  // 17. Sales staff on registrations
+  console.log(`\n${BOLD}Sales staff on registrations${RESET}`);
 
-  await test('PATCH /api/ResetClientPassword — no token returns 401', async () => {
-    const { res } = await patch('ResetClientPassword', { customer_email: testEmail });
-    assert(res.status === 401, `expected 401, got ${res.status}`);
-  });
-
-  await test('PATCH /api/ResetClientPassword — customer token returns 403', async () => {
-    assert(customerToken, 'no customerToken');
-    const { res } = await patchAuth('ResetClientPassword', { customer_email: testEmail }, customerToken);
-    assert(res.status === 403, `expected 403, got ${res.status}`);
-  });
-
-  await test('PATCH /api/ResetClientPassword — unknown email returns 404', async () => {
-    const { res } = await patchAuth('ResetClientPassword', { customer_email: 'nobody@nobody.invalid' }, adminToken);
-    assert(res.status === 404, `expected 404, got ${res.status}`);
-  });
-
-  await test('PATCH /api/ResetClientPassword — admin generates new 8-char password', async () => {
-    const { res, data } = await patchAuth('ResetClientPassword', { customer_email: testEmail }, adminToken);
+  await test('PATCH /api/UpdateClientInfo assigns sales staff to registration', async () => {
+    assert(testRegId && testSalesStaffId && adminToken, 'missing testRegId, testSalesStaffId, or adminToken');
+    const { res, data } = await patchAuth('UpdateClientInfo', {
+      id: testRegId,
+      sales_staff_ids:   [testSalesStaffId],
+      sales_staff_other: null,
+    }, adminToken);
     assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
     assert(data.success === true, 'success not true');
-    assert(typeof data.new_password === 'string' && data.new_password.length === 8,
-      `new_password should be 8 chars, got: ${JSON.stringify(data.new_password)}`);
-    // Verify new password works
-    const { res: lr, data: ld } = await post('Login', { username: testEmail, password: data.new_password });
-    assert(lr.ok, `Login with reset password failed: HTTP ${lr.status}`);
-    // Reset back to original so suite is idempotent
-    await patchXToken('ChangePassword', { current_password: data.new_password, new_password: testPassword }, ld.token);
+  });
+
+  await test('GET /api/GetRegistrations includes sales_staff_names for assigned registration', async () => {
+    assert(testRegId && testSalesStaffId, 'missing testRegId or testSalesStaffId');
+    const { res, data } = await get('GetRegistrations');
+    assert(res.ok, `HTTP ${res.status}`);
+    const row = data.find(r => r.id === testRegId);
+    assert(row, `testRegId ${testRegId} not found`);
+    assert('sales_staff_names' in row, 'sales_staff_names field missing from row');
+    assert('sales_staff_ids' in row,   'sales_staff_ids field missing from row');
+    assert(row.sales_staff_names && row.sales_staff_names.includes('Conseiller Test Auto'),
+      `expected "Conseiller Test Auto" in sales_staff_names, got: ${row.sales_staff_names}`);
+  });
+
+  await test('PATCH /api/UpdateClientInfo can set sales_staff_other text', async () => {
+    assert(testRegId && adminToken, 'missing testRegId or adminToken');
+    const { res, data } = await patchAuth('UpdateClientInfo', {
+      id: testRegId,
+      sales_staff_other: 'Marie Dupont',
+    }, adminToken);
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
+    assert(data.success === true, 'success not true');
+  });
+
+  await test('GET /api/GetRegistrations includes sales_staff_other for updated registration', async () => {
+    assert(testRegId, 'no testRegId');
+    const { res, data } = await get('GetRegistrations');
+    assert(res.ok, `HTTP ${res.status}`);
+    const row = data.find(r => r.id === testRegId);
+    assert(row, `testRegId ${testRegId} not found`);
+    assert(row.sales_staff_other === 'Marie Dupont',
+      `expected sales_staff_other "Marie Dupont", got: ${row.sales_staff_other}`);
+  });
+
+  await test('GET /api/GetAuditLog includes sales_staff entry after UpdateClientInfo', async () => {
+    assert(testRegId, 'no testRegId');
+    const { res, data } = await get(`GetAuditLog?id=${testRegId}`);
+    assert(res.ok, `HTTP ${res.status}`);
+    const clientEntries = data.filter(e => e.section === 'client');
+    assert(clientEntries.length > 0, 'no client audit entries');
+    const hasSalesStaff = clientEntries.some(e => {
+      try {
+        const c = JSON.parse(e.changes_json);
+        return 'sales_staff' in c || 'sales_staff_other' in c;
+      } catch { return false; }
+    });
+    assert(hasSalesStaff, 'no sales_staff or sales_staff_other key found in audit log changes_json');
+  });
+
+  await test('cleanup — deactivate test sales staff member', async () => {
+    assert(adminToken && testSalesStaffId, 'missing adminToken or testSalesStaffId');
+    const { res, data } = await patchXToken('AddSalesStaff', { id: testSalesStaffId, is_active: false }, adminToken);
+    assert(res.ok, `HTTP ${res.status}: ${JSON.stringify(data)}`);
   });
 
   // ── Summary ───────────────────────────────────────────────

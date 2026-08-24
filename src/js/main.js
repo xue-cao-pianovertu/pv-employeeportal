@@ -8,7 +8,7 @@ import { initPdf, openPdf, markRead, updatePdfGate, getPdfRead, getTradeupRead, 
 import { initSignature, clearSig, hasSig, getSignatureDataUrl } from './signature.js';
 import {
   initForm, initCheckboxes, initRadios,
-  populateCategories,
+  populateCategories, populateSalesStaff,
   onCatChange, onTypeChange,
   step, calcSurcharge, revealEl, cnts, getIsConsignment
 } from './form.js';
@@ -94,6 +94,7 @@ async function loadFormData() {
   try {
     formData = await getFormData(lang);
     populateCategories();
+    populateSalesStaff();
     if (formData.pdfs.tradeup) initTradeupPdf(formData.pdfs.tradeup);
     if (loadingEl) loadingEl.style.display = 'none';
   } catch (err) {
@@ -122,6 +123,7 @@ window.setLang = async function (l) {
   const savedTypeId = document.getElementById('pianoType').value;
 
   populateCategories();
+  populateSalesStaff();
 
   // Restore saved selections
   if (savedCatId) {
@@ -208,6 +210,11 @@ window.doSubmit = async function () {
     customer_phone2: g('phone2') || '—',
     heard_from:           g('heardFrom') || '—',
     referred_by_teacher:  g('referredByTeacher') || null,
+    sales_staff_ids: Array.from(document.querySelectorAll('.sales-staff-cb:checked'))
+                         .map(cb => parseInt(cb.value)),
+    sales_staff_other: document.getElementById('salesStaffOtherCheck')?.checked
+                         ? g('salesStaffOther') || null
+                         : null,
     delivery_street: g('street'),
     delivery_apt: g('apt') || '',
     delivery_city: g('city'),

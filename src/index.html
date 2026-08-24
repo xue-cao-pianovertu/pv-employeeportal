@@ -85,6 +85,15 @@
         <label class="lbl" id="l-referred">Recommandé par un professeur ? (nom)</label>
         <input id="referredByTeacher" type="text" placeholder="ex. Jean Dupont">
       </div>
+      <div class="field">
+        <label class="lbl" id="l-sales-staff">Qui vous a aidé(e)</label>
+        <div id="salesStaffList" class="acc-group" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+          <!-- populated by populateSalesStaff() -->
+        </div>
+        <div id="salesStaffOtherRow" style="display:none;margin-top:8px">
+          <input type="text" id="salesStaffOther" placeholder="Préciser le nom…">
+        </div>
+      </div>
     </div>
   </div>
 

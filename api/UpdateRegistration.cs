@@ -157,6 +157,24 @@ public class UpdateRegistration
         await logCmd.ExecuteNonQueryAsync();
     }
 
+    internal static async Task WriteLeadAuditLog(SqlConnection conn, int leadId, string changedBy, string section, Dictionary<string, string?[]> changes)
+    {
+        if (changes.Count == 0) return;
+
+        var json = JsonSerializer.Serialize(changes.ToDictionary(
+            kvp => kvp.Key,
+            kvp => new { old = kvp.Value[0], @new = kvp.Value[1] }));
+
+        var logCmd = new SqlCommand(@"
+            INSERT INTO dbo.AuditLog (lead_id, changed_by, section, changes_json)
+            VALUES (@leadId, @changedBy, @section, @changes)", conn);
+        logCmd.Parameters.AddWithValue("@leadId",    leadId);
+        logCmd.Parameters.AddWithValue("@changedBy", changedBy);
+        logCmd.Parameters.AddWithValue("@section",   section);
+        logCmd.Parameters.AddWithValue("@changes",   json);
+        await logCmd.ExecuteNonQueryAsync();
+    }
+
     internal static string GetUsername(HttpRequest req)
     {
         var auth = req.Headers["X-Token"].ToString();

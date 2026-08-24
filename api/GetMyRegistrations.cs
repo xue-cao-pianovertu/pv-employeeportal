@@ -46,6 +46,7 @@ public class GetMyRegistrations
                     r.warranty_pdf_blob, r.tradeup_pdf_blob,
                     r.signature_type, r.signature_blob_name, r.signed_at,
                     r.status, r.created_at,
+                    r.sales_staff_other,
                     cat.name_fr     AS category_name_fr,
                     cat.name_en     AS category_name_en,
                     cat.name_zh     AS category_name_zh,
@@ -56,11 +57,19 @@ public class GetMyRegistrations
                     pt.name_en   AS type_name_en,
                     pt.name_zh   AS type_name_zh,
                     pt.brand_name AS type_brand,
-                    b.name       AS bench_name
+                    b.name       AS bench_name,
+                    staff_agg.sales_staff_names
                 FROM dbo.Registrations r
                 LEFT JOIN dbo.PianoCategory cat ON cat.id = r.piano_category_id
                 LEFT JOIN dbo.PianoType    pt  ON pt.id  = r.piano_type_id
                 LEFT JOIN dbo.bench        b   ON b.id   = r.bench_model_id
+                LEFT JOIN (
+                    SELECT rss.registration_id,
+                           STRING_AGG(ss.name, ', ') AS sales_staff_names
+                    FROM   dbo.RegistrationSalesStaff rss
+                    JOIN   dbo.SalesStaff ss ON ss.id = rss.sales_staff_id
+                    GROUP BY rss.registration_id
+                ) staff_agg ON staff_agg.registration_id = r.id
                 INNER JOIN dbo.Users u ON u.username = r.customer_email
                 WHERE u.id = @userId
                 ORDER BY r.created_at DESC", conn);

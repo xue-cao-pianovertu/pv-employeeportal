@@ -2,7 +2,7 @@
 // form.js — dropdowns, category/type, surcharge, steppers, checkboxes
 // ─────────────────────────────────────────────
 
-import { updatePdfGate, resetPdfGate, unlockForConsignment, resetTradeupGate } from './pdf.js';
+import { updatePdfGate, resetPdfGate, unlockForConsignment, resetTradeupGate, loadTradeupFrame } from './pdf.js';
 
 // ── State ─────────────────────────────────────
 export const cnts = { sout: 0, sin: 0, turns: 0 };
@@ -22,6 +22,72 @@ export function initForm({ getFormData, getLang, getL }) {
 }
 
 // ── Populate dropdowns from formData ─────────────────────────────
+
+export function populateSalesStaff() {
+  const container = document.getElementById('salesStaffList');
+  if (!container) return;
+  const data = _formData();
+  const t = _getL(_getLang());
+
+  // Preserve checked state across re-renders (language switch)
+  const checked = new Set(
+    Array.from(container.querySelectorAll('.sales-staff-cb:checked')).map(cb => cb.value)
+  );
+  const otherWasChecked = document.getElementById('salesStaffOtherCheck')?.checked;
+
+  container.innerHTML = '';
+
+  (data.salesStaff || []).forEach(ss => {
+    const label = document.createElement('label');
+    label.className = 'acc-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'sales-staff-cb';
+    cb.value = ss.id;
+    if (checked.has(String(ss.id))) cb.checked = true;
+    const icon = document.createElement('span');
+    icon.className = 'acc-icon';
+    icon.textContent = cb.checked ? '✕' : '';
+    cb.addEventListener('change', () => {
+      label.classList.toggle('checked', cb.checked);
+      icon.textContent = cb.checked ? '✕' : '';
+    });
+    if (cb.checked) label.classList.add('checked');
+    const span = document.createElement('span');
+    span.textContent = ss.name;
+    label.append(cb, icon, span);
+    container.appendChild(label);
+  });
+
+  // "Other" option — text is language-aware
+  const otherLabel = document.createElement('label');
+  otherLabel.className = 'acc-item';
+  const otherCb = document.createElement('input');
+  otherCb.type = 'checkbox';
+  otherCb.id = 'salesStaffOtherCheck';
+  if (otherWasChecked) { otherCb.checked = true; otherLabel.classList.add('checked'); }
+  const otherIcon = document.createElement('span');
+  otherIcon.className = 'acc-icon';
+  otherIcon.textContent = otherWasChecked ? '✕' : '';
+  otherCb.addEventListener('change', e => {
+    otherLabel.classList.toggle('checked', e.target.checked);
+    otherIcon.textContent = e.target.checked ? '✕' : '';
+    const row = document.getElementById('salesStaffOtherRow');
+    if (row) row.style.display = e.target.checked ? 'block' : 'none';
+    if (!e.target.checked) {
+      const inp = document.getElementById('salesStaffOther');
+      if (inp) inp.value = '';
+    }
+  });
+  const otherSpan = document.createElement('span');
+  otherSpan.textContent = t.l_sales_staff_other;
+  otherLabel.append(otherCb, otherIcon, otherSpan);
+  container.appendChild(otherLabel);
+
+  // Placeholder is language-aware
+  const otherInput = document.getElementById('salesStaffOther');
+  if (otherInput) otherInput.placeholder = t.l_sales_other_ph;
+}
 
 export function populateCategories() {
   const sel = document.getElementById('pianoCategory');
@@ -139,6 +205,7 @@ export function onCatChange(categoryId) {
 
   // Show/hide PDF gates
   document.getElementById('tradeupGate').style.display = category.has_tradeup ? 'block' : 'none';
+  if (category.has_tradeup) loadTradeupFrame();
 
   if (!category.has_warranty) {
     // No warranty — hide gate, then immediately unlock sig
@@ -179,6 +246,7 @@ export function onTypeChange(pianoTypeId) {
   if (category?.has_tradeup) {
     const typeHasTradeup = typeOpt?.dataset.hasTradeup !== 'false';
     document.getElementById('tradeupGate').style.display = typeHasTradeup ? 'block' : 'none';
+    if (typeHasTradeup) loadTradeupFrame();
     resetTradeupGate(); // resets read state + re-evaluates sig unlock
   }
 }

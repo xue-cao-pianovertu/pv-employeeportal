@@ -174,6 +174,41 @@
     .badge-to-plan        { background: #f3f4f6; color: #374151; }
     .badge-sent-mover     { background: #fef9ee; color: #92400e; }
     .badge-delivered      { background: #dcfce7; color: #166534; }
+    /* ── Tabs ────────────────────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      padding: 0 20px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f0eee9;
+    }
+    .tab-btn {
+      padding: 11px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: #6b7280;
+      cursor: pointer;
+      margin-bottom: -1px;
+      transition: color .15s;
+    }
+    .tab-btn.active {
+      color: #0d1f3c;
+      border-bottom-color: #c9a84c;
+    }
+    .tab-btn:hover:not(.active) { color: #374151; }
+
+    /* ── Lead status badges ──────────────────────────────────── */
+    .badge-lead-new            { background: #f3f4f6; color: #374151; }
+    .badge-lead-contacted      { background: #dbeafe; color: #1e40af; }
+    .badge-lead-interested     { background: #dcfce7; color: #166534; }
+    .badge-lead-to-follow-up   { background: #fef9ee; color: #92400e; }
+    .badge-lead-not-interested { background: #fef2f2; color: #991b1b; }
+    .badge-lead-converted      { background: #f0fdf4; color: #15803d; }
+
     .empty-state {
       padding: 48px;
       text-align: center;
@@ -462,47 +497,104 @@
     <button class="btn-savepwd" id="pwdBtn" onclick="submitPwdChange()">Enregistrer</button>
   </div>
 
-  <div class="toolbar">
-    <div class="search-wrap">
-      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input class="search-input" id="searchInput" type="text" placeholder="Rechercher réf, client, piano…" oninput="renderTable()">
-    </div>
-    <select class="filter-select" id="filterPayment" onchange="renderTable()">
-      <option value="">Tous paiements</option>
-      <option value="not_paid">Non payé</option>
-      <option value="partially_paid">Part. payé</option>
-      <option value="fully_paid">Entièrement payé</option>
-      <option value="store_financing">Financement magasin</option>
-    </select>
-    <select class="filter-select" id="filterDelivery" onchange="renderTable()">
-      <option value="">Toutes livraisons</option>
-      <option value="to_plan">À planifier</option>
-      <option value="sent_to_mover">Chez déménageur</option>
-      <option value="delivered">Livré</option>
-    </select>
-    <span class="count-badge" id="countBadge"></span>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabAchats"    onclick="switchTab('achats')">Achats</button>
+    <button class="tab-btn"        id="tabProspects" onclick="switchTab('prospects')">Prospects</button>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Réf</th>
-          <th>Date</th>
-          <th>Client</th>
-          <th>Téléphone</th>
-          <th>Piano</th>
-          <th>Catégorie</th>
-          <th>Facture</th>
-          <th>Paiement</th>
-          <th>Livraison</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div class="empty-state" id="emptyState" style="display:none">Aucun enregistrement trouvé.</div>
+  <div id="viewAchats">
+    <!-- Admin-only: manage sales staff list -->
+    <details id="adminSalesStaffPanel" style="display:none;margin:12px 16px 4px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px">
+      <summary style="cursor:pointer;font-weight:600;font-size:13px;color:#0d1f3c">Gestion du personnel de vente</summary>
+      <ul id="salesStaffAdminList" style="list-style:none;margin:10px 0 8px;padding:0"></ul>
+      <form id="addSalesStaffForm" onsubmit="addSalesStaff(event)" style="display:flex;gap:8px;margin-top:8px">
+        <input type="text" id="newSalesStaffName" placeholder="Nom du conseiller" style="flex:1;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px">
+        <button type="submit" class="save-btn" style="white-space:nowrap">Ajouter</button>
+      </form>
+    </details>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" id="searchInput" type="text" placeholder="Rechercher réf, client, piano…" oninput="renderTable()">
+      </div>
+      <select class="filter-select" id="filterPayment" onchange="renderTable()">
+        <option value="">Tous paiements</option>
+        <option value="not_paid">Non payé</option>
+        <option value="partially_paid">Part. payé</option>
+        <option value="fully_paid">Entièrement payé</option>
+        <option value="store_financing">Financement magasin</option>
+      </select>
+      <select class="filter-select" id="filterDelivery" onchange="renderTable()">
+        <option value="">Toutes livraisons</option>
+        <option value="to_plan">À planifier</option>
+        <option value="sent_to_mover">Chez déménageur</option>
+        <option value="delivered">Livré</option>
+      </select>
+      <span class="count-badge" id="countBadge"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Réf</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Téléphone</th>
+            <th>Piano</th>
+            <th>Catégorie</th>
+            <th>Facture</th>
+            <th>Paiement</th>
+            <th>Livraison</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none">Aucun enregistrement trouvé.</div>
+    </div>
+  </div>
+
+  <div id="viewProspects" style="display:none">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" id="leadsSearchInput" type="text"
+          placeholder="Rechercher nom, courriel, piano…" oninput="renderLeadsTable()">
+      </div>
+      <select class="filter-select" id="filterLeadStatus" onchange="renderLeadsTable()">
+        <option value="">Tous statuts</option>
+        <option value="new">Nouveau</option>
+        <option value="contacted">Contacté</option>
+        <option value="interested">Intéressé</option>
+        <option value="to_follow_up">À relancer</option>
+        <option value="not_interested">Pas intéressé</option>
+        <option value="converted">Converti</option>
+      </select>
+      <span class="count-badge" id="leadsCountBadge"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Nom</th>
+            <th>Courriel</th>
+            <th>Téléphone</th>
+            <th>Type</th>
+            <th>Piano</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="leadsTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="leadsEmptyState" style="display:none">Aucun prospect trouvé.</div>
+    </div>
   </div>
 
   <!-- Toast notification -->
@@ -531,6 +623,73 @@
 
     const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
     let allRows = [];
+    let salesStaffList = [];
+
+    async function loadSalesStaff() {
+      try {
+        const res = await fetch(`${API_BASE}/api/GetSalesStaff`);
+        salesStaffList = await res.json();
+        if (role === 'admin') {
+          const panel = document.getElementById('adminSalesStaffPanel');
+          if (panel) {
+            panel.style.display = '';
+            renderSalesStaffAdmin();
+          }
+        }
+      } catch (e) { console.error('loadSalesStaff failed', e); }
+    }
+
+    function renderSalesStaffAdmin() {
+      const ul = document.getElementById('salesStaffAdminList');
+      if (!ul) return;
+      ul.innerHTML = salesStaffList.length === 0
+        ? '<li style="color:#9ca3af;font-size:13px">Aucun conseiller enregistré.</li>'
+        : salesStaffList.map(ss => `
+            <li style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px">
+              <span style="flex:1">${ss.name}</span>
+              <button type="button" class="modifier-btn" onclick="toggleSalesStaff(${ss.id}, false)" style="background:#fef2f2;color:#b91c1c">Désactiver</button>
+            </li>`).join('');
+      // Also fetch inactive staff for admin
+      fetch(`${API_BASE}/api/GetSalesStaff?all=1`, { headers: { 'X-Token': `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => []);
+    }
+
+    async function addSalesStaff(e) {
+      e.preventDefault();
+      const input = document.getElementById('newSalesStaffName');
+      const name = input.value.trim();
+      if (!name) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/AddSalesStaff`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Token': `Bearer ${token}` },
+          body: JSON.stringify({ name }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          salesStaffList.push({ id: data.id, name });
+          input.value = '';
+          renderSalesStaffAdmin();
+          showToast('✓ Conseiller ajouté');
+        } else {
+          showToast('Erreur lors de l\'ajout');
+        }
+      } catch { showToast('Erreur réseau'); }
+    }
+
+    async function toggleSalesStaff(id, isActive) {
+      try {
+        await fetch(`${API_BASE}/api/AddSalesStaff`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'X-Token': `Bearer ${token}` },
+          body: JSON.stringify({ id, is_active: isActive }),
+        });
+        salesStaffList = salesStaffList.filter(ss => ss.id !== id);
+        renderSalesStaffAdmin();
+        showToast('✓ Conseiller mis à jour');
+      } catch { showToast('Erreur réseau'); }
+    }
 
     function logout() {
       ['pv_token','pv_role','pv_full_name'].forEach(k => localStorage.removeItem(k));
@@ -731,6 +890,7 @@
             <div class="field-item"><span class="field-label">Téléphone</span><span class="field-value">${fv(r.customer_phone1)}</span></div>
             <div class="field-item field-full"><span class="field-label">Comment nous a-t-il connu</span><span class="field-value">${fv(r.heard_from)}</span></div>
             ${r.referred_by_teacher ? `<div class="field-item field-full"><span class="field-label">Recommandé par (professeur)</span><span class="field-value">${fv(r.referred_by_teacher)}</span></div>` : ''}
+            ${(r.sales_staff_names || r.sales_staff_other) ? `<div class="field-item field-full"><span class="field-label">Conseiller(s) de vente</span><span class="field-value">${[r.sales_staff_names, r.sales_staff_other ? r.sales_staff_other + ' (autre)' : null].filter(Boolean).join(', ')}</span></div>` : ''}
           </div>
           <div id="resetPwdBox-${r.id}" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:7px;font-size:13px"></div>
           <form id="clientEdit-${r.id}" class="staff-form" style="display:none;margin-top:12px" onsubmit="saveClient(event, ${r.id})">
@@ -744,6 +904,23 @@
             </div>
             <div class="staff-field full"><label>Comment nous a-t-il connu</label><input type="text" name="heard_from" value="${r.heard_from || ''}"></div>
             <div class="staff-field full"><label>Recommandé par (professeur)</label><input type="text" name="referred_by_teacher" value="${r.referred_by_teacher || ''}" placeholder="Nom du professeur"></div>
+            <div class="staff-field full">
+              <label>Qui vous a aidé(e)</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                ${salesStaffList.map(ss => {
+                  const ids = r.sales_staff_ids ? r.sales_staff_ids.toString().split(',').map(Number) : [];
+                  const chk = ids.includes(ss.id) ? 'checked' : '';
+                  return `<label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" class="edit-staff-cb" value="${ss.id}" ${chk}> ${ss.name}</label>`;
+                }).join('')}
+                <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="editStaffOtherCheck-${r.id}" ${r.sales_staff_other ? 'checked' : ''} onchange="document.getElementById('editStaffOtherRow-${r.id}').style.display=this.checked?'block':'none'">
+                  Autre
+                </label>
+              </div>
+              <div id="editStaffOtherRow-${r.id}" style="display:${r.sales_staff_other ? 'block' : 'none'};margin-top:6px">
+                <input type="text" id="editStaffOtherInput-${r.id}" value="${r.sales_staff_other || ''}" placeholder="Nom du conseiller…" style="width:100%">
+              </div>
+            </div>
             <div style="display:flex;gap:10px;align-items:center">
               <button type="submit" class="save-btn" id="saveClientBtn-${r.id}">Sauvegarder</button>
               <button type="button" class="cancel-btn" onclick="toggleEdit('clientEdit-${r.id}')">Annuler</button>
@@ -1077,6 +1254,8 @@
       btn.disabled  = true;
       btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
       const form = e.target;
+      const otherCheck = document.getElementById(`editStaffOtherCheck-${id}`);
+      const otherInput = document.getElementById(`editStaffOtherInput-${id}`);
       const body = {
         id,
         customer_first_name: form.customer_first_name.value.trim() || null,
@@ -1085,6 +1264,8 @@
         customer_phone1:     form.customer_phone1.value.trim()     || null,
         heard_from:            form.heard_from.value.trim()           || null,
         referred_by_teacher:   form.referred_by_teacher.value.trim() || null,
+        sales_staff_ids: Array.from(form.querySelectorAll('.edit-staff-cb:checked')).map(cb => parseInt(cb.value)),
+        sales_staff_other: (otherCheck?.checked && otherInput?.value.trim()) ? otherInput.value.trim() : null,
       };
       try {
         const res = await fetch(`${API_BASE}/api/UpdateClientInfo`, {
@@ -1222,6 +1403,8 @@
       customer_phone2:    'Téléphone 2',
       heard_from:           'Comment connu',
       referred_by_teacher:  'Recommandé par (prof.)',
+      sales_staff:          'Qui vous a aidé(e)',
+      sales_staff_other:    'Conseiller (autre)',
       delivery_street:    'Rue',
       delivery_apt:       'Appartement',
       delivery_city:      'Ville',
@@ -1249,6 +1432,16 @@
       accessories:        'Autres accessoires',
       piano_notes:        'Notes piano',
       bench_notes:        'Notes banc',
+      // Lead fields
+      lead_status:        'Statut',
+      first_name:         'Prénom',
+      last_name:          'Nom',
+      email:              'Courriel',
+      phone:              'Téléphone',
+      contact_type:       'Type de contact',
+      contact_date:       'Date',
+      piano_interest:     'Piano',
+      customer_notes:     'Notes client',
     };
 
     async function loadAuditLog(id) {
@@ -1289,6 +1482,44 @@
       }
     }
 
+    async function loadLeadAuditLog(id) {
+      const box = document.getElementById(`leadAuditLog-${id}`);
+      if (!box) return;
+      try {
+        const res  = await fetch(`${API_BASE}/api/GetAuditLog?lead_id=${id}`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Aucune modification enregistrée.</span>';
+          return;
+        }
+        box.innerHTML = data.map(entry => {
+          const changes = JSON.parse(entry.changes_json);
+          const date    = new Date(entry.changed_at + 'Z').toLocaleString('fr-CA', { dateStyle: 'medium', timeStyle: 'short' });
+          const lines   = Object.entries(changes).map(([field, { old: o, new: n }]) => {
+            const label = FIELD_LABELS[field] || field;
+            return `<div class="audit-change">
+              <span class="audit-field">${label} :</span>
+              <span class="audit-old">${o ?? '—'}</span>
+              <span style="color:#9ca3af">→</span>
+              <span class="audit-new">${n ?? '—'}</span>
+            </div>`;
+          }).join('');
+          return `<div class="audit-entry">
+            <div class="audit-meta">
+              <strong>${entry.changed_by}</strong>
+              <span class="audit-section-badge">prospect</span>
+              &nbsp;·&nbsp; ${date}
+            </div>
+            ${lines}
+          </div>`;
+        }).join('');
+      } catch {
+        box.innerHTML = '<span style="font-size:12px;color:#9ca3af">Erreur de chargement.</span>';
+      }
+    }
+
     // Load signature image after panel opens
     async function loadSignature(id, blobName) {
       const box = document.getElementById(`sigBox-${id}`);
@@ -1312,7 +1543,290 @@
       if (res.ok) benchOptions = await res.json();
     }
 
+    // ── Tab switching ─────────────────────────────────────────
+    function switchTab(tab) {
+      document.getElementById('viewAchats').style.display    = tab === 'achats'    ? 'block' : 'none';
+      document.getElementById('viewProspects').style.display = tab === 'prospects' ? 'block' : 'none';
+      document.getElementById('tabAchats').classList.toggle('active',    tab === 'achats');
+      document.getElementById('tabProspects').classList.toggle('active', tab === 'prospects');
+    }
+
+    // ── Leads ─────────────────────────────────────────────────
+    let allLeads = [];
+
+    async function loadLeads() {
+      try {
+        const res = await fetch(`${API_BASE}/api/GetLeads`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          allLeads = await res.json();
+          renderLeadsTable();
+        }
+      } catch (e) {
+        document.getElementById('leadsEmptyState').textContent = 'Erreur de chargement.';
+        document.getElementById('leadsEmptyState').style.display = 'block';
+      }
+    }
+
+    const LEAD_STATUS_MAP = {
+      new:            ['badge-lead-new',            'Nouveau'],
+      contacted:      ['badge-lead-contacted',      'Contacté'],
+      interested:     ['badge-lead-interested',     'Intéressé'],
+      to_follow_up:   ['badge-lead-to-follow-up',   'À relancer'],
+      not_interested: ['badge-lead-not-interested', 'Pas intéressé'],
+      converted:      ['badge-lead-converted',      'Converti'],
+    };
+
+    function renderLeadsTable() {
+      const q      = (document.getElementById('leadsSearchInput')?.value || '').toLowerCase();
+      const filter = document.getElementById('filterLeadStatus')?.value || '';
+
+      const rows = allLeads.filter(l => {
+        const text = [l.first_name, l.last_name, l.email, l.piano_interest]
+          .filter(Boolean).join(' ').toLowerCase();
+        if (q && !text.includes(q)) return false;
+        if (filter && (l.lead_status || 'new') !== filter) return false;
+        return true;
+      });
+
+      const badge = document.getElementById('leadsCountBadge');
+      if (badge) badge.textContent = `${rows.length} prospect${rows.length !== 1 ? 's' : ''}`;
+
+      const tbody = document.getElementById('leadsTableBody');
+      const empty = document.getElementById('leadsEmptyState');
+      if (!tbody) return;
+      empty.style.display = rows.length ? 'none' : 'block';
+
+      tbody.innerHTML = rows.map(l => {
+        const date = l.created_at
+          ? new Date(l.created_at + (l.created_at.endsWith('Z') ? '' : 'Z')).toLocaleDateString('fr-CA')
+          : '—';
+        const name = `${l.last_name || ''} ${l.first_name || ''}`.trim() || '—';
+        const typeLabels = { visit:'🏪 Visite', call:'📞 Appel', email:'✉️ Courriel', web:'🌐 Web', other:'💬 Autre' };
+        const typeStr = typeLabels[l.contact_type] || l.contact_type || '—';
+        const piano = l.piano_interest
+          ? (l.piano_interest.length > 48 ? l.piano_interest.slice(0, 48) + '…' : l.piano_interest)
+          : '—';
+        const [sc, sl] = LEAD_STATUS_MAP[l.lead_status || 'new'] || LEAD_STATUS_MAP.new;
+        return `<tr onclick="openLeadPanel(${l.id})">
+          <td style="color:#6b7280;white-space:nowrap">${date}</td>
+          <td style="font-weight:500">${name}</td>
+          <td style="color:#6b7280">${l.email || '—'}</td>
+          <td style="color:#6b7280">${l.phone || '—'}</td>
+          <td style="white-space:nowrap">${typeStr}</td>
+          <td style="color:#6b7280">${piano}</td>
+          <td><span class="badge ${sc}">${sl}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function openLeadPanel(id) {
+      const l = allLeads.find(x => x.id === id);
+      if (!l) return;
+      const name = `${l.last_name || ''} ${l.first_name || ''}`.trim() || 'Prospect';
+      document.getElementById('panelRef').textContent = name;
+      document.getElementById('panelTestBtn').innerHTML = '';
+      document.getElementById('panelBody').innerHTML = buildLeadPanelHTML(l);
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('panel').classList.add('open');
+      loadLeadAuditLog(l.id);
+    }
+
+    function buildLeadPanelHTML(l) {
+      const fmtDate = d => {
+        if (!d) return '—';
+        const s = typeof d === 'string' ? d : d.toString();
+        return s.substring(0, 10);
+      };
+      const typeFull = { visit:'🏪 Visite en magasin', call:'📞 Appel téléphonique', email:'✉️ Courriel reçu', web:'🌐 Formulaire web', other:'💬 Autre' };
+      const typeLabel = typeFull[l.contact_type] || l.contact_type || '—';
+      const [sc, sl] = LEAD_STATUS_MAP[l.lead_status || 'new'] || LEAD_STATUS_MAP.new;
+
+      return `
+      <!-- Contact section -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          Contact
+          <button class="modifier-btn" onclick="toggleEdit('leadContact-${l.id}')">Modifier</button>
+        </div>
+        <div class="field-grid">
+          <div class="field-item"><span class="field-label">Prénom</span><span class="field-value">${l.first_name || '—'}</span></div>
+          <div class="field-item"><span class="field-label">Nom</span><span class="field-value">${l.last_name || '—'}</span></div>
+          <div class="field-item"><span class="field-label">Courriel</span><span class="field-value">${l.email || '—'}</span></div>
+          <div class="field-item"><span class="field-label">Téléphone</span><span class="field-value">${l.phone || '—'}</span></div>
+        </div>
+        <form id="leadContact-${l.id}" class="staff-form" style="display:none" onsubmit="saveLeadContact(event,${l.id})">
+          <div class="staff-row">
+            <div class="staff-field"><label>Prénom</label><input name="first_name" value="${l.first_name || ''}"></div>
+            <div class="staff-field"><label>Nom</label><input name="last_name" value="${l.last_name || ''}"></div>
+          </div>
+          <div class="staff-row">
+            <div class="staff-field"><label>Courriel</label><input name="email" type="email" value="${l.email || ''}"></div>
+            <div class="staff-field"><label>Téléphone</label><input name="phone" value="${l.phone || ''}"></div>
+          </div>
+          <button type="submit" class="save-btn" id="saveLeadContactBtn-${l.id}">Sauvegarder</button>
+          <span class="save-msg" id="saveLeadContactMsg-${l.id}"></span>
+        </form>
+      </div>
+
+      <!-- Intérêt section -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          Intérêt
+          <button class="modifier-btn" onclick="toggleEdit('leadInfo-${l.id}')">Modifier</button>
+        </div>
+        <div class="field-grid">
+          <div class="field-item"><span class="field-label">Type de contact</span><span class="field-value">${typeLabel}</span></div>
+          <div class="field-item"><span class="field-label">Date</span><span class="field-value">${fmtDate(l.contact_date)}</span></div>
+          <div class="field-item field-full"><span class="field-label">Piano</span><span class="field-value">${l.piano_interest || '—'}</span></div>
+          ${l.customer_notes ? `<div class="field-item field-full"><span class="field-label">Notes client</span><span class="field-value">${l.customer_notes}</span></div>` : ''}
+        </div>
+        <form id="leadInfo-${l.id}" class="staff-form" style="display:none" onsubmit="saveLeadInfo(event,${l.id})">
+          <div class="staff-row">
+            <div class="staff-field">
+              <label>Type de contact</label>
+              <select name="contact_type">
+                <option value="visit"  ${l.contact_type === 'visit'  ? 'selected' : ''}>🏪 Visite en magasin</option>
+                <option value="call"   ${l.contact_type === 'call'   ? 'selected' : ''}>📞 Appel téléphonique</option>
+                <option value="email"  ${l.contact_type === 'email'  ? 'selected' : ''}>✉️ Courriel reçu</option>
+                <option value="web"    ${l.contact_type === 'web'    ? 'selected' : ''}>🌐 Formulaire web</option>
+                <option value="other"  ${l.contact_type === 'other'  ? 'selected' : ''}>💬 Autre</option>
+              </select>
+            </div>
+            <div class="staff-field"><label>Date</label><input name="contact_date" type="date" value="${fmtDate(l.contact_date)}"></div>
+          </div>
+          <div class="staff-field full">
+            <label>Piano qui intéresse</label>
+            <textarea name="piano_interest" rows="3">${l.piano_interest || ''}</textarea>
+          </div>
+          <div class="staff-field full">
+            <label>Notes client</label>
+            <textarea name="customer_notes" rows="2">${l.customer_notes || ''}</textarea>
+          </div>
+          <button type="submit" class="save-btn" id="saveLeadInfoBtn-${l.id}">Sauvegarder</button>
+          <span class="save-msg" id="saveLeadInfoMsg-${l.id}"></span>
+        </form>
+      </div>
+
+      <!-- Suivi section (always editable) -->
+      <div class="panel-section">
+        <div class="panel-section-title">Suivi personnel</div>
+        <form class="staff-form" style="display:flex" onsubmit="saveLeadStaff(event,${l.id})">
+          <div class="staff-field full">
+            <label>Statut</label>
+            <select name="lead_status">
+              <option value="new"            ${(l.lead_status||'new') === 'new'            ? 'selected' : ''}>Nouveau</option>
+              <option value="contacted"      ${l.lead_status === 'contacted'      ? 'selected' : ''}>Contacté</option>
+              <option value="interested"     ${l.lead_status === 'interested'     ? 'selected' : ''}>Intéressé</option>
+              <option value="to_follow_up"   ${l.lead_status === 'to_follow_up'   ? 'selected' : ''}>À relancer</option>
+              <option value="not_interested" ${l.lead_status === 'not_interested' ? 'selected' : ''}>Pas intéressé</option>
+              <option value="converted"      ${l.lead_status === 'converted'      ? 'selected' : ''}>Converti</option>
+            </select>
+          </div>
+          <div class="staff-field full">
+            <label>Notes du personnel</label>
+            <textarea name="staff_notes" rows="4">${l.staff_notes || ''}</textarea>
+          </div>
+          <button type="submit" class="save-btn" id="saveLeadStaffBtn-${l.id}">Sauvegarder</button>
+          <span class="save-msg" id="saveLeadStaffMsg-${l.id}"></span>
+        </form>
+      </div>
+
+      <!-- Audit log section -->
+      <div class="panel-section">
+        <div class="panel-section-title">Historique des modifications</div>
+        <div id="leadAuditLog-${l.id}" style="padding:4px 0">
+          <span style="font-size:12px;color:#9ca3af">Chargement…</span>
+        </div>
+      </div>`;
+    }
+
+    async function saveLeadContact(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const btn  = document.getElementById(`saveLeadContactBtn-${id}`);
+      const msg  = document.getElementById(`saveLeadContactMsg-${id}`);
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
+      const body = {
+        id,
+        first_name: form.first_name.value.trim() || null,
+        last_name:  form.last_name.value.trim()  || null,
+        email:      form.email.value.trim()       || null,
+        phone:      form.phone.value.trim()       || null,
+      };
+      await _patchLead(id, body, btn, msg, 'Sauvegarder');
+    }
+
+    async function saveLeadInfo(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const btn  = document.getElementById(`saveLeadInfoBtn-${id}`);
+      const msg  = document.getElementById(`saveLeadInfoMsg-${id}`);
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
+      const body = {
+        id,
+        contact_type:   form.contact_type.value,
+        contact_date:   form.contact_date.value || null,
+        piano_interest: form.piano_interest.value.trim() || null,
+        customer_notes: form.customer_notes.value.trim() || null,
+      };
+      await _patchLead(id, body, btn, msg, 'Sauvegarder');
+    }
+
+    async function saveLeadStaff(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const btn  = document.getElementById(`saveLeadStaffBtn-${id}`);
+      const msg  = document.getElementById(`saveLeadStaffMsg-${id}`);
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-sm"></span>Enregistrement…';
+      const body = {
+        id,
+        lead_status: form.lead_status.value,
+        staff_notes: form.staff_notes.value.trim() || null,
+      };
+      await _patchLead(id, body, btn, msg, 'Sauvegarder');
+    }
+
+    async function _patchLead(id, body, btn, msg, btnLabel) {
+      try {
+        const res = await fetch(`${API_BASE}/api/UpdateLead`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Token': `Bearer ${token}`
+          },
+          body: JSON.stringify(body)
+        });
+        if (res.ok) {
+          const idx = allLeads.findIndex(l => l.id === id);
+          if (idx >= 0) Object.assign(allLeads[idx], body);
+          renderLeadsTable();
+          showToast('✓ Sauvegardé');
+          openLeadPanel(id);
+        } else {
+          msg.textContent = '✗ Erreur';
+          msg.className = 'save-msg err';
+          btn.disabled = false;
+          btn.textContent = btnLabel;
+          setTimeout(() => { msg.className = 'save-msg'; }, 3000);
+        }
+      } catch {
+        msg.textContent = '✗ Erreur réseau';
+        msg.className = 'save-msg err';
+        btn.disabled = false;
+        btn.textContent = btnLabel;
+        setTimeout(() => { msg.className = 'save-msg'; }, 3000);
+      }
+    }
+
+    loadSalesStaff();
     loadBenches().then(() => loadRegistrations());
+    loadLeads();
   </script>
 </body>
 </html>

@@ -167,14 +167,27 @@ export function updatePdfGate(pdfUrl, pdfLabel) {
 
 
 // ── TradeUp PDF (separate gate, separate read state) ──
-let _tradeupRead = false;
+let _tradeupRead   = false;
 let _tradeupOpened = false;
+let _tradeupUrl    = '';
 
 export const getTradeupRead = () => _tradeupRead;
 
 export function initTradeupPdf(url) {
   if (!url) return;
-  document.getElementById('tradeupFrame').src = url;
+  _tradeupUrl = url;
+  // Only set src if gate is already visible (e.g. on language switch)
+  const gate = document.getElementById('tradeupGate');
+  if (gate && gate.style.display !== 'none') {
+    document.getElementById('tradeupFrame').src = url;
+  }
+}
+
+// Called when the tradeup gate is first shown — sets src while element is visible
+// so the browser PDF viewer renders at the correct width.
+export function loadTradeupFrame() {
+  const frame = document.getElementById('tradeupFrame');
+  if (frame && _tradeupUrl) frame.src = _tradeupUrl;
 }
 
 export function openTradeupPdf() {

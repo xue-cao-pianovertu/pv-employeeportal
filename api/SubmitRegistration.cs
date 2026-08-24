@@ -147,8 +147,9 @@ public class SubmitRegistration
                     humidity_confirmed, warranty_pdf_blob, tradeup_pdf_blob,
                     signature_type, signature_blob_name,
                     invoice_number, from_location, old_piano_dest,
-                    surcharge_amount, cheque_to_collect, google_review, fully_paid, staff_notes
-                ) VALUES (
+                    surcharge_amount, cheque_to_collect, google_review, fully_paid, staff_notes,
+                    sales_staff_other
+                ) OUTPUT INSERTED.id VALUES (
                     @refId, @language,
                     @customerLastName, @customerFirstName, @customerEmail,
                     @customerPhone1, @customerPhone2, @heardFrom, @referredByTeacher,
@@ -162,7 +163,8 @@ public class SubmitRegistration
                     @humidityConfirmed, @warrantyPdfBlob, @tradeupPdfBlob,
                     @signatureType, @signatureBlobName,
                     @invoiceNumber, @fromLocation, @oldPianoDest,
-                    @surchargeAmount, @chequeToCollect, @googleReview, @fullyPaid, @staffNotes
+                    @surchargeAmount, @chequeToCollect, @googleReview, @fullyPaid, @staffNotes,
+                    @salesStaffOther
                 )", conn);
 
             insertCmd.Parameters.AddWithValue("@refId",              refId);
@@ -218,9 +220,24 @@ public class SubmitRegistration
             insertCmd.Parameters.AddWithValue("@chequeToCollect",    payload.ChequeToCollect);
             insertCmd.Parameters.AddWithValue("@googleReview",       payload.GoogleReview);
             insertCmd.Parameters.AddWithValue("@fullyPaid",          payload.FullyPaid);
-            insertCmd.Parameters.AddWithValue("@staffNotes",         (object?)payload.StaffNotes       ?? DBNull.Value);
+            insertCmd.Parameters.AddWithValue("@staffNotes",     (object?)payload.StaffNotes      ?? DBNull.Value);
+            insertCmd.Parameters.AddWithValue("@salesStaffOther", (object?)payload.SalesStaffOther ?? DBNull.Value);
 
-            await insertCmd.ExecuteNonQueryAsync();
+            var newRegId = (int)(await insertCmd.ExecuteScalarAsync() ?? 0);
+
+            // ── 5b. Insert sales staff assignments ────────────────────────────
+            if (payload.SalesStaffIds != null)
+            {
+                foreach (var staffId in payload.SalesStaffIds)
+                {
+                    var jCmd = new SqlCommand(
+                        "INSERT INTO dbo.RegistrationSalesStaff (registration_id, sales_staff_id) VALUES (@regId, @staffId)",
+                        conn);
+                    jCmd.Parameters.AddWithValue("@regId",   newRegId);
+                    jCmd.Parameters.AddWithValue("@staffId", staffId);
+                    await jCmd.ExecuteNonQueryAsync();
+                }
+            }
 
             // ── 6. Create customer account if first registration ──────────────
             string? clientUsername = null;
@@ -234,7 +251,7 @@ public class SubmitRegistration
 
             if (existing == 0 && !string.IsNullOrEmpty(payload.CustomerEmail))
             {
-                clientPassword = $"{NormalizeForUsername(payload.CustomerFirstName ?? "")}_{NormalizeForUsername(payload.CustomerLastName ?? "")}_pianovertu";
+                clientPassword = "pianolover";
                 clientUsername = payload.CustomerEmail;
                 isNewAccount   = true;
                 var fullName = $"{payload.CustomerFirstName} {payload.CustomerLastName}".Trim();
@@ -335,6 +352,8 @@ public class RegistrationPayload
     public decimal  SurchargeAmount     { get; set; }
     public bool     ChequeToCollect     { get; set; }
     public bool     GoogleReview        { get; set; }
-    public bool     FullyPaid           { get; set; }
-    public string?  StaffNotes          { get; set; }
+    public bool         FullyPaid           { get; set; }
+    public string?      StaffNotes          { get; set; }
+    public List<int>?   SalesStaffIds       { get; set; }
+    public string?      SalesStaffOther     { get; set; }
 }

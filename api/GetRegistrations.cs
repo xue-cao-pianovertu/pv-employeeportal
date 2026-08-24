@@ -49,6 +49,7 @@ public class GetRegistrations
                     r.payment_status, r.delivery_status, r.price,
                     r.tuning_sessions_agreed,
                     r.test_data, r.created_at,
+                    r.sales_staff_other,
                     cat.name_fr  AS category_name_fr,
                     cat.name_en  AS category_name_en,
                     cat.has_warranty  AS category_has_warranty,
@@ -56,11 +57,21 @@ public class GetRegistrations
                     pt.name_fr   AS type_name_fr,
                     pt.name_en   AS type_name_en,
                     pt.brand_name AS type_brand,
-                    b.name       AS bench_name
+                    b.name       AS bench_name,
+                    staff_agg.sales_staff_names,
+                    staff_agg.sales_staff_ids
                 FROM  dbo.Registrations   r
                 LEFT JOIN dbo.PianoCategory cat ON cat.id = r.piano_category_id
                 LEFT JOIN dbo.PianoType    pt  ON pt.id  = r.piano_type_id
                 LEFT JOIN dbo.bench        b   ON b.id   = r.bench_model_id
+                LEFT JOIN (
+                    SELECT rss.registration_id,
+                           STRING_AGG(ss.name, ', ')                        AS sales_staff_names,
+                           STRING_AGG(CAST(rss.sales_staff_id AS NVARCHAR), ',') AS sales_staff_ids
+                    FROM   dbo.RegistrationSalesStaff rss
+                    JOIN   dbo.SalesStaff ss ON ss.id = rss.sales_staff_id
+                    GROUP BY rss.registration_id
+                ) staff_agg ON staff_agg.registration_id = r.id
                 ORDER BY r.created_at DESC", conn);
 
             var rows = new List<Dictionary<string, object?>>();
