@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APV — Académie Piano Vertu</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500;600&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #0d1f3c;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+}
+.logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.logo-wrap img { height: 40px; }
+.logo-wrap .academy {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: #0d1f3c;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+.logo-wrap .acad-sub {
+  font-size: 11px;
+  color: #c9a84c;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.lang-bar {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+.lang-btn {
+  background: #f0eee9;
+  border: none;
+  color: #6b7280;
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.15s;
+}
+.lang-btn.active { background: #0d1f3c; color: #fff; }
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px;
+  color: #0d1f3c;
+  margin-bottom: 20px;
+  text-align: center;
+}
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+input {
+  width: 100%;
+  border: 1.5px solid #d1ccc4;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #1a1a2e;
+  background: #fff;
+  transition: border-color 0.15s;
+  margin-bottom: 14px;
+}
+input:focus { outline: none; border-color: #0d1f3c; }
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: #0d1f3c;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 4px;
+}
+.btn:hover { opacity: 0.88; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.err {
+  font-size: 13px;
+  color: #dc2626;
+  text-align: center;
+  margin-top: 10px;
+  min-height: 18px;
+}
+.register-link {
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e0d8;
+}
+.register-link a {
+  color: #0d1f3c;
+  font-weight: 600;
+  text-decoration: none;
+}
+.register-link a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-wrap">
+    <img src="/img/logo.png" alt="Piano Vertu">
+    <div class="academy" data-k="academyName">Académie Piano Vertu</div>
+    <div class="acad-sub" data-k="portalLabel">Portail</div>
+  </div>
+
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('zh')">中文</button>
+  </div>
+
+  <h1 data-k="title">Connexion</h1>
+
+  <label data-k="usernameLabel">Identifiant</label>
+  <input type="text" id="username" autocomplete="username" placeholder="votre@courriel.com">
+
+  <label data-k="passwordLabel">Mot de passe</label>
+  <input type="password" id="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+
+  <button class="btn" id="loginBtn" onclick="doLogin()" data-k="loginBtn">Se connecter</button>
+  <div class="err" id="errMsg"></div>
+
+  <div class="register-link">
+    <span data-k="noAccount">Pas encore inscrit ?</span>
+    <a href="/apv-register.html" data-k="registerLink">S'inscrire à l'Académie</a>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+const apiUrl = e => `${API_BASE}/api/${e}`;
+
+const LANG = {
+  fr: {
+    academyName: 'Académie Piano Vertu', portalLabel: 'Portail',
+    title: 'Connexion',
+    usernameLabel: 'Identifiant', passwordLabel: 'Mot de passe',
+    loginBtn: 'Se connecter', loggingIn: 'Connexion...',
+    noAccount: 'Pas encore inscrit ?', registerLink: "S'inscrire à l'Académie",
+    errInvalid: 'Identifiant ou mot de passe incorrect.',
+    errRole: 'Ce portail est réservé à l\'académie.',
+    errServer: 'Erreur serveur. Réessayez.',
+  },
+  en: {
+    academyName: 'Piano Vertu Academy', portalLabel: 'Portal',
+    title: 'Sign in',
+    usernameLabel: 'Username', passwordLabel: 'Password',
+    loginBtn: 'Sign in', loggingIn: 'Signing in...',
+    noAccount: 'Not registered yet?', registerLink: 'Register for the Academy',
+    errInvalid: 'Incorrect username or password.',
+    errRole: 'This portal is for academy members only.',
+    errServer: 'Server error. Please try again.',
+  },
+  zh: {
+    academyName: '钢琴之声学院', portalLabel: '门户',
+    title: '登录',
+    usernameLabel: '用户名', passwordLabel: '密码',
+    loginBtn: '登录', loggingIn: '登录中...',
+    noAccount: '尚未注册？', registerLink: '注册学院',
+    errInvalid: '用户名或密码不正确。',
+    errRole: '此门户仅供学院成员使用。',
+    errServer: '服务器错误，请重试。',
+  }
+};
+
+let currentLang = 'fr';
+function t(k) { return LANG[currentLang]?.[k] ?? k; }
+
+function applyLang() {
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const k = el.dataset.k;
+    if (el.tagName === 'A') { el.textContent = t(k); return; }
+    if (el.tagName !== 'INPUT') el.textContent = t(k);
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.lang-btn[onclick="setLang('${currentLang}')"]`);
+  if (btn) btn.classList.add('active');
+}
+
+function setLang(lang) { currentLang = lang; applyLang(); }
+
+// Redirect if already logged in
+(function() {
+  const token = localStorage.getItem('pv_token');
+  const role  = localStorage.getItem('pv_role');
+  if (token && role === 'apvadmin') window.location.replace('/dashboard-apvadmin.html');
+  else if (token && role === 'student') window.location.replace('/dashboard-student.html');
+})();
+
+async function doLogin() {
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('errMsg');
+  err.textContent = '';
+  btn.disabled = true;
+  btn.textContent = t('loggingIn');
+
+  try {
+    const res  = await fetch(apiUrl('Login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = t('errInvalid'); return; }
+    if (data.role !== 'apvadmin' && data.role !== 'student') {
+      err.textContent = t('errRole'); return;
+    }
+    localStorage.setItem('pv_token',     data.token);
+    localStorage.setItem('pv_role',      data.role);
+    localStorage.setItem('pv_full_name', data.full_name);
+    window.location.replace(data.role === 'apvadmin' ? '/dashboard-apvadmin.html' : '/dashboard-student.html');
+  } catch {
+    err.textContent = t('errServer');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = t('loginBtn');
+  }
+}
+
+applyLang();
+</script>
+</body>
+</html>

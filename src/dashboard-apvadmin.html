@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APV Admin — Académie Piano Vertu</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #f0eee9; color: #1a1a2e; min-height: 100vh; }
+
+/* Header */
+.header {
+  background: #0d1f3c; color: #fff; padding: 0 20px;
+  display: flex; align-items: center; height: 54px; gap: 12px;
+  position: sticky; top: 0; z-index: 200;
+}
+.header-logo { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.header-logo img { height: 28px; }
+.header-logo span {
+  font-family: 'Playfair Display', serif; font-size: 13px; color: #c9a84c;
+  letter-spacing: 0.06em; white-space: nowrap;
+}
+.header-spacer { flex: 1; }
+.user-badge {
+  font-size: 12px; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 120px;
+}
+.lang-bar { display: flex; gap: 3px; flex-shrink: 0; }
+.lang-btn {
+  background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 10px;
+  font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 3px 7px;
+  border-radius: 3px; cursor: pointer; letter-spacing: 0.04em; transition: background 0.15s;
+}
+.lang-btn.active, .lang-btn:hover { background: #c9a84c; color: #0d1f3c; }
+.logout-btn {
+  background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.8);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 6px 12px;
+  border-radius: 6px; cursor: pointer; white-space: nowrap;
+}
+.logout-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* Toolbar */
+.toolbar { padding: 14px 20px; display: flex; gap: 10px; align-items: center; }
+.search-wrap { flex: 1; position: relative; max-width: 380px; }
+.search-wrap input {
+  width: 100%; padding: 8px 12px 8px 34px; border: 1.5px solid #d1ccc4;
+  border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: #fff; color: #1a1a2e;
+}
+.search-wrap input:focus { outline: none; border-color: #0d1f3c; }
+.search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: #9ca3af; font-size: 14px; pointer-events: none;
+}
+.count-badge { font-size: 12px; color: #6b7280; white-space: nowrap; }
+
+/* Table */
+.table-wrap { overflow-x: auto; padding: 0 20px 20px; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+thead { background: #0d1f3c; color: #fff; }
+th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f0ede8; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr { cursor: pointer; transition: background 0.12s; }
+tbody tr:hover { background: #fdf8ec; }
+tbody tr.selected { background: #fdf0d0; }
+.empty-row td { text-align: center; color: #9ca3af; padding: 32px; }
+.badge {
+  display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 10px; white-space: nowrap;
+}
+.badge-piano { background: #dbeafe; color: #1e40af; }
+.badge-violin { background: #fce7f3; color: #9d174d; }
+.badge-theory { background: #d1fae5; color: #065f46; }
+
+/* Detail panel */
+.panel-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  z-index: 300; display: none; align-items: flex-end;
+}
+.panel-overlay.open { display: flex; }
+.panel {
+  background: #fff; border-radius: 16px 16px 0 0;
+  width: 100%; max-height: 90vh; overflow-y: auto;
+  padding: 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+  max-width: 680px; margin: 0 auto;
+}
+.panel-handle { width: 36px; height: 4px; background: #d1ccc4; border-radius: 2px; margin: 12px auto 0; }
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid #e5e0d8; gap: 12px;
+}
+.panel-ref { font-family: 'Playfair Display', serif; font-size: 17px; color: #0d1f3c; }
+.panel-close {
+  background: none; border: none; font-size: 20px; cursor: pointer;
+  color: #6b7280; line-height: 1; padding: 4px; border-radius: 4px;
+}
+.panel-close:hover { background: #f0ede8; }
+.panel-body { padding: 16px 20px 32px; }
+
+/* Sections */
+.section { margin-bottom: 20px; }
+.section-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-hd h3 {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #6b7280;
+}
+.btn-edit {
+  background: none; border: 1.5px solid #d1ccc4; color: #374151;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+  padding: 4px 12px; border-radius: 6px; cursor: pointer; transition: all 0.15s;
+}
+.btn-edit:hover { border-color: #0d1f3c; color: #0d1f3c; }
+
+/* Info grid */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-item label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; display: block; margin-bottom: 2px; }
+.info-item span { font-size: 14px; color: #1a1a2e; }
+.info-full { grid-column: 1 / -1; }
+
+/* Edit form */
+.edit-form { display: none; flex-direction: column; gap: 10px; margin-top: 10px; }
+.edit-form.open { display: flex; }
+.edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.edit-field { display: flex; flex-direction: column; gap: 3px; }
+.edit-field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; }
+.edit-field input, .edit-field select, .edit-field textarea {
+  border: 1.5px solid #d1ccc4; border-radius: 7px; padding: 8px 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1a1a2e;
+  background: #fff; width: 100%; appearance: none; -webkit-appearance: none;
+}
+.edit-field input:focus, .edit-field select:focus, .edit-field textarea:focus { outline: none; border-color: #0d1f3c; }
+.edit-field textarea { resize: vertical; min-height: 60px; }
+.edit-actions { display: flex; gap: 8px; margin-top: 4px; }
+.btn-save {
+  background: #0d1f3c; color: #fff; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  padding: 8px 18px; border-radius: 7px; cursor: pointer; transition: opacity 0.15s;
+}
+.btn-save:hover { opacity: 0.88; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-cancel {
+  background: none; border: 1.5px solid #d1ccc4; color: #6b7280;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  padding: 8px 14px; border-radius: 7px; cursor: pointer;
+}
+
+/* Signature */
+.sig-img { max-width: 200px; border: 1px solid #e5e0d8; border-radius: 6px; background: #fff; padding: 6px; }
+.sig-typed { font-family: 'Playfair Display', serif; font-size: 22px; color: #0d1f3c; }
+
+/* Audit log */
+.audit-entry { padding: 10px 0; border-bottom: 1px solid #f0ede8; }
+.audit-entry:last-child { border-bottom: none; }
+.audit-meta { font-size: 11px; color: #9ca3af; margin-bottom: 4px; }
+.audit-field { font-size: 12px; margin: 2px 0; }
+.audit-field .field-name { font-weight: 600; color: #374151; }
+.audit-field .old-val { color: #dc2626; text-decoration: line-through; }
+.audit-field .new-val { color: #16a34a; }
+
+/* Delete button */
+.btn-delete {
+  background: none; border: 1.5px solid #dc2626; color: #dc2626;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+  padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-delete:hover { background: #dc2626; color: #fff; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #0d1f3c; color: #fff; font-size: 13px; font-weight: 500;
+  padding: 10px 20px; border-radius: 8px; z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25); opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.toast.show { opacity: 1; }
+
+@media (min-width: 640px) {
+  .panel-overlay { align-items: center; }
+  .panel { border-radius: 14px; max-height: 85vh; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <img src="/img/logo.png" alt="Piano Vertu">
+    <span data-k="headerTitle">APV Admin</span>
+  </div>
+  <div class="header-spacer"></div>
+  <span class="user-badge" id="userBadge"></span>
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('zh')">中文</button>
+  </div>
+  <button class="logout-btn" onclick="logout()" data-k="logout">Déconnexion</button>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="" data-k-placeholder="searchPlaceholder" oninput="filterRows()">
+  </div>
+  <span class="count-badge" id="countBadge"></span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th data-k="colRef">Réf</th>
+        <th data-k="colDate">Date</th>
+        <th data-k="colName">Nom</th>
+        <th data-k="colEmail">Email</th>
+        <th data-k="colPhone">Téléphone</th>
+        <th data-k="colInstrument">Instrument</th>
+        <th data-k="colLevel">Niveau</th>
+        <th data-k="colLang">Langue</th>
+        <th data-k="colStart">Début</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr class="empty-row"><td colspan="9" data-k="loading">Chargement...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Detail panel -->
+<div class="panel-overlay" id="panelOverlay" onclick="panelClose(event)">
+  <div class="panel" id="panel">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <span class="panel-ref" id="panelRef"></span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-delete" id="panelDeleteBtn" onclick="deleteRegistration()">🗑 <span data-k="deleteBtn">Supprimer</span></button>
+        <button class="panel-close" onclick="closePanel()">✕</button>
+      </div>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+const apiUrl = e => `${API_BASE}/api/${e}`;
+
+const LANG = {
+  fr: {
+    headerTitle: 'APV Admin', logout: 'Déconnexion',
+    searchPlaceholder: 'Rechercher...',
+    colRef: 'Réf', colDate: 'Date', colName: 'Nom', colEmail: 'Email',
+    colPhone: 'Téléphone', colInstrument: 'Instrument', colLevel: 'Niveau', colLang: 'Langue', colStart: 'Début',
+    loading: 'Chargement...', noResults: 'Aucun résultat.',
+    countFmt: n => `${n} inscription${n!==1?'s':''}`,
+    sectionStudent: 'Étudiant', sectionSignature: 'Signature', sectionNotes: 'Notes personnel', sectionAudit: 'Historique',
+    edit: 'Modifier', save: 'Enregistrer', cancel: 'Annuler', saving: 'Enregistrement...',
+    fFirstName: 'Prénom', fLastName: 'Nom', fChildFirst: 'Prénom enfant', fChildLast: 'Nom enfant',
+    fEmail: 'Courriel', fPhone: 'Téléphone', fEmgName: 'Urgence (nom)', fEmgPhone: 'Urgence (tél.)',
+    fLang: 'Langue', fInstrument: 'Instrument', fLevel: 'Niveau', fTeacher: 'Professeur',
+    fAvail: 'Disponibilités', fStart: 'Début souhaité', fNotes: 'Notes',
+    piano: 'Piano', violin: 'Violon', theory: 'Théorie musicale',
+    beginner: 'Débutant(e)', intermediate: 'Intermédiaire', advanced: 'Avancé(e)',
+    langFR: 'FR', langEN: 'EN', langZH: 'ZH',
+    noSig: 'Aucune signature', loadAudit: 'Voir l\'historique',
+    auditEmpty: 'Aucune modification enregistrée.',
+    savedOk: 'Modifications enregistrées.',
+    errSave: 'Erreur lors de l\'enregistrement.',
+    deleteBtn: 'Supprimer',
+    deleteConfirm: 'Supprimer {name} et son compte étudiant ? Cette action est irréversible.',
+    deleteOk: 'Inscription supprimée.',
+    deleteErr: 'Erreur lors de la suppression.',
+  },
+  en: {
+    headerTitle: 'APV Admin', logout: 'Log out',
+    searchPlaceholder: 'Search...',
+    colRef: 'Ref', colDate: 'Date', colName: 'Name', colEmail: 'Email',
+    colPhone: 'Phone', colInstrument: 'Instrument', colLevel: 'Level', colLang: 'Lang', colStart: 'Start',
+    loading: 'Loading...', noResults: 'No results.',
+    countFmt: n => `${n} registration${n!==1?'s':''}`,
+    sectionStudent: 'Student', sectionSignature: 'Signature', sectionNotes: 'Staff notes', sectionAudit: 'History',
+    edit: 'Edit', save: 'Save', cancel: 'Cancel', saving: 'Saving...',
+    fFirstName: 'First name', fLastName: 'Last name', fChildFirst: "Child's first name", fChildLast: "Child's last name",
+    fEmail: 'Email', fPhone: 'Phone', fEmgName: 'Emergency (name)', fEmgPhone: 'Emergency (phone)',
+    fLang: 'Language', fInstrument: 'Instrument', fLevel: 'Level', fTeacher: 'Teacher',
+    fAvail: 'Availability', fStart: 'Start preference', fNotes: 'Notes',
+    piano: 'Piano', violin: 'Violin', theory: 'Music theory',
+    beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced',
+    langFR: 'FR', langEN: 'EN', langZH: 'ZH',
+    noSig: 'No signature', loadAudit: 'View history',
+    auditEmpty: 'No changes recorded.',
+    savedOk: 'Changes saved.',
+    errSave: 'Error saving changes.',
+    deleteBtn: 'Delete',
+    deleteConfirm: 'Delete {name} and their student account? This cannot be undone.',
+    deleteOk: 'Registration deleted.',
+    deleteErr: 'Error deleting registration.',
+  },
+  zh: {
+    headerTitle: 'APV 管理员', logout: '退出',
+    searchPlaceholder: '搜索...',
+    colRef: '参考', colDate: '日期', colName: '姓名', colEmail: '邮件',
+    colPhone: '电话', colInstrument: '乐器', colLevel: '级别', colLang: '语言', colStart: '开始',
+    loading: '加载中...', noResults: '无结果。',
+    countFmt: n => `${n} 条注册`,
+    sectionStudent: '学生', sectionSignature: '签名', sectionNotes: '工作人员备注', sectionAudit: '修改历史',
+    edit: '编辑', save: '保存', cancel: '取消', saving: '保存中...',
+    fFirstName: '名', fLastName: '姓', fChildFirst: '学生名', fChildLast: '学生姓',
+    fEmail: '电子邮件', fPhone: '电话', fEmgName: '紧急联系人（名）', fEmgPhone: '紧急联系人（电话）',
+    fLang: '语言', fInstrument: '乐器', fLevel: '级别', fTeacher: '教师',
+    fAvail: '可用时间', fStart: '期望开始时间', fNotes: '备注',
+    piano: '钢琴', violin: '小提琴', theory: '乐理',
+    beginner: '初学者', intermediate: '中级', advanced: '高级',
+    langFR: 'FR', langEN: 'EN', langZH: 'ZH',
+    noSig: '无签名', loadAudit: '查看历史',
+    auditEmpty: '无修改记录。',
+    savedOk: '修改已保存。',
+    errSave: '保存时出错。',
+    deleteBtn: '删除',
+    deleteConfirm: '删除 {name} 及其学生账户？此操作无法撤销。',
+    deleteOk: '注册已删除。',
+    deleteErr: '删除时出错。',
+  }
+};
+
+let currentLang = 'fr';
+let allRows = [];
+let openRegId = null;
+
+function t(k) { return typeof LANG[currentLang]?.[k] === 'function' ? LANG[currentLang][k] : (LANG[currentLang]?.[k] ?? k); }
+
+function applyLang() {
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const k = el.dataset.k;
+    if (typeof LANG[currentLang]?.[k] !== 'function') el.textContent = t(k);
+  });
+  document.querySelectorAll('[data-k-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.kPlaceholder);
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.lang-btn[onclick="setLang('${currentLang}')"]`);
+  if (btn) btn.classList.add('active');
+  filterRows();
+}
+
+function setLang(lang) { currentLang = lang; applyLang(); }
+
+// ── Auth guard ────────────────────────────────────────────────────────────────
+const token = localStorage.getItem('pv_token');
+const role  = localStorage.getItem('pv_role');
+if (!token || role !== 'apvadmin') window.location.replace('/login-apv.html');
+document.getElementById('userBadge').textContent = localStorage.getItem('pv_full_name') || '';
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` };
+}
+
+function logout() {
+  ['pv_token','pv_role','pv_full_name'].forEach(k => localStorage.removeItem(k));
+  window.location.replace('/login-apv.html');
+}
+
+// ── Load registrations ────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res  = await fetch(apiUrl('GetAcademyRegistrations'), { headers: authHeaders() });
+    if (res.status === 401 || res.status === 403) { logout(); return; }
+    allRows = await res.json();
+    filterRows();
+  } catch {
+    document.getElementById('tableBody').innerHTML =
+      `<tr class="empty-row"><td colspan="9">${t('noResults')}</td></tr>`;
+  }
+}
+
+function fv(v) {
+  if (v == null || v === '') return '—';
+  if (v instanceof Date || (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)))
+    return new Date(v).toLocaleDateString('fr-CA');
+  return v;
+}
+
+function instrBadge(v) {
+  if (!v) return '—';
+  const map = { piano: ['badge-piano', 'piano'], violin: ['badge-violin', 'violin'], theory: ['badge-theory', 'theory'] };
+  const [cls, key] = map[v] || ['badge-piano', v];
+  return `<span class="badge ${cls}">${t(key) || v}</span>`;
+}
+
+function filterRows() {
+  const q  = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const tb = document.getElementById('tableBody');
+  const filtered = q
+    ? allRows.filter(r => JSON.stringify(Object.values(r)).toLowerCase().includes(q))
+    : allRows;
+
+  document.getElementById('countBadge').textContent = t('countFmt')(filtered.length);
+
+  if (!filtered.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="9">${t('noResults')}</td></tr>`;
+    return;
+  }
+  tb.innerHTML = filtered.map(r => `
+    <tr onclick="openPanel(${r.id})" class="${r.id === openRegId ? 'selected' : ''}">
+      <td style="font-weight:600;color:#0d1f3c">${r.ref_id}</td>
+      <td>${fv(r.created_at)}</td>
+      <td>${fv(r.student_first_name)} ${fv(r.student_last_name)}</td>
+      <td style="font-size:12px">${fv(r.email)}</td>
+      <td>${fv(r.phone)}</td>
+      <td>${instrBadge(r.instrument)}</td>
+      <td>${fv(r.level)}</td>
+      <td>${fv(r.language)}</td>
+      <td>${fv(r.start_preference)}</td>
+    </tr>`).join('');
+}
+
+// ── Panel ─────────────────────────────────────────────────────────────────────
+function openPanel(id) {
+  const r = allRows.find(x => x.id === id);
+  if (!r) return;
+  openRegId = id;
+  filterRows();
+  document.getElementById('panelRef').textContent = r.ref_id;
+  document.getElementById('panelOverlay').classList.add('open');
+  document.getElementById('panelBody').innerHTML = buildPanelHtml(r);
+  if (r.signature_blob_name) loadSignature(id, r.signature_blob_name);
+}
+
+function closePanel() {
+  document.getElementById('panelOverlay').classList.remove('open');
+  openRegId = null;
+  filterRows();
+}
+
+function panelClose(e) {
+  if (e.target === document.getElementById('panelOverlay')) closePanel();
+}
+
+function buildPanelHtml(r) {
+  const fv2 = v => (v == null || v === '') ? '—' : v;
+  const formatAvail = av => av ? av.replace(/\n/g, '<br>') : '—';
+
+  return `
+  <!-- Student section -->
+  <div class="section">
+    <div class="section-hd">
+      <h3>${t('sectionStudent')}</h3>
+      <button class="btn-edit" onclick="toggleEdit('editStudent')">${t('edit')}</button>
+    </div>
+    <div class="info-grid">
+      <div class="info-item"><label>${t('fFirstName')}</label><span>${fv2(r.student_first_name)}</span></div>
+      <div class="info-item"><label>${t('fLastName')}</label><span>${fv2(r.student_last_name)}</span></div>
+      <div class="info-item"><label>${t('fChildFirst')}</label><span>${fv2(r.child_first_name)}</span></div>
+      <div class="info-item"><label>${t('fChildLast')}</label><span>${fv2(r.child_last_name)}</span></div>
+      <div class="info-item"><label>${t('fEmail')}</label><span style="font-size:12px">${fv2(r.email)}</span></div>
+      <div class="info-item"><label>${t('fPhone')}</label><span>${fv2(r.phone)}</span></div>
+      <div class="info-item"><label>${t('fEmgName')}</label><span>${fv2(r.emergency_contact_name)}</span></div>
+      <div class="info-item"><label>${t('fEmgPhone')}</label><span>${fv2(r.emergency_contact_phone)}</span></div>
+      <div class="info-item"><label>${t('fLang')}</label><span>${fv2(r.language)}</span></div>
+      <div class="info-item"><label>${t('fInstrument')}</label><span>${fv2(r.instrument)}</span></div>
+      <div class="info-item"><label>${t('fLevel')}</label><span>${fv2(r.level)}</span></div>
+      <div class="info-item"><label>${t('fTeacher')}</label><span>${fv2(r.preferred_teacher)}</span></div>
+      <div class="info-item info-full"><label>${t('fAvail')}</label><span style="line-height:1.8">${formatAvail(r.availabilities)}</span></div>
+      <div class="info-item info-full"><label>${t('fStart')}</label><span>${fv2(r.start_preference)}</span></div>
+    </div>
+    <div class="edit-form" id="editStudent">
+      <div class="edit-row">
+        <div class="edit-field"><label>${t('fFirstName')}</label><input id="e_sfn" value="${r.student_first_name||''}"></div>
+        <div class="edit-field"><label>${t('fLastName')}</label><input id="e_sln" value="${r.student_last_name||''}"></div>
+      </div>
+      <div class="edit-row">
+        <div class="edit-field"><label>${t('fChildFirst')}</label><input id="e_cfn" value="${r.child_first_name||''}"></div>
+        <div class="edit-field"><label>${t('fChildLast')}</label><input id="e_cln" value="${r.child_last_name||''}"></div>
+      </div>
+      <div class="edit-row">
+        <div class="edit-field"><label>${t('fEmail')}</label><input id="e_email" value="${r.email||''}"></div>
+        <div class="edit-field"><label>${t('fPhone')}</label><input id="e_phone" value="${r.phone||''}"></div>
+      </div>
+      <div class="edit-row">
+        <div class="edit-field"><label>${t('fEmgName')}</label><input id="e_emgn" value="${r.emergency_contact_name||''}"></div>
+        <div class="edit-field"><label>${t('fEmgPhone')}</label><input id="e_emgp" value="${r.emergency_contact_phone||''}"></div>
+      </div>
+      <div class="edit-row">
+        <div class="edit-field"><label>${t('fLang')}</label>
+          <select id="e_lang">
+            <option value="FR"${r.language==='FR'?' selected':''}>Français</option>
+            <option value="EN"${r.language==='EN'?' selected':''}>English</option>
+            <option value="ZH"${r.language==='ZH'?' selected':''}>中文</option>
+          </select>
+        </div>
+        <div class="edit-field"><label>${t('fInstrument')}</label>
+          <select id="e_instr">
+            <option value="">—</option>
+            <option value="piano"${r.instrument==='piano'?' selected':''}>${t('piano')}</option>
+            <option value="violin"${r.instrument==='violin'?' selected':''}>${t('violin')}</option>
+            <option value="theory"${r.instrument==='theory'?' selected':''}>${t('theory')}</option>
+          </select>
+        </div>
+      </div>
+      <div class="edit-row">
+        <div class="edit-field"><label>${t('fLevel')}</label>
+          <select id="e_level">
+            <option value="">—</option>
+            <option value="beginner"${r.level==='beginner'?' selected':''}>${t('beginner')}</option>
+            <option value="intermediate"${r.level==='intermediate'?' selected':''}>${t('intermediate')}</option>
+            <option value="advanced"${r.level==='advanced'?' selected':''}>${t('advanced')}</option>
+          </select>
+        </div>
+        <div class="edit-field"><label>${t('fTeacher')}</label><input id="e_teacher" value="${r.preferred_teacher||''}"></div>
+      </div>
+      <div class="edit-field"><label>${t('fStart')}</label><input id="e_start" value="${r.start_preference||''}"></div>
+      <div class="edit-actions">
+        <button class="btn-save" onclick="saveStudent(${r.id})">${t('save')}</button>
+        <button class="btn-cancel" onclick="toggleEdit('editStudent')">${t('cancel')}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signature -->
+  <div class="section">
+    <div class="section-hd"><h3>${t('sectionSignature')}</h3></div>
+    <div id="sigSection">${r.signature_blob_name ? `<span style="font-size:12px;color:#9ca3af">${t('loading')||'...'}</span>` : `<span style="color:#9ca3af;font-size:13px">${t('noSig')}</span>`}</div>
+  </div>
+
+  <!-- Staff notes -->
+  <div class="section">
+    <div class="section-hd">
+      <h3>${t('sectionNotes')}</h3>
+      <button class="btn-edit" onclick="toggleEdit('editNotes')">${t('edit')}</button>
+    </div>
+    <div id="notesDisplay" style="font-size:13px;color:#374151;white-space:pre-wrap">${fv2(r.staff_notes)}</div>
+    <div class="edit-form" id="editNotes">
+      <div class="edit-field"><textarea id="e_notes" rows="4">${r.staff_notes||''}</textarea></div>
+      <div class="edit-actions">
+        <button class="btn-save" onclick="saveNotes(${r.id})">${t('save')}</button>
+        <button class="btn-cancel" onclick="toggleEdit('editNotes')">${t('cancel')}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit -->
+  <div class="section">
+    <div class="section-hd"><h3>${t('sectionAudit')}</h3></div>
+    <div id="auditSection">
+      <button class="btn-edit" onclick="loadAudit(${r.id})">${t('loadAudit')}</button>
+    </div>
+  </div>
+  `;
+}
+
+function toggleEdit(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+// ── Signature ─────────────────────────────────────────────────────────────────
+async function loadSignature(regId, blobName) {
+  try {
+    const res  = await fetch(apiUrl(`GetSignatureUrl?blob=${encodeURIComponent(blobName)}`), { headers: authHeaders() });
+    const data = await res.json();
+    const sec  = document.getElementById('sigSection');
+    if (!sec) return;
+    if (blobName.endsWith('.txt')) {
+      sec.innerHTML = `<span class="sig-typed">${data.text || blobName}</span>`;
+      // fetch text content
+      const tr = await fetch(data.url);
+      sec.innerHTML = `<span class="sig-typed">${await tr.text()}</span>`;
+    } else {
+      sec.innerHTML = `<img class="sig-img" src="${data.url}" alt="Signature">`;
+    }
+  } catch { /* leave as-is */ }
+}
+
+// ── Save student ──────────────────────────────────────────────────────────────
+async function saveStudent(id) {
+  const btn = document.querySelector('#editStudent .btn-save');
+  btn.disabled = true; btn.textContent = t('saving');
+  try {
+    const body = {
+      id,
+      student_first_name:      document.getElementById('e_sfn').value.trim() || null,
+      student_last_name:       document.getElementById('e_sln').value.trim() || null,
+      child_first_name:        document.getElementById('e_cfn').value.trim() || null,
+      child_last_name:         document.getElementById('e_cln').value.trim() || null,
+      email:                   document.getElementById('e_email').value.trim() || null,
+      phone:                   document.getElementById('e_phone').value.trim() || null,
+      emergency_contact_name:  document.getElementById('e_emgn').value.trim() || null,
+      emergency_contact_phone: document.getElementById('e_emgp').value.trim() || null,
+      language:                document.getElementById('e_lang').value || null,
+      instrument:              document.getElementById('e_instr').value || null,
+      level:                   document.getElementById('e_level').value || null,
+      preferred_teacher:       document.getElementById('e_teacher').value.trim() || null,
+      start_preference:        document.getElementById('e_start').value.trim() || null,
+    };
+    const res = await fetch(apiUrl('UpdateAcademyRegistration'), {
+      method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error();
+    // Update local data
+    const r = allRows.find(x => x.id === id);
+    if (r) Object.assign(r, body);
+    showToast(t('savedOk'));
+    toggleEdit('editStudent');
+    filterRows();
+  } catch {
+    showToast(t('errSave'));
+  } finally {
+    btn.disabled = false; btn.textContent = t('save');
+  }
+}
+
+async function saveNotes(id) {
+  const btn = document.querySelector('#editNotes .btn-save');
+  btn.disabled = true; btn.textContent = t('saving');
+  try {
+    const notes = document.getElementById('e_notes').value.trim() || null;
+    const res = await fetch(apiUrl('UpdateAcademyRegistration'), {
+      method: 'PATCH', headers: authHeaders(),
+      body: JSON.stringify({ id, staff_notes: notes })
+    });
+    if (!res.ok) throw new Error();
+    const r = allRows.find(x => x.id === id);
+    if (r) r.staff_notes = notes;
+    document.getElementById('notesDisplay').textContent = notes || '—';
+    showToast(t('savedOk'));
+    toggleEdit('editNotes');
+  } catch {
+    showToast(t('errSave'));
+  } finally {
+    btn.disabled = false; btn.textContent = t('save');
+  }
+}
+
+// ── Audit ─────────────────────────────────────────────────────────────────────
+async function loadAudit(id) {
+  const sec = document.getElementById('auditSection');
+  sec.innerHTML = '<span style="font-size:12px;color:#9ca3af">Chargement...</span>';
+  try {
+    const res  = await fetch(apiUrl(`GetAcademyAuditLog?id=${id}`), { headers: authHeaders() });
+    const data = await res.json();
+    if (!data.length) { sec.innerHTML = `<p style="font-size:13px;color:#9ca3af">${t('auditEmpty')}</p>`; return; }
+    sec.innerHTML = data.map(entry => {
+      const changes = JSON.parse(entry.changes_json || '{}');
+      const fields = Object.entries(changes).map(([k, v]) =>
+        `<div class="audit-field"><span class="field-name">${k}</span>: <span class="old-val">${v.old ?? '—'}</span> → <span class="new-val">${v.new ?? '—'}</span></div>`
+      ).join('');
+      const dt = new Date(entry.changed_at).toLocaleString('fr-CA');
+      return `<div class="audit-entry"><div class="audit-meta">${dt} — ${entry.changed_by}</div>${fields}</div>`;
+    }).join('');
+  } catch {
+    sec.innerHTML = '<span style="font-size:12px;color:#dc2626">Erreur</span>';
+  }
+}
+
+// ── Delete registration ───────────────────────────────────────────────────────
+async function deleteRegistration() {
+  const r = allRows.find(x => x.id === openRegId);
+  if (!r) return;
+  const name = `${r.student_first_name || ''} ${r.student_last_name || ''}`.trim();
+  const msg  = t('deleteConfirm').replace('{name}', name);
+  if (!confirm(msg)) return;
+
+  const btn = document.getElementById('panelDeleteBtn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(apiUrl('DeleteAcademyRegistration'), {
+      method: 'DELETE', headers: authHeaders(), body: JSON.stringify({ id: openRegId })
+    });
+    if (!res.ok) throw new Error();
+    allRows = allRows.filter(x => x.id !== openRegId);
+    closePanel();
+    showToast(t('deleteOk'));
+    filterRows();
+  } catch {
+    showToast(t('deleteErr'));
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+applyLang();
+loadData();
+</script>
+</body>
+</html>

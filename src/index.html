@@ -2,10 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<!-- Subdomain routing: staff.pianovertu.ca → staff login -->
+<!-- Subdomain routing: staff.pianovertu.ca → staff login, apv.pianovertu.ca → APV login -->
 <script>
   if (window.location.hostname.startsWith('staff.')) {
     window.location.replace('/login-staff.html');
+  } else if (window.location.hostname.startsWith('apv.')) {
+    window.location.replace('/login-apv.html');
   }
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">

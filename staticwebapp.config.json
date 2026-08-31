@@ -1,6 +1,22 @@
 {
   "routes": [
     {
+      "route": "/apv-register",
+      "rewrite": "/apv-register.html"
+    },
+    {
+      "route": "/login-apv",
+      "rewrite": "/login-apv.html"
+    },
+    {
+      "route": "/dashboard-apvadmin",
+      "rewrite": "/dashboard-apvadmin.html"
+    },
+    {
+      "route": "/dashboard-student",
+      "rewrite": "/dashboard-student.html"
+    },
+    {
       "route": "/register",
       "rewrite": "/index.html"
     },

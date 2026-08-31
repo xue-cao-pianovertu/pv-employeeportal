@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>APV — Académie Piano Vertu</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #f0eee9;
+  color: #1a1a2e;
+  min-height: 100svh;
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+}
+
+/* Header */
+.header {
+  background: #0d1f3c;
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 12px;
+}
+.header-logo { display: flex; align-items: center; gap: 10px; }
+.header-logo img { height: 32px; }
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  color: #c9a84c;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+.header-title small { display: block; font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'DM Sans', sans-serif; letter-spacing: 0; }
+.lang-bar { display: flex; gap: 4px; flex-shrink: 0; }
+.lang-btn {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: #fff;
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.15s;
+}
+.lang-btn.active, .lang-btn:hover { background: #c9a84c; color: #0d1f3c; }
+
+/* Steps indicator */
+.steps-bar {
+  background: #fff;
+  border-bottom: 1px solid #e5e0d8;
+  padding: 12px 20px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+.step-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.step-pill + .step-pill::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: #d1ccc4;
+  margin: 0 4px;
+}
+.step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #e5e0d8;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-pill.active .step-num { background: #0d1f3c; color: #fff; }
+.step-pill.active { color: #0d1f3c; }
+.step-pill.done .step-num { background: #c9a84c; color: #fff; }
+.step-pill.done { color: #6b7280; }
+
+/* Main content */
+.content { max-width: 600px; margin: 0 auto; padding: 24px 20px 80px; }
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: #0d1f3c;
+  margin-bottom: 20px;
+}
+
+/* Form elements */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  border: 1.5px solid #d1ccc4;
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #1a1a2e;
+  background: #fff;
+  transition: border-color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none;
+  border-color: #0d1f3c;
+}
+.field textarea { resize: vertical; min-height: 60px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-error { display: none; font-size: 12px; color: #dc2626; margin-top: 4px; }
+.field.invalid .field-error { display: block; }
+.field.invalid input, .field.invalid select { border-color: #dc2626; }
+
+/* Toggle */
+.toggle-wrap {
+  background: #fff;
+  border: 1.5px solid #d1ccc4;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
+.toggle-label { font-size: 14px; color: #374151; font-weight: 500; }
+.toggle-switch {
+  width: 42px; height: 24px;
+  background: #d1ccc4;
+  border-radius: 12px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch.on { background: #0d1f3c; }
+.toggle-switch.on::after { left: 21px; }
+
+/* Card/section */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e0d8;
+}
+
+
+/* Policy PDF */
+.pdf-wrap {
+  border: 1.5px solid #d1ccc4;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: #f9f9f7;
+  position: relative;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pdf-wrap iframe { width: 100%; height: 420px; border: none; display: block; }
+.pdf-loading { font-size: 13px; color: #9ca3af; }
+@media (max-width: 500px) {
+  .pdf-wrap { min-height: 260px; }
+  .pdf-wrap iframe { height: 340px; }
+}
+
+/* Checkbox */
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.check-row input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: #0d1f3c; cursor: pointer; }
+.check-row span { font-size: 13px; color: #374151; line-height: 1.5; }
+
+/* Signature */
+#sigCanvas {
+  width: 100%;
+  height: 140px;
+  border: 1.5px solid #d1ccc4;
+  border-radius: 8px;
+  cursor: crosshair;
+  background: #fff;
+  display: block;
+}
+#typedSig {
+  width: 100%;
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  border: 1.5px solid #d1ccc4;
+  border-radius: 8px;
+  padding: 20px 14px;
+  text-align: center;
+  color: #0d1f3c;
+  background: #fff;
+  display: none;
+}
+.sig-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.btn-clear {
+  background: none;
+  border: 1.5px solid #d1ccc4;
+  color: #6b7280;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Navigation buttons */
+.nav-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+.btn {
+  flex: 1;
+  padding: 13px 20px;
+  border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: #0d1f3c; color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary { background: #e5e0d8; color: #374151; flex: 0 0 auto; padding: 13px 18px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Success screen */
+#successScreen {
+  display: none;
+  max-width: 520px;
+  margin: 40px auto;
+  padding: 0 20px;
+  text-align: center;
+}
+.success-icon { font-size: 48px; margin-bottom: 16px; }
+.success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: #0d1f3c;
+  margin-bottom: 10px;
+}
+.success-ref {
+  background: #0d1f3c;
+  color: #c9a84c;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 20px;
+  letter-spacing: 0.06em;
+}
+.cred-box {
+  background: #fff;
+  border: 1.5px solid #d1ccc4;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+.cred-box h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; margin-bottom: 10px; }
+.cred-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
+.cred-row span:last-child { font-weight: 600; color: #0d1f3c; }
+.btn-login {
+  display: inline-block;
+  background: #c9a84c;
+  color: #0d1f3c;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px 32px;
+  border-radius: 9px;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+/* Error banner */
+.err-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <img src="/img/logo.png" alt="Piano Vertu">
+    <div class="header-title">
+      <span data-k="headerTitle">Académie Piano Vertu</span>
+      <small data-k="headerSub">Inscription</small>
+    </div>
+  </div>
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('zh')">中文</button>
+  </div>
+</div>
+
+<div class="steps-bar">
+  <div class="step-pill active" id="pill1"><div class="step-num">1</div><span data-k="step1Label">Info</span></div>
+  <div class="step-pill" id="pill2"><div class="step-num">2</div><span data-k="step2Label">Préférences</span></div>
+  <div class="step-pill" id="pill3"><div class="step-num">3</div><span data-k="step3Label">Disponibilités</span></div>
+  <div class="step-pill" id="pill4"><div class="step-num">4</div><span data-k="step4Label">Politique</span></div>
+</div>
+
+<div class="content">
+
+  <!-- Step 1: Contact info -->
+  <div id="step1">
+    <div class="section-title" data-k="step1Title">Renseignements</div>
+
+    <div class="field-row">
+      <div class="field" id="f-sfn">
+        <label data-k="studentFirstName">Prénom du responsable</label>
+        <input type="text" id="studentFirstName" autocomplete="given-name">
+        <div class="field-error" data-k="required">Ce champ est requis.</div>
+      </div>
+      <div class="field" id="f-sln">
+        <label data-k="studentLastName">Nom de famille</label>
+        <input type="text" id="studentLastName" autocomplete="family-name">
+        <div class="field-error" data-k="required">Ce champ est requis.</div>
+      </div>
+    </div>
+
+    <div class="toggle-wrap" onclick="toggleChild()">
+      <span class="toggle-label" data-k="childToggle">L'élève est un enfant ?</span>
+      <div class="toggle-switch" id="childToggle"></div>
+    </div>
+
+    <div id="childFields" style="display:none">
+      <div class="field-row">
+        <div class="field">
+          <label data-k="childFirstName">Prénom de l'élève</label>
+          <input type="text" id="childFirstName" autocomplete="off">
+        </div>
+        <div class="field">
+          <label data-k="childLastName">Nom de l'élève</label>
+          <input type="text" id="childLastName" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <div class="field" id="f-email">
+      <label data-k="email">Courriel</label>
+      <input type="email" id="email" autocomplete="email">
+      <div class="field-error" id="emailErr" data-k="required">Ce champ est requis.</div>
+    </div>
+    <div class="field">
+      <label data-k="phone">Téléphone</label>
+      <input type="tel" id="phone" autocomplete="tel">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label data-k="emergencyName">Contact d'urgence (nom)</label>
+        <input type="text" id="emergencyName" autocomplete="off">
+      </div>
+      <div class="field">
+        <label data-k="emergencyPhone">Contact d'urgence (tél.)</label>
+        <input type="tel" id="emergencyPhone" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="goStep(2)" data-k="next">Suivant</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Preferences -->
+  <div id="step2" style="display:none">
+    <div class="section-title" data-k="step2Title">Préférences</div>
+
+    <div class="field">
+      <label data-k="langLabel">Langue de communication</label>
+      <select id="langPref">
+        <option value="fr" data-k="langFR">Français</option>
+        <option value="en" data-k="langEN">English</option>
+        <option value="zh" data-k="langZH">中文</option>
+      </select>
+    </div>
+
+    <div class="field" id="f-instrument">
+      <label data-k="instrumentLabel">Instrument</label>
+      <select id="instrument">
+        <option value="">—</option>
+        <option value="piano" data-k="piano">Piano</option>
+        <option value="violin" data-k="violin">Violon</option>
+        <option value="theory" data-k="theory">Théorie musicale</option>
+      </select>
+      <div class="field-error" data-k="required">Ce champ est requis.</div>
+    </div>
+
+    <div class="field" id="f-level">
+      <label data-k="levelLabel">Niveau</label>
+      <select id="level">
+        <option value="">—</option>
+        <option value="beginner" data-k="beginner">Débutant(e)</option>
+        <option value="intermediate" data-k="intermediate">Intermédiaire</option>
+        <option value="advanced" data-k="advanced">Avancé(e)</option>
+      </select>
+      <div class="field-error" data-k="required">Ce champ est requis.</div>
+    </div>
+
+    <div class="field">
+      <label data-k="preferredTeacher">Professeur souhaité (si connu)</label>
+      <input type="text" id="preferredTeacher">
+    </div>
+
+    <div class="nav-bar">
+      <button class="btn btn-secondary" onclick="goStep(1)" data-k="back">Retour</button>
+      <button class="btn btn-primary" onclick="goStep(3)" data-k="next">Suivant</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Availabilities -->
+  <div id="step3" style="display:none">
+    <div class="section-title" data-k="step3Title">Disponibilités</div>
+
+    <div class="field">
+      <label data-k="availLabel">Disponibilités</label>
+      <p style="font-size:12px;color:#6b7280;margin-bottom:8px" data-k="availHint">Indiquez vos disponibilités (jours et heures préférés).</p>
+      <textarea id="availabilities" rows="4" placeholder="ex: Lundi et mercredi après-midi, samedi matin..."></textarea>
+    </div>
+
+    <div class="field">
+      <label data-k="startPref">Quand souhaitez-vous commencer ?</label>
+      <input type="text" id="startPreference" placeholder="ex: Septembre 2025">
+    </div>
+
+    <div class="nav-bar">
+      <button class="btn btn-secondary" onclick="goStep(2)" data-k="back">Retour</button>
+      <button class="btn btn-primary" onclick="goStep(4)" data-k="next">Suivant</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Policy + Signature -->
+  <div id="step4" style="display:none">
+    <div class="section-title" data-k="step4Title">Politique & Signature</div>
+
+    <div class="card">
+      <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#6b7280;margin-bottom:10px" data-k="policyLabel">Politique de l'Académie</p>
+      <div class="pdf-wrap" id="pdfWrap">
+        <div class="pdf-loading" data-k="pdfLoading">Chargement...</div>
+      </div>
+    </div>
+
+    <label class="check-row">
+      <input type="checkbox" id="policyCheck">
+      <span data-k="policyCheckLabel">J'ai lu et j'accepte la politique de l'Académie Piano Vertu.</span>
+    </label>
+
+    <div class="card">
+      <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#6b7280;margin-bottom:10px" data-k="sigLabel">Signature</p>
+      <canvas id="sigCanvas"></canvas>
+      <div class="sig-actions">
+        <button class="btn-clear" onclick="clearSig()" data-k="clear">Effacer</button>
+      </div>
+    </div>
+
+    <div class="err-banner" id="errBanner"></div>
+
+    <div class="nav-bar">
+      <button class="btn btn-secondary" onclick="goStep(3)" data-k="back">Retour</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="doSubmit()" data-k="submit">Soumettre l'inscription</button>
+    </div>
+  </div>
+
+</div><!-- .content -->
+
+<!-- Success screen -->
+<div id="successScreen">
+  <div class="success-icon">✓</div>
+  <div class="success-title" data-k="successTitle">Inscription confirmée !</div>
+  <div class="success-ref" id="successRef"></div>
+  <div id="credBox" class="cred-box" style="display:none">
+    <h3 data-k="credTitle">Accès au portail étudiant</h3>
+    <div class="cred-row"><span data-k="credUser">Identifiant :</span><span id="credUsername"></span></div>
+    <div class="cred-row"><span data-k="credPass">Mot de passe :</span><span id="credPassword"></span></div>
+    <p style="font-size:12px;color:#6b7280;margin-top:8px" data-k="credNote">Notez ces informations. Vous pourrez les changer après connexion.</p>
+  </div>
+  <a href="/login-apv.html" class="btn-login" data-k="loginLink">Se connecter →</a>
+</div>
+
+<script>
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+const apiUrl = e => `${API_BASE}/api/${e}`;
+
+const LANG = {
+  fr: {
+    headerTitle: 'Académie Piano Vertu', headerSub: 'Inscription',
+    step1Label: 'Info', step2Label: 'Préférences', step3Label: 'Disponibilités', step4Label: 'Politique',
+    step1Title: 'Renseignements', step2Title: 'Préférences', step3Title: 'Disponibilités', step4Title: 'Politique & Signature',
+    studentFirstName: 'Prénom du responsable', studentLastName: 'Nom de famille',
+    childToggle: "L'élève est un enfant ?",
+    childFirstName: "Prénom de l'élève", childLastName: "Nom de l'élève",
+    email: 'Courriel', phone: 'Téléphone',
+    emergencyName: "Contact d'urgence (nom)", emergencyPhone: "Contact d'urgence (tél.)",
+    langLabel: 'Langue de communication',
+    langFR: 'Français', langEN: 'English', langZH: '中文',
+    instrumentLabel: 'Instrument',
+    piano: 'Piano', violin: 'Violon', theory: 'Théorie musicale',
+    levelLabel: 'Niveau',
+    beginner: 'Débutant(e)', intermediate: 'Intermédiaire', advanced: 'Avancé(e)',
+    preferredTeacher: 'Professeur souhaité (si connu)',
+    availLabel: 'Disponibilités',
+    availHint: 'Indiquez vos disponibilités (jours et heures préférés).',
+    startPref: 'Quand souhaitez-vous commencer ?',
+    policyLabel: "Politique de l'Académie",
+    pdfLoading: 'Chargement...', pdfOpenLink: 'Ouvrir la politique (PDF)',
+    policyCheckLabel: "J'ai lu et j'accepte la politique de l'Académie Piano Vertu.",
+    sigLabel: 'Signature', clear: 'Effacer',
+    next: 'Suivant', back: 'Retour', submit: "Soumettre l'inscription",
+    required: 'Ce champ est requis.', invalidEmail: 'Courriel invalide.',
+    signRequired: 'Veuillez signer avant de soumettre.',
+    policyRequired: 'Veuillez accepter la politique avant de soumettre.',
+    submitting: 'Envoi en cours...',
+    successTitle: 'Inscription confirmée !',
+    credTitle: 'Accès au portail étudiant',
+    credUser: 'Identifiant :', credPass: 'Mot de passe :',
+    credNote: 'Notez ces informations. Vous pourrez les changer après connexion.',
+    loginLink: 'Se connecter →',
+  },
+  en: {
+    headerTitle: 'Piano Vertu Academy', headerSub: 'Registration',
+    step1Label: 'Info', step2Label: 'Preferences', step3Label: 'Availability', step4Label: 'Policy',
+    step1Title: 'Your Information', step2Title: 'Preferences', step3Title: 'Availability', step4Title: 'Policy & Signature',
+    studentFirstName: 'First name', studentLastName: 'Last name',
+    childToggle: 'Is the student a child?',
+    childFirstName: "Child's first name", childLastName: "Child's last name",
+    email: 'Email', phone: 'Phone',
+    emergencyName: 'Emergency contact (name)', emergencyPhone: 'Emergency contact (phone)',
+    langLabel: 'Communication language',
+    langFR: 'Français', langEN: 'English', langZH: '中文',
+    instrumentLabel: 'Instrument',
+    piano: 'Piano', violin: 'Violin', theory: 'Music theory',
+    levelLabel: 'Level',
+    beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced',
+    preferredTeacher: 'Preferred teacher (if known)',
+    availLabel: 'Availability',
+    availHint: 'Enter your preferred days and times.',
+    startPref: 'When would you like to start?',
+    policyLabel: 'Academy Policy',
+    pdfLoading: 'Loading...', pdfOpenLink: 'Open policy (PDF)',
+    policyCheckLabel: 'I have read and accept the Piano Vertu Academy policy.',
+    sigLabel: 'Signature', clear: 'Clear',
+    next: 'Next', back: 'Back', submit: 'Submit registration',
+    required: 'This field is required.', invalidEmail: 'Invalid email.',
+    signRequired: 'Please sign before submitting.',
+    policyRequired: 'Please accept the policy before submitting.',
+    submitting: 'Submitting...',
+    successTitle: 'Registration confirmed!',
+    credTitle: 'Student portal access',
+    credUser: 'Username:', credPass: 'Password:',
+    credNote: 'Save these credentials. You can change them after logging in.',
+    loginLink: 'Log in →',
+  },
+  zh: {
+    headerTitle: '钢琴之声学院', headerSub: '注册',
+    step1Label: '信息', step2Label: '偏好', step3Label: '时间', step4Label: '政策',
+    step1Title: '基本信息', step2Title: '学习偏好', step3Title: '可用时间', step4Title: '政策与签名',
+    studentFirstName: '负责人名', studentLastName: '负责人姓',
+    childToggle: '学生是儿童吗？',
+    childFirstName: '学生名', childLastName: '学生姓',
+    email: '电子邮件', phone: '电话',
+    emergencyName: '紧急联系人（姓名）', emergencyPhone: '紧急联系人（电话）',
+    langLabel: '沟通语言',
+    langFR: 'Français', langEN: 'English', langZH: '中文',
+    instrumentLabel: '乐器',
+    piano: '钢琴', violin: '小提琴', theory: '乐理',
+    levelLabel: '级别',
+    beginner: '初学者', intermediate: '中级', advanced: '高级',
+    preferredTeacher: '首选教师（如有）',
+    availLabel: '可用时间',
+    availHint: '请填写您偏好的上课日期和时间。',
+    startPref: '您希望何时开始？',
+    policyLabel: '学院政策',
+    pdfLoading: '加载中...', pdfOpenLink: '打开政策（PDF）',
+    policyCheckLabel: '我已阅读并接受钢琴之声学院政策。',
+    sigLabel: '签名', clear: '清除',
+    next: '下一步', back: '返回', submit: '提交注册',
+    required: '此项为必填项。', invalidEmail: '电子邮件无效。',
+    signRequired: '请在提交前签名。',
+    policyRequired: '请在提交前接受政策。',
+    submitting: '提交中...',
+    successTitle: '注册成功！',
+    credTitle: '学生门户访问',
+    credUser: '用户名：', credPass: '密码：',
+    credNote: '请保存这些信息。登录后可以修改。',
+    loginLink: '立即登录 →',
+  }
+};
+
+let currentLang = 'fr';
+let currentStep = 1;
+let childIsStudent = false;
+let hasSig = false;
+let cv, ctx;
+let canvasInited = false;
+let policyPdfUrl = null;
+
+function t(key) { return LANG[currentLang]?.[key] ?? key; }
+
+function applyLang() {
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const k = el.dataset.k;
+    const v = t(k);
+    if (el.tagName === 'INPUT' && el.placeholder) {
+      // skip
+    } else {
+      el.textContent = v;
+    }
+  });
+  // lang-btn active state
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const lbtn = document.querySelector(`.lang-btn[onclick="setLang('${currentLang}')"]`);
+  if (lbtn) lbtn.classList.add('active');
+
+  // Update option text for selects with data-k attributes
+  document.querySelectorAll('option[data-k]').forEach(opt => {
+    const v = LANG[currentLang]?.[opt.dataset.k];
+    if (v) opt.textContent = v;
+  });
+
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  applyLang();
+  // If on step 4, reload policy PDF in new language
+  if (currentStep === 4) loadPolicyPdf();
+}
+
+// ── Steps ─────────────────────────────────────────────────────────────────────
+function goStep(n) {
+  if (n > currentStep && !validateStep(currentStep)) return;
+  document.getElementById(`step${currentStep}`).style.display = 'none';
+  document.getElementById(`pill${currentStep}`).classList.remove('active');
+  document.getElementById(`pill${currentStep}`).classList.add('done');
+  if (n < currentStep) {
+    document.getElementById(`pill${n}`).classList.remove('done');
+  }
+  currentStep = n;
+  document.getElementById(`step${n}`).style.display = '';
+  document.getElementById(`pill${n}`).classList.add('active');
+  window.scrollTo(0, 0);
+  if (n === 4) {
+    loadPolicyPdf();
+    if (!canvasInited) { canvasInited = true; initCanvas(); }
+  }
+}
+
+function validateStep(s) {
+  let ok = true;
+  if (s === 1) {
+    ok = requireField('studentFirstName', 'f-sfn') & ok;
+    ok = requireField('studentLastName', 'f-sln') & ok;
+    if (!validateEmail()) ok = false;
+  }
+  if (s === 2) {
+    ok = requireSelect('instrument', 'f-instrument') & ok;
+    ok = requireSelect('level', 'f-level') & ok;
+  }
+  return ok;
+}
+
+function requireField(id, wrapperId) {
+  const el = document.getElementById(id);
+  const w  = document.getElementById(wrapperId);
+  if (!el.value.trim()) { w.classList.add('invalid'); return false; }
+  w.classList.remove('invalid');
+  return true;
+}
+
+function requireSelect(id, wrapperId) {
+  const el = document.getElementById(id);
+  const w  = document.getElementById(wrapperId);
+  if (!el.value) { w.classList.add('invalid'); return false; }
+  w.classList.remove('invalid');
+  return true;
+}
+
+function validateEmail() {
+  const el  = document.getElementById('email');
+  const w   = document.getElementById('f-email');
+  const err = document.getElementById('emailErr');
+  if (!el.value.trim()) {
+    w.classList.add('invalid'); err.dataset.k = 'required'; err.textContent = t('required'); return false;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim())) {
+    w.classList.add('invalid'); err.dataset.k = 'invalidEmail'; err.textContent = t('invalidEmail'); return false;
+  }
+  w.classList.remove('invalid');
+  return true;
+}
+
+// ── Child toggle ──────────────────────────────────────────────────────────────
+function toggleChild() {
+  childIsStudent = !childIsStudent;
+  document.getElementById('childToggle').classList.toggle('on', childIsStudent);
+  document.getElementById('childFields').style.display = childIsStudent ? '' : 'none';
+}
+
+// ── Policy PDF ────────────────────────────────────────────────────────────────
+async function loadPolicyPdf() {
+  const wrap = document.getElementById('pdfWrap');
+  wrap.innerHTML = `<div class="pdf-loading">${t('pdfLoading')}</div>`;
+  try {
+    const res  = await fetch(apiUrl(`GetApvPolicyUrl?lang=${currentLang}`));
+    const data = await res.json();
+    policyPdfUrl = data.url;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const src = isMobile
+      ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(policyPdfUrl)}`
+      : policyPdfUrl;
+    wrap.innerHTML = `<iframe src="${src}" title="Policy PDF"></iframe>`;
+  } catch {
+    wrap.innerHTML = `<div class="pdf-loading"><a href="#" onclick="loadPolicyPdf();return false">Réessayer</a></div>`;
+  }
+}
+
+// ── Signature ─────────────────────────────────────────────────────────────────
+function initCanvas() {
+  cv  = document.getElementById('sigCanvas');
+  ctx = cv.getContext('2d');
+  resizeCv();
+  window.addEventListener('resize', () => setTimeout(resizeCv, 200));
+  cv.addEventListener('mousedown', e => { ctx.beginPath(); ctx.moveTo(...gp(e)); cv._d = true; });
+  cv.addEventListener('mousemove', e => { if (!cv._d) return; hasSig = true; ctx.lineTo(...gp(e)); ctx.stroke(); });
+  cv.addEventListener('mouseup', () => cv._d = false);
+  cv.addEventListener('mouseleave', () => cv._d = false);
+  cv.addEventListener('touchstart', e => { e.preventDefault(); cv._d = true; ctx.beginPath(); ctx.moveTo(...gp(e)); }, { passive: false });
+  cv.addEventListener('touchmove', e => { e.preventDefault(); if (!cv._d) return; hasSig = true; ctx.lineTo(...gp(e)); ctx.stroke(); }, { passive: false });
+  cv.addEventListener('touchend', () => cv._d = false);
+}
+
+function gp(e) {
+  const r = cv.getBoundingClientRect(), s = e.touches ? e.touches[0] : e;
+  return [s.clientX - r.left, s.clientY - r.top];
+}
+
+function resizeCv() {
+  if (!cv) return;
+  const w = cv.offsetWidth;
+  if (!w) return;
+  cv.width = w * devicePixelRatio; cv.height = 140 * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  cv.style.width = w + 'px'; cv.style.height = '140px';
+  ctx.strokeStyle = '#0d1f3c'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+}
+
+function clearSig() {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  hasSig = false;
+}
+
+function getSigData() {
+  return hasSig ? { type: 'drawn', data: cv.toDataURL() } : null;
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+async function doSubmit() {
+  const banner = document.getElementById('errBanner');
+  banner.style.display = 'none';
+
+  if (!document.getElementById('policyCheck').checked) {
+    banner.textContent = t('policyRequired'); banner.style.display = ''; return;
+  }
+  const sig = getSigData();
+  if (!sig) {
+    banner.textContent = t('signRequired'); banner.style.display = ''; return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = t('submitting');
+
+  const payload = {
+    student_first_name:      document.getElementById('studentFirstName').value.trim(),
+    student_last_name:       document.getElementById('studentLastName').value.trim(),
+    child_first_name:        childIsStudent ? document.getElementById('childFirstName').value.trim() || null : null,
+    child_last_name:         childIsStudent ? document.getElementById('childLastName').value.trim() || null : null,
+    email:                   document.getElementById('email').value.trim(),
+    phone:                   document.getElementById('phone').value.trim() || null,
+    emergency_contact_name:  document.getElementById('emergencyName').value.trim() || null,
+    emergency_contact_phone: document.getElementById('emergencyPhone').value.trim() || null,
+    language:                document.getElementById('langPref').value,
+    instrument:              document.getElementById('instrument').value,
+    level:                   document.getElementById('level').value,
+    preferred_teacher:       document.getElementById('preferredTeacher').value.trim() || null,
+    availabilities:          document.getElementById('availabilities').value.trim() || null,
+    start_preference:        document.getElementById('startPreference').value.trim() || null,
+    policy_accepted:         true,
+    signature_type:          sig.type,
+    signature_data:          sig.data,
+  };
+
+  try {
+    const res  = await fetch(apiUrl('SubmitAcademyRegistration'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+
+    // Show success
+    document.querySelector('.steps-bar').style.display = 'none';
+    document.querySelector('.content').style.display = 'none';
+    document.getElementById('successRef').textContent = data.ref_id;
+    if (data.new_account && data.client_username) {
+      document.getElementById('credUsername').textContent = data.client_username;
+      document.getElementById('credPassword').textContent = data.client_password;
+      document.getElementById('credBox').style.display = '';
+    }
+    document.getElementById('successScreen').style.display = 'block';
+    document.documentElement.scrollTop = 0;
+  } catch (err) {
+    banner.textContent = err.message; banner.style.display = '';
+    btn.disabled = false; btn.textContent = t('submit');
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+applyLang();
+</script>
+</body>
+</html>
