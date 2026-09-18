@@ -361,7 +361,7 @@
         if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.error||'unknown'}`); }
 
         const data = await res.json();
-        eventData  = data.event;
+        eventData  = data.event_info;
         allGuests  = data.guests  || [];
         winners    = data.winners || [];
 

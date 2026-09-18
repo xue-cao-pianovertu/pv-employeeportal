@@ -99,7 +99,7 @@ public class GetEventDraw
 
             return new OkObjectResult(new
             {
-                @event = new
+                event_info = new
                 {
                     id                = eventId,
                     event_code        = eventCode,
