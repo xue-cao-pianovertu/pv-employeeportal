@@ -15,7 +15,7 @@ public class GetEvent
     public async Task<IActionResult> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
-        var code = req.Query["code"].ToString().Trim().ToUpperInvariant();
+        var code = req.Query["event_code"].ToString().Trim().ToUpperInvariant();
         if (string.IsNullOrEmpty(code))
             return new BadRequestObjectResult(new { error = "code required" });
 

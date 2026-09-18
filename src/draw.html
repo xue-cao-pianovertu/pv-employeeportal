@@ -345,7 +345,7 @@
       }
 
       try {
-        const res = await fetch(apiUrl(`GetEventDraw?code=${encodeURIComponent(eventCode)}`), {
+        const res = await fetch(apiUrl(`GetEventDraw?event_code=${encodeURIComponent(eventCode)}`), {
           headers: AUTH_HEADERS
         });
 

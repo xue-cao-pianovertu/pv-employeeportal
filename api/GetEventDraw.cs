@@ -23,7 +23,7 @@ public class GetEventDraw
         if (role != "admin" && role != "staff")
             return new ObjectResult(new { error = "Accès refusé" }) { StatusCode = 403 };
 
-        var code = req.Query["code"].ToString().Trim().ToUpperInvariant();
+        var code = req.Query["event_code"].ToString().Trim().ToUpperInvariant();
         if (string.IsNullOrEmpty(code))
             return new BadRequestObjectResult(new { error = "code required" });
 

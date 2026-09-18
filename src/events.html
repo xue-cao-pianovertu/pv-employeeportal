@@ -272,7 +272,7 @@
       }
 
       try {
-        const res  = await fetch(apiUrl(`GetEvent?code=${encodeURIComponent(eventCode)}`));
+        const res  = await fetch(apiUrl(`GetEvent?event_code=${encodeURIComponent(eventCode)}`));
         if (res.status === 404) {
           showError('Événement introuvable', 'Event not found / 活动不存在');
           return;
