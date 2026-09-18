@@ -31,6 +31,14 @@
     {
       "route": "/prospect",
       "rewrite": "/prospect.html"
+    },
+    {
+      "route": "/events",
+      "rewrite": "/events.html"
+    },
+    {
+      "route": "/draw",
+      "rewrite": "/draw.html"
     }
   ],
   "navigationFallback": {

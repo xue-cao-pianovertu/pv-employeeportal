@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Piano Vertu — Inscription</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f0eee9;
+      color: #0d1f3c;
+      min-height: 100svh;
+    }
+
+    .hero {
+      background: #0d1f3c;
+      padding: 28px 24px 36px;
+      text-align: center;
+    }
+    .hero-logo {
+      height: 140px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #c9a84c;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .hero-sub {
+      font-size: 13px;
+      color: rgba(200,216,240,0.80);
+      line-height: 1.6;
+      max-width: 480px;
+      margin: 0 auto;
+      white-space: pre-line;
+    }
+
+    .form-wrap {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+    .form-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 32px 28px;
+      box-shadow: 0 4px 24px rgba(13,31,60,0.08);
+    }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .field input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #0d1f3c;
+      background: #fff;
+      transition: border-color .15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: #c9a84c;
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+    }
+    .field input.invalid { border-color: #dc2626; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .field-error { font-size: 12px; color: #dc2626; margin-top: 4px; display: none; }
+    .field-error.visible { display: block; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: #0d1f3c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:hover:not(:disabled) { background: #1a3460; }
+    .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .duplicate-msg {
+      display: none;
+      background: #fef9ec;
+      border: 1px solid #c9a84c;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #7c5f1a;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+    .duplicate-msg.visible { display: block; }
+
+    .success-state {
+      display: none;
+      text-align: center;
+      padding: 16px 0;
+    }
+    .success-icon {
+      width: 60px; height: 60px;
+      background: rgba(201,168,76,0.12);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 26px;
+    }
+    .success-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #0d1f3c;
+      margin-bottom: 10px;
+    }
+    .success-msg {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.7;
+    }
+
+    .error-state {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .error-state .icon { font-size: 40px; margin-bottom: 16px; }
+    .error-state h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #0d1f3c;
+      margin-bottom: 10px;
+    }
+    .error-state p { font-size: 13px; color: #6b7280; line-height: 1.6; }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .field-row { grid-template-columns: 1fr; }
+      .form-card { padding: 24px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img src="/img/logo.png" alt="Piano Vertu" class="hero-logo">
+    <h1 class="hero-title" id="eventName">Piano Vertu</h1>
+    <p class="hero-sub" id="promoText"></p>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-card" id="formCard">
+      <div class="loading-state" id="loadingState">Chargement…</div>
+
+      <form id="eventForm" onsubmit="submitForm(event)" novalidate style="display:none">
+
+        <div class="field-row">
+          <div class="field">
+            <label>Prénom / First Name / 名 <span style="color:#dc2626">*</span></label>
+            <input type="text" id="firstName" autocomplete="given-name">
+            <div class="field-error" id="errFirstName">Requis / Required / 必填</div>
+          </div>
+          <div class="field">
+            <label>Nom / Last Name / 姓 <span style="color:#dc2626">*</span></label>
+            <input type="text" id="lastName" autocomplete="family-name">
+            <div class="field-error" id="errLastName">Requis / Required / 必填</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Courriel / Email / 电子邮件 <span style="color:#dc2626">*</span></label>
+          <input type="email" id="email" autocomplete="email">
+          <div class="field-error" id="errEmail">Courriel invalide / Invalid email / 邮箱无效</div>
+        </div>
+
+        <div class="field">
+          <label>Téléphone / Phone / 电话</label>
+          <input type="tel" id="phone" autocomplete="tel">
+        </div>
+
+        <div class="duplicate-msg" id="duplicateMsg">
+          Vous êtes déjà inscrit(e) pour cet événement.<br>
+          You are already registered for this event.<br>
+          您已注册此活动。
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          S'inscrire / Register / 注册
+        </button>
+
+      </form>
+
+      <div class="success-state" id="successState">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title">Merci ! / Thank you! / 谢谢！</h2>
+        <p class="success-msg">
+          Vous êtes inscrit(e).<br>
+          You are registered.<br>
+          您已成功注册。
+        </p>
+      </div>
+
+      <div class="error-state" id="errorState">
+        <div class="icon">⚠️</div>
+        <h2 id="errorTitle">Événement introuvable</h2>
+        <p id="errorMsg">Event not found / 活动不存在</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+    const apiUrl   = e => `${API_BASE}/api/${e}`;
+
+    let eventCode = '';
+
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      eventCode = (params.get('code') || '').trim().toUpperCase();
+
+      if (!eventCode) {
+        showError('Code manquant', 'No event code in URL / URL中无活动代码');
+        return;
+      }
+
+      try {
+        const res  = await fetch(apiUrl(`GetEvent?code=${encodeURIComponent(eventCode)}`));
+        if (res.status === 404) {
+          showError('Événement introuvable', 'Event not found / 活动不存在');
+          return;
+        }
+        if (!res.ok) throw new Error('Server error');
+
+        const data = await res.json();
+        document.getElementById('eventName').textContent = data.event_name || 'Piano Vertu';
+        if (data.promo_text) {
+          document.getElementById('promoText').textContent = data.promo_text;
+        }
+        document.title = `Piano Vertu — ${data.event_name}`;
+
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('eventForm').style.display    = 'block';
+      } catch {
+        showError('Erreur de connexion', 'Connection error / 连接错误');
+      }
+    }
+
+    function showError(title, msg) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorTitle').textContent     = title;
+      document.getElementById('errorMsg').textContent       = msg;
+      document.getElementById('errorState').style.display  = 'block';
+    }
+
+    function clearErrors() {
+      ['firstName','lastName','email'].forEach(id => {
+        document.getElementById(id).classList.remove('invalid');
+        const err = document.getElementById('err' + id.charAt(0).toUpperCase() + id.slice(1));
+        if (err) err.classList.remove('visible');
+      });
+      document.getElementById('duplicateMsg').classList.remove('visible');
+    }
+
+    function showFieldError(fieldId, errId) {
+      document.getElementById(fieldId).classList.add('invalid');
+      document.getElementById(errId).classList.add('visible');
+    }
+
+    async function submitForm(e) {
+      e.preventDefault();
+      clearErrors();
+
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName  = document.getElementById('lastName').value.trim();
+      const email     = document.getElementById('email').value.trim();
+      const phone     = document.getElementById('phone').value.trim();
+
+      let valid = true;
+      if (!firstName) { showFieldError('firstName','errFirstName'); valid = false; }
+      if (!lastName)  { showFieldError('lastName','errLastName');   valid = false; }
+      if (!email || !email.includes('@')) { showFieldError('email','errEmail'); valid = false; }
+      if (!valid) return;
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div>';
+
+      try {
+        const res = await fetch(apiUrl('SubmitEventGuest'), {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ event_code: eventCode, first_name: firstName, last_name: lastName, email, phone })
+        });
+
+        if (res.status === 409) {
+          document.getElementById('duplicateMsg').classList.add('visible');
+          btn.disabled = false;
+          btn.textContent = 'S\'inscrire / Register / 注册';
+          return;
+        }
+
+        if (!res.ok) throw new Error('Server error');
+
+        document.getElementById('eventForm').style.display    = 'none';
+        document.getElementById('successState').style.display = 'block';
+      } catch {
+        btn.disabled = false;
+        btn.textContent = 'S\'inscrire / Register / 注册';
+        alert('Erreur / Error / 错误. Veuillez réessayer.');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

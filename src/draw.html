@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Piano Vertu — Tirage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0d1f3c;
+      --gold:    #c9a84c;
+      --gold-lt: rgba(201,168,76,0.15);
+      --bg:      #081428;
+      --text:    #e8eef7;
+      --sub:     rgba(200,216,240,0.6);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Loading ── */
+    #loadingScreen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: var(--bg); gap: 16px; z-index: 10;
+    }
+    #loadingScreen img { height: 80px; opacity: 0.8; }
+    #loadingScreen p { font-size: 14px; color: var(--sub); }
+    #loadingScreen.hidden { display: none; }
+
+    /* ── Main layout ── */
+    #mainScreen {
+      display: none;
+      flex-direction: column;
+      height: 100dvh;
+    }
+    #mainScreen.visible { display: flex; }
+
+    /* Header */
+    .draw-header {
+      background: var(--navy);
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      flex-shrink: 0;
+    }
+    .draw-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      color: var(--gold);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .draw-meta {
+      display: flex; gap: 12px;
+      margin-top: 4px;
+      font-size: 12px; color: var(--sub);
+    }
+
+    /* ── Slot machine area ── */
+    .slot-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      gap: 0;
+    }
+
+    .slot-frame {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(201,168,76,0.07);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 16px;
+      padding: 32px 20px;
+      text-align: center;
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(24px, 6vw, 40px);
+      color: var(--gold);
+      line-height: 1.2;
+      transition: opacity 0.05s;
+      word-break: break-word;
+    }
+    .slot-name.flash { opacity: 0.2; }
+
+    .slot-hint {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--sub);
+      text-align: center;
+    }
+
+    .empty-pool {
+      text-align: center;
+      padding: 20px;
+    }
+    .empty-pool p { font-size: 15px; color: var(--sub); line-height: 1.6; }
+
+    /* ── Action button ── */
+    .stop-area {
+      padding: 0 20px 20px;
+      flex-shrink: 0;
+    }
+    .btn-action {
+      width: 100%;
+      padding: 18px;
+      background: var(--gold);
+      color: var(--navy);
+      border: none;
+      border-radius: 14px;
+      font-size: 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: transform .1s, opacity .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-action:active { transform: scale(0.97); }
+    .btn-action:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .btn-action.stopping {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    /* ── Past winners list ── */
+    .winners-list {
+      flex-shrink: 0;
+      padding: 0 20px 14px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .winners-list h3 {
+      font-size: 11px; color: var(--sub);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .winner-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 13px;
+    }
+    .winner-item:last-child { border-bottom: none; }
+    .winner-num {
+      width: 22px; height: 22px;
+      background: var(--gold-lt);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--gold); font-weight: 700; flex-shrink: 0;
+    }
+
+    /* ── Winner overlay ── */
+    #winnerOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--navy);
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 50;
+      padding: 32px 24px;
+      text-align: center;
+      animation: popIn .35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #winnerOverlay.visible { display: flex; }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .winner-emoji  { font-size: 56px; margin-bottom: 14px; }
+    .winner-label  { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold); margin-bottom: 14px; }
+    .winner-big-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(34px, 9vw, 56px);
+      color: #fff; line-height: 1.1; margin-bottom: 18px;
+      word-break: break-word;
+    }
+    .winner-prize     { font-size: 16px; color: var(--gold); margin-bottom: 4px; }
+    .winner-draw-info { font-size: 12px; color: var(--sub); margin-bottom: 36px; }
+
+    .overlay-btns {
+      display: flex; gap: 12px;
+      width: 100%; max-width: 380px;
+    }
+    .btn-confirm {
+      flex: 2; padding: 16px;
+      background: var(--gold); color: var(--navy);
+      border: none; border-radius: 12px;
+      font-size: 16px; font-family: 'DM Sans', sans-serif; font-weight: 700;
+      cursor: pointer; transition: transform .1s;
+    }
+    .btn-confirm:active { transform: scale(0.97); }
+    .btn-confirm:disabled { opacity: 0.5; }
+    .btn-redraw {
+      flex: 1; padding: 16px;
+      background: transparent; color: var(--sub);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      font-size: 14px; font-family: 'DM Sans', sans-serif; cursor: pointer;
+    }
+    .btn-redraw:hover { border-color: rgba(255,255,255,0.35); }
+
+    /* ── Summary screen ── */
+    #summaryScreen {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--bg);
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 60; padding: 32px 24px; text-align: center;
+    }
+    #summaryScreen.visible { display: flex; }
+    #summaryScreen img    { height: 60px; opacity: 0.7; margin-bottom: 20px; }
+    #summaryScreen h2     { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--gold); margin-bottom: 6px; }
+    #summaryScreen .sub   { font-size: 13px; color: var(--sub); margin-bottom: 28px; }
+
+    .summary-list  { width: 100%; max-width: 380px; text-align: left; }
+    .summary-item  {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-num  {
+      width: 28px; height: 28px; background: var(--gold-lt);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: var(--gold); font-weight: 700; flex-shrink: 0;
+    }
+    .summary-name { font-size: 16px; color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <div id="loadingScreen">
+    <img src="/img/logo.png" alt="Piano Vertu">
+    <p>Chargement…</p>
+  </div>
+
+  <div id="mainScreen">
+    <div class="draw-header">
+      <h1 id="drawEventName">Tirage</h1>
+      <div class="draw-meta">
+        <span id="drawProgress">Tirage 1 sur 1</span>
+        <span id="drawEligible">0 éligibles</span>
+        <span id="drawPrize"></span>
+      </div>
+    </div>
+
+    <div class="slot-area">
+      <div id="emptyPool" class="empty-pool" style="display:none">
+        <p>Plus de participants éligibles.<br>All eligible participants have won.</p>
+      </div>
+      <div id="slotContainer" style="width:100%;display:flex;flex-direction:column;align-items:center">
+        <div class="slot-frame">
+          <div class="slot-name" id="slotName">—</div>
+        </div>
+        <div class="slot-hint" id="slotHint">Appuyez sur LANCER pour commencer</div>
+      </div>
+    </div>
+
+    <div class="stop-area">
+      <button class="btn-action" id="actionBtn" onclick="handleAction()">
+        ▶ LANCER
+      </button>
+    </div>
+
+    <div class="winners-list" id="winnersList" style="display:none">
+      <h3>Gagnants</h3>
+      <div id="winnersItems"></div>
+    </div>
+  </div>
+
+  <div id="winnerOverlay">
+    <div class="winner-emoji">🎉</div>
+    <div class="winner-label">GAGNANT · WINNER · 获奖者</div>
+    <div class="winner-big-name" id="overlayName"></div>
+    <div class="winner-prize" id="overlayPrize"></div>
+    <div class="winner-draw-info" id="overlayDrawInfo"></div>
+    <div class="overlay-btns">
+      <button class="btn-confirm" id="confirmBtn" onclick="confirmWinner()">✓ Confirmer</button>
+      <button class="btn-redraw"  onclick="redraw()">Re-tirer</button>
+    </div>
+    <div id="overlayError" style="display:none;margin-top:12px;font-size:12px;color:#fca5a5;text-align:center;max-width:380px"></div>
+  </div>
+
+  <div id="summaryScreen">
+    <img src="/img/logo.png" alt="Piano Vertu">
+    <h2>Tirages terminés !</h2>
+    <p class="sub" id="summaryPrize"></p>
+    <div class="summary-list" id="summaryList"></div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:7072' : '';
+    const apiUrl   = e => `${API_BASE}/api/${e}`;
+
+    const token = localStorage.getItem('pv_token');
+    const role  = localStorage.getItem('pv_role');
+    if (!token || role === 'customer') window.location.replace('/login-staff.html');
+
+    const AUTH_HEADERS = {
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${token}`,
+      'X-Token':       `Bearer ${token}`
+    };
+
+    let eventData     = null;
+    let allGuests     = [];
+    let winners       = [];
+    let eligiblePool  = [];
+    let pendingWinner = null;
+    let currentDraw   = 1;
+    let isSpinning    = false;
+    let spinTimer     = null;
+    let spinIdx       = 0;
+    let eventCode     = '';
+
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      eventCode = (params.get('code') || '').trim().toUpperCase();
+
+      if (!eventCode) {
+        document.getElementById('loadingScreen').innerHTML =
+          '<p style="color:#dc2626;padding:24px">Code manquant dans l\'URL.</p>';
+        return;
+      }
+
+      try {
+        const res = await fetch(apiUrl(`GetEventDraw?code=${encodeURIComponent(eventCode)}`), {
+          headers: AUTH_HEADERS
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          window.location.replace('/login-staff.html');
+          return;
+        }
+        if (res.status === 404) {
+          document.getElementById('loadingScreen').innerHTML =
+            '<p style="color:#dc2626;padding:24px">Événement introuvable.</p>';
+          return;
+        }
+        if (!res.ok) throw new Error('Server error');
+
+        const data = await res.json();
+        eventData  = data.event;
+        allGuests  = data.guests  || [];
+        winners    = data.winners || [];
+
+        document.title = `Tirage — ${eventData.event_name}`;
+        buildState();
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.add('visible');
+      } catch (err) {
+        document.getElementById('loadingScreen').innerHTML =
+          `<p style="color:#dc2626;padding:24px">Erreur: ${err.message}</p>`;
+      }
+    }
+
+    function buildState() {
+      const wonIds = new Set(winners.map(w => w.winner_guest_id));
+      eligiblePool = allGuests.filter(g => !wonIds.has(g.id));
+      currentDraw  = winners.length + 1;
+
+      if (winners.length >= eventData.draw_count) {
+        showSummary();
+        return;
+      }
+
+      updateHeader();
+      renderWinnersList();
+
+      if (eligiblePool.length === 0) {
+        document.getElementById('emptyPool').style.display     = 'block';
+        document.getElementById('slotContainer').style.display = 'none';
+        document.getElementById('actionBtn').disabled          = true;
+      } else {
+        document.getElementById('slotName').textContent =
+          `${currentDraw}e gagnant sur ${eventData.draw_count}`;
+      }
+    }
+
+    function updateHeader() {
+      document.getElementById('drawEventName').textContent = eventData.event_name;
+      document.getElementById('drawProgress').textContent  =
+        `Tirage ${currentDraw} sur ${eventData.draw_count}`;
+      document.getElementById('drawEligible').textContent  =
+        `${eligiblePool.length} éligible${eligiblePool.length !== 1 ? 's' : ''}`;
+      const prize = eventData.prize_description;
+      document.getElementById('drawPrize').textContent = prize ? `🏆 ${prize}` : '';
+    }
+
+    // ── Slot machine logic ──────────────────────────────────────
+
+    function handleAction() {
+      if (isSpinning) {
+        stopSpin();
+      } else {
+        startSpin();
+      }
+    }
+
+    function startSpin() {
+      if (eligiblePool.length === 0) return;
+
+      // Pick winner before animation
+      pendingWinner = eligiblePool[Math.floor(Math.random() * eligiblePool.length)];
+
+      isSpinning = true;
+      spinIdx    = 0;
+      let delay  = 60; // ms between name changes
+
+      const nameEl = document.getElementById('slotName');
+      const hintEl = document.getElementById('slotHint');
+      const btn    = document.getElementById('actionBtn');
+
+      btn.textContent = '⏹ ARRÊTER';
+      btn.classList.add('stopping');
+      hintEl.textContent = 'Appuyez sur ARRÊTER pour révéler le gagnant';
+
+      function step() {
+        // Flash effect
+        nameEl.classList.add('flash');
+        setTimeout(() => nameEl.classList.remove('flash'), delay * 0.3);
+
+        // Cycle through eligible pool
+        const g = eligiblePool[spinIdx % eligiblePool.length];
+        nameEl.textContent = `${g.first_name} ${g.last_name}`;
+        spinIdx++;
+
+        // Keep constant speed until user taps ARRÊTER
+
+        if (isSpinning) {
+          spinTimer = setTimeout(step, delay);
+        }
+      }
+
+      step();
+    }
+
+    function stopSpin() {
+      isSpinning = false;
+      clearTimeout(spinTimer);
+
+      // Show winner name in slot
+      const nameEl = document.getElementById('slotName');
+      nameEl.textContent = `${pendingWinner.first_name} ${pendingWinner.last_name}`;
+
+      const btn    = document.getElementById('actionBtn');
+      const hintEl = document.getElementById('slotHint');
+      btn.textContent = '▶ LANCER';
+      btn.classList.remove('stopping');
+      hintEl.textContent = '';
+
+      // Short pause then show overlay
+      setTimeout(showWinnerOverlay, 500);
+    }
+
+    function showWinnerOverlay() {
+      document.getElementById('overlayName').textContent =
+        `${pendingWinner.first_name} ${pendingWinner.last_name}`;
+      document.getElementById('overlayPrize').textContent =
+        eventData.prize_description || '';
+      document.getElementById('overlayDrawInfo').textContent =
+        `Tirage ${currentDraw} sur ${eventData.draw_count}`;
+      document.getElementById('winnerOverlay').classList.add('visible');
+    }
+
+    function redraw() {
+      const others = eligiblePool.filter(g => g.id !== pendingWinner.id);
+      pendingWinner = (others.length > 0 ? others : eligiblePool)[
+        Math.floor(Math.random() * (others.length > 0 ? others.length : eligiblePool.length))
+      ];
+      document.getElementById('winnerOverlay').classList.remove('visible');
+      startSpin();
+    }
+
+    async function confirmWinner() {
+      const btn   = document.getElementById('confirmBtn');
+      const errEl = document.getElementById('overlayError');
+      errEl.style.display = 'none';
+      btn.disabled    = true;
+      btn.textContent = '…';
+
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const res = await fetch(apiUrl('RecordEventWinner'), {
+          method:  'POST',
+          headers: AUTH_HEADERS,
+          signal:  controller.signal,
+          body:    JSON.stringify({
+            event_code:  eventCode,
+            guest_id:    pendingWinner.id,
+            draw_number: currentDraw
+          })
+        });
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error(d.error || `HTTP ${res.status}`);
+        }
+
+        winners.push({
+          winner_guest_id: pendingWinner.id,
+          first_name:      pendingWinner.first_name,
+          last_name:       pendingWinner.last_name,
+          draw_number:     currentDraw
+        });
+
+        document.getElementById('winnerOverlay').classList.remove('visible');
+
+        if (winners.length >= eventData.draw_count) {
+          showSummary();
+        } else {
+          buildState();
+        }
+      } catch (err) {
+        clearTimeout(timeout);
+        console.error('RecordEventWinner failed:', err);
+        errEl.textContent   = err.name === 'AbortError'
+          ? 'Délai dépassé. Vérifiez la connexion et réessayez.'
+          : `Erreur : ${err.message}. Réessayez.`;
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled    = false;
+        btn.textContent = '✓ Confirmer';
+      }
+    }
+
+    function renderWinnersList() {
+      const container = document.getElementById('winnersList');
+      const items     = document.getElementById('winnersItems');
+      if (winners.length === 0) { container.style.display = 'none'; return; }
+      container.style.display = 'block';
+      items.innerHTML = winners.map(w => `
+        <div class="winner-item">
+          <div class="winner-num">${w.draw_number}</div>
+          <div>${w.first_name} ${w.last_name}</div>
+        </div>`).join('');
+    }
+
+    function showSummary() {
+      document.getElementById('mainScreen').classList.remove('visible');
+      document.getElementById('summaryPrize').textContent =
+        eventData.prize_description ? `Prix : ${eventData.prize_description}` : '';
+      document.getElementById('summaryList').innerHTML = winners.map(w => `
+        <div class="summary-item">
+          <div class="summary-num">${w.draw_number}</div>
+          <div class="summary-name">${w.first_name} ${w.last_name}</div>
+        </div>`).join('');
+      document.getElementById('summaryScreen').classList.add('visible');
+    }
+
+    init();
+  </script>
+</body>
+</html>

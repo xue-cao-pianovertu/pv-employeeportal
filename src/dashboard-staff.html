@@ -500,6 +500,7 @@
   <div class="tab-bar">
     <button class="tab-btn active" id="tabAchats"    onclick="switchTab('achats')">Achats</button>
     <button class="tab-btn"        id="tabProspects" onclick="switchTab('prospects')">Prospects</button>
+    <button class="tab-btn"        id="tabEvents"    onclick="switchTab('events')">Événements</button>
   </div>
 
   <div id="viewAchats">
@@ -594,6 +595,91 @@
         <tbody id="leadsTableBody"></tbody>
       </table>
       <div class="empty-state" id="leadsEmptyState" style="display:none">Aucun prospect trouvé.</div>
+    </div>
+  </div>
+
+  <!-- ── Événements tab ───────────────────────────────────── -->
+  <div id="viewEvents" style="display:none">
+
+    <!-- Admin-only: create event form -->
+    <div id="createEventPanel" style="display:none;margin:12px 16px 4px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-weight:600;font-size:13px;color:#0d1f3c">Nouvel événement</span>
+        <button type="button" onclick="toggleCreateEvent()" style="background:none;border:none;font-size:18px;color:#6b7280;cursor:pointer;line-height:1">×</button>
+      </div>
+      <form id="createEventForm" novalidate onsubmit="return false">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="staff-field">
+            <label>Nom de l'événement *</label>
+            <input type="text" id="newEvtName" placeholder="Concert Chopin">
+          </div>
+          <div class="staff-field">
+            <label>Code * <span style="color:#6b7280;font-size:10px">(A-Z 0-9 - _)</span></label>
+            <input type="text" id="newEvtCode" placeholder="CHOPIN-OCT26" oninput="this.value=this.value.toUpperCase()">
+            <div id="evtCodeErr" style="font-size:11px;color:#dc2626;margin-top:3px;display:none"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="staff-field">
+            <label>Date de l'événement</label>
+            <input type="date" id="newEvtDate">
+          </div>
+          <div class="staff-field">
+            <label>Nb. de tirages</label>
+            <input type="number" id="newEvtDrawCount" value="1" min="1" max="99">
+          </div>
+        </div>
+        <div class="staff-field" style="margin-bottom:10px">
+          <label>Prix (même texte pour tous les tirages)</label>
+          <input type="text" id="newEvtPrize" placeholder="Ex. Exemplaire signé de l'album">
+        </div>
+        <div class="staff-field" style="margin-bottom:14px">
+          <label>Texte promotionnel (affiché aux participants)</label>
+          <textarea id="newEvtPromo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:inherit;resize:vertical" placeholder="Inscrivez-vous pour gagner…"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button type="button" class="save-btn" id="createEvtBtn" onclick="submitNewEvent()">Créer l'événement</button>
+          <span class="save-msg" id="createEvtMsg"></span>
+        </div>
+      </form>
+      <!-- URL copyable after creation -->
+      <div id="evtCreatedBox" style="display:none;margin-top:14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px">
+        <div style="font-size:12px;color:#166534;margin-bottom:6px;font-weight:600">✓ Événement créé ! Partagez ce lien :</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="evtCreatedUrl" readonly style="flex:1;padding:7px 10px;border:1px solid #86efac;border-radius:6px;font-size:12px;background:#fff;color:#0d1f3c">
+          <button type="button" class="save-btn" onclick="copyEvtUrl()" style="white-space:nowrap">Copier</button>
+          <a id="evtDrawLink" href="#" target="_blank" class="modifier-btn" style="white-space:nowrap;padding:6px 10px;border-radius:6px">Tirage ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="btnNewEvent" type="button" class="save-btn" onclick="toggleCreateEvent()" style="display:none;white-space:nowrap">+ Nouvel événement</button>
+      <div class="search-wrap">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" id="eventsSearchInput" type="text"
+          placeholder="Rechercher code, nom…" oninput="renderEventsTable()">
+      </div>
+      <span class="count-badge" id="eventsCountBadge"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Date</th>
+            <th>Inscrits</th>
+            <th>Tirages</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="eventsTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="eventsEmptyState" style="display:none">Aucun événement trouvé.</div>
     </div>
   </div>
 
@@ -1547,8 +1633,11 @@
     function switchTab(tab) {
       document.getElementById('viewAchats').style.display    = tab === 'achats'    ? 'block' : 'none';
       document.getElementById('viewProspects').style.display = tab === 'prospects' ? 'block' : 'none';
+      document.getElementById('viewEvents').style.display    = tab === 'events'    ? 'block' : 'none';
       document.getElementById('tabAchats').classList.toggle('active',    tab === 'achats');
       document.getElementById('tabProspects').classList.toggle('active', tab === 'prospects');
+      document.getElementById('tabEvents').classList.toggle('active',    tab === 'events');
+      if (tab === 'events' && allEvents.length === 0) loadEvents();
     }
 
     // ── Leads ─────────────────────────────────────────────────
@@ -1821,6 +1910,181 @@
         btn.disabled = false;
         btn.textContent = btnLabel;
         setTimeout(() => { msg.className = 'save-msg'; }, 3000);
+      }
+    }
+
+    // ── Events ────────────────────────────────────────────────
+    let allEvents = [];
+
+    // Show admin-only buttons once role is known
+    if (role === 'admin') {
+      document.getElementById('btnNewEvent').style.display = 'inline-flex';
+    }
+
+    function toggleCreateEvent() {
+      const panel = document.getElementById('createEventPanel');
+      const isOpen = panel.style.display !== 'none';
+      panel.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) {
+        document.getElementById('evtCreatedBox').style.display = 'none';
+        document.getElementById('createEventForm').reset();
+        document.getElementById('evtCodeErr').style.display = 'none';
+        document.getElementById('createEvtMsg').textContent  = '';
+      }
+    }
+
+    async function submitNewEvent() {
+      const name      = document.getElementById('newEvtName').value.trim();
+      const code      = document.getElementById('newEvtCode').value.trim().toUpperCase();
+      const date      = document.getElementById('newEvtDate').value;
+      const drawCount = parseInt(document.getElementById('newEvtDrawCount').value) || 1;
+      const prize     = document.getElementById('newEvtPrize').value.trim();
+      const promo     = document.getElementById('newEvtPromo').value.trim();
+
+      document.getElementById('evtCodeErr').style.display = 'none';
+      if (!name || !code) { showToast('Nom et code requis'); return; }
+
+      const btn = document.getElementById('createEvtBtn');
+      const msg = document.getElementById('createEvtMsg');
+      btn.disabled     = true;
+      btn.textContent  = '…';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/CreateEvent`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` },
+          body:    JSON.stringify({ event_code: code, event_name: name, event_date: date || null, draw_count: drawCount, prize_description: prize || null, promo_text: promo || null })
+        });
+
+        const data = await res.json();
+        if (res.status === 409) {
+          const errEl = document.getElementById('evtCodeErr');
+          errEl.textContent  = 'Ce code existe déjà.';
+          errEl.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Créer l\'événement';
+          return;
+        }
+        if (!res.ok) throw new Error(data.error || 'Erreur');
+
+        // Show copyable URL
+        const origin  = window.location.origin;
+        const evtUrl  = `${origin}/events?code=${code}`;
+        const drawUrl = `${origin}/draw?code=${code}`;
+        document.getElementById('evtCreatedUrl').value  = evtUrl;
+        document.getElementById('evtDrawLink').href     = drawUrl;
+        document.getElementById('evtCreatedBox').style.display = 'block';
+        document.getElementById('createEventForm').reset();
+
+        allEvents = []; // force reload
+        loadEvents();
+        btn.disabled = false; btn.textContent = 'Créer l\'événement';
+      } catch (err) {
+        msg.className   = 'save-msg err';
+        msg.textContent = err.message;
+        btn.disabled    = false; btn.textContent = 'Créer l\'événement';
+        setTimeout(() => { msg.className = 'save-msg'; msg.textContent = ''; }, 3000);
+      }
+    }
+
+    function copyEvtUrl() {
+      const url = document.getElementById('evtCreatedUrl').value;
+      navigator.clipboard.writeText(url).then(() => showToast('Lien copié !'));
+    }
+
+    async function loadEvents() {
+      try {
+        const res = await fetch(`${API_BASE}/api/GetEvents`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          allEvents = await res.json();
+          renderEventsTable();
+        }
+      } catch {
+        document.getElementById('eventsEmptyState').textContent = 'Erreur de chargement.';
+        document.getElementById('eventsEmptyState').style.display = 'block';
+      }
+    }
+
+    function renderEventsTable() {
+      const q    = document.getElementById('eventsSearchInput').value.toLowerCase();
+      const rows = allEvents.filter(ev => {
+        if (!q) return true;
+        return (ev.event_code + ' ' + ev.event_name).toLowerCase().includes(q);
+      });
+
+      document.getElementById('eventsCountBadge').textContent = `${rows.length} événement${rows.length !== 1 ? 's' : ''}`;
+
+      const tbody = document.getElementById('eventsTableBody');
+      const empty = document.getElementById('eventsEmptyState');
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = rows.map(ev => {
+        const dateStr  = ev.event_date ? new Date(ev.event_date + 'T00:00:00').toLocaleDateString('fr-CA') : '—';
+        const drawInfo = `${ev.draws_completed}/${ev.draw_count}`;
+        const origin   = window.location.origin;
+        return `<tr>
+          <td style="font-family:monospace;color:#c9a84c">${ev.event_code}</td>
+          <td>${ev.event_name}</td>
+          <td>${dateStr}</td>
+          <td>${ev.guest_count}</td>
+          <td>${drawInfo}</td>
+          <td style="white-space:nowrap">
+            <button class="modifier-btn" onclick="openEventGuestsPanel('${ev.event_code}','${ev.event_name.replace(/'/g,"\\'")}')">Inscrits</button>
+            <a href="${origin}/draw?code=${ev.event_code}" target="_blank" class="modifier-btn" style="margin-left:4px">Tirage ↗</a>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function openEventGuestsPanel(eventCode, eventName) {
+      document.getElementById('panelRef').textContent = eventName;
+      document.getElementById('panelBody').innerHTML  = '<p style="padding:20px;color:#6b7280">Chargement…</p>';
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('panel').classList.add('open');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/GetEventGuests?event_code=${encodeURIComponent(eventCode)}`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Token': `Bearer ${token}` }
+        });
+        const guests = await res.json();
+
+        if (!guests.length) {
+          document.getElementById('panelBody').innerHTML = '<p style="padding:20px;color:#6b7280">Aucun inscrit pour cet événement.</p>';
+          return;
+        }
+
+        document.getElementById('panelBody').innerHTML = `
+          <div style="padding:16px">
+            <p style="font-size:12px;color:#6b7280;margin-bottom:12px">${guests.length} inscrit${guests.length !== 1 ? 's' : ''}</p>
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:#f9fafb">
+                  <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Nom</th>
+                  <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Courriel</th>
+                  <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Téléphone</th>
+                  <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${guests.map(g => `
+                  <tr style="border-bottom:1px solid #f3f4f6">
+                    <td style="padding:6px 8px">${g.first_name} ${g.last_name}</td>
+                    <td style="padding:6px 8px;color:#6b7280">${g.email}</td>
+                    <td style="padding:6px 8px;color:#6b7280">${g.phone || '—'}</td>
+                    <td style="padding:6px 8px;color:#6b7280">${g.created_at}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      } catch {
+        document.getElementById('panelBody').innerHTML = '<p style="padding:20px;color:#dc2626">Erreur de chargement.</p>';
       }
     }
 
