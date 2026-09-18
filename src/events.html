@@ -277,7 +277,7 @@
           showError('Événement introuvable', 'Event not found / 活动不存在');
           return;
         }
-        if (!res.ok) throw new Error('Server error');
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.error||'unknown'}`); }
 
         const data = await res.json();
         document.getElementById('eventName').textContent = data.event_name || 'Piano Vertu';

@@ -358,7 +358,7 @@
             '<p style="color:#dc2626;padding:24px">Événement introuvable.</p>';
           return;
         }
-        if (!res.ok) throw new Error('Server error');
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.error||'unknown'}`); }
 
         const data = await res.json();
         eventData  = data.event;
