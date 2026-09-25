@@ -53,7 +53,8 @@ public class UpdateAcademyRegistration
                        child_first_name, child_last_name,
                        email, phone, emergency_contact_name, emergency_contact_phone,
                        language, level, preferred_teacher, instrument,
-                       availabilities, start_preference, staff_notes
+                       availabilities, start_preference, staff_notes,
+                       is_returning_student
                 FROM dbo.AcademyRegistrations WHERE id = @id", conn))
             {
                 selCmd.Parameters.AddWithValue("@id", body.Id);
@@ -76,6 +77,13 @@ public class UpdateAcademyRegistration
                 Diff(changes, "availabilities",          r["availabilities"]          as string, body.Availabilities);
                 Diff(changes, "start_preference",        r["start_preference"]        as string, body.StartPreference);
                 Diff(changes, "staff_notes",             r["staff_notes"]             as string, body.StaffNotes);
+                if (body.IsReturningStudent.HasValue)
+                {
+                    var oldBool = (bool)r["is_returning_student"];
+                    var newBool = body.IsReturningStudent.Value;
+                    if (oldBool != newBool)
+                        changes["is_returning_student"] = [oldBool ? "1" : "0", newBool ? "1" : "0"];
+                }
             }
 
             // ── Update ────────────────────────────────────────────────────
@@ -96,6 +104,7 @@ public class UpdateAcademyRegistration
                     availabilities          = @availabilities,
                     start_preference        = @startPreference,
                     staff_notes             = @staffNotes,
+                    is_returning_student    = ISNULL(@isReturningStudent, is_returning_student),
                     updated_at              = SYSUTCDATETIME()
                 WHERE id = @id", conn);
 
@@ -115,6 +124,8 @@ public class UpdateAcademyRegistration
             cmd.Parameters.AddWithValue("@availabilities",        (object?)body.Availabilities        ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@startPreference",       (object?)body.StartPreference       ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@staffNotes",            (object?)body.StaffNotes            ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@isReturningStudent",
+                body.IsReturningStudent.HasValue ? (object)(body.IsReturningStudent.Value ? 1 : 0) : DBNull.Value);
 
             await cmd.ExecuteNonQueryAsync();
 
@@ -199,4 +210,5 @@ public class AcademyUpdate
     public string? Availabilities         { get; set; }
     public string? StartPreference        { get; set; }
     public string? StaffNotes             { get; set; }
+    public bool?   IsReturningStudent     { get; set; }
 }

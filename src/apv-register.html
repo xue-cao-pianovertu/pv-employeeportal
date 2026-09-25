@@ -419,6 +419,11 @@ body {
       </div>
     </div>
 
+    <label class="check-row" style="margin-top:4px">
+      <input type="checkbox" id="returningStudentCheck">
+      <span data-k="returningStudent">Déjà étudiant(e) à l'Académie Piano Vertu</span>
+    </label>
+
     <div class="nav-bar">
       <button class="btn btn-primary" onclick="goStep(2)" data-k="next">Suivant</button>
     </div>
@@ -577,6 +582,7 @@ const LANG = {
     credUser: 'Identifiant :', credPass: 'Mot de passe :',
     credNote: 'Notez ces informations. Vous pourrez les changer après connexion.',
     loginLink: 'Se connecter →',
+    returningStudent: "Déjà étudiant(e) à l'Academie Piano Vertu",
   },
   en: {
     headerTitle: 'Piano Vertu Academy', headerSub: 'Registration',
@@ -611,6 +617,7 @@ const LANG = {
     credUser: 'Username:', credPass: 'Password:',
     credNote: 'Save these credentials. You can change them after logging in.',
     loginLink: 'Log in →',
+    returningStudent: 'Returning Piano Vertu Academy student',
   },
   zh: {
     headerTitle: '钢琴之声学院', headerSub: '注册',
@@ -645,6 +652,7 @@ const LANG = {
     credUser: '用户名：', credPass: '密码：',
     credNote: '请保存这些信息。登录后可以修改。',
     loginLink: '立即登录 →',
+    returningStudent: '已在Piano Vertu 音乐学院上过课',
   }
 };
 
@@ -847,6 +855,7 @@ async function doSubmit() {
     availabilities:          document.getElementById('availabilities').value.trim() || null,
     start_preference:        document.getElementById('startPreference').value.trim() || null,
     policy_accepted:         true,
+    is_returning_student:    document.getElementById('returningStudentCheck').checked,
     signature_type:          sig.type,
     signature_data:          sig.data,
   };

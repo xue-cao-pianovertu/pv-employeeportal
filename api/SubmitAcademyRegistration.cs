@@ -152,7 +152,7 @@ public class SubmitAcademyRegistration
                     email, phone, emergency_contact_name, emergency_contact_phone,
                     language, level, preferred_teacher, instrument,
                     availabilities, start_preference,
-                    policy_accepted, signature_blob_name,
+                    policy_accepted, is_returning_student, signature_blob_name,
                     student_user_id
                 ) VALUES (
                     @refId, @studentFirstName, @studentLastName,
@@ -160,7 +160,7 @@ public class SubmitAcademyRegistration
                     @email, @phone, @emergencyContactName, @emergencyContactPhone,
                     @language, @level, @preferredTeacher, @instrument,
                     @availabilities, @startPreference,
-                    @policyAccepted, @signatureBlobName,
+                    @policyAccepted, @isReturningStudent, @signatureBlobName,
                     @studentUserId
                 )", conn);
 
@@ -180,6 +180,7 @@ public class SubmitAcademyRegistration
             insertCmd.Parameters.AddWithValue("@availabilities",       (object?)payload.Availabilities        ?? DBNull.Value);
             insertCmd.Parameters.AddWithValue("@startPreference",      (object?)payload.StartPreference       ?? DBNull.Value);
             insertCmd.Parameters.AddWithValue("@policyAccepted",       payload.PolicyAccepted ? 1 : 0);
+            insertCmd.Parameters.AddWithValue("@isReturningStudent",   payload.IsReturningStudent ? 1 : 0);
             insertCmd.Parameters.AddWithValue("@signatureBlobName",    (object?)signatureBlobName             ?? DBNull.Value);
             insertCmd.Parameters.AddWithValue("@studentUserId",        studentUserId > 0 ? studentUserId : DBNull.Value);
 
@@ -227,6 +228,7 @@ public class AcademyRegistrationPayload
     public string? Availabilities        { get; set; }
     public string? StartPreference       { get; set; }
     public bool    PolicyAccepted        { get; set; }
+    public bool    IsReturningStudent    { get; set; }
     public string? SignatureType         { get; set; }
     public string? SignatureData         { get; set; }
 }

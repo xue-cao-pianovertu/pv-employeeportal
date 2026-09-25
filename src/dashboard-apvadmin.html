@@ -54,6 +54,13 @@ body { font-family: 'DM Sans', sans-serif; background: #f0eee9; color: #1a1a2e; 
   color: #9ca3af; font-size: 14px; pointer-events: none;
 }
 .count-badge { font-size: 12px; color: #6b7280; white-space: nowrap; }
+.filter-btn {
+  background: #fff; border: 1.5px solid #d1ccc4; color: #374151;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+  padding: 6px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.filter-btn.active { background: #0d1f3c; border-color: #0d1f3c; color: #c9a84c; }
 
 /* Table */
 .table-wrap { overflow-x: auto; padding: 0 20px 20px; }
@@ -64,6 +71,7 @@ td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f0ede8; vert
 tr:last-child td { border-bottom: none; }
 tbody tr { cursor: pointer; transition: background 0.12s; }
 tbody tr:hover { background: #fdf8ec; }
+tbody tr.row-new { background: #fff3e0; }
 tbody tr.selected { background: #fdf0d0; }
 .empty-row td { text-align: center; color: #9ca3af; padding: 32px; }
 .badge {
@@ -209,6 +217,7 @@ tbody tr.selected { background: #fdf0d0; }
     <span class="search-icon">🔍</span>
     <input type="text" id="searchInput" placeholder="" data-k-placeholder="searchPlaceholder" oninput="filterRows()">
   </div>
+  <button class="filter-btn" id="filterNewBtn" onclick="toggleNewFilter()" data-k="filterNew">Nouveaux seulement</button>
   <span class="count-badge" id="countBadge"></span>
 </div>
 
@@ -261,6 +270,7 @@ const LANG = {
     colRef: 'Réf', colDate: 'Date', colName: 'Nom', colEmail: 'Email',
     colPhone: 'Téléphone', colInstrument: 'Instrument', colLevel: 'Niveau', colLang: 'Langue', colStart: 'Début',
     loading: 'Chargement...', noResults: 'Aucun résultat.',
+    filterNew: 'Nouveaux seulement',
     countFmt: n => `${n} inscription${n!==1?'s':''}`,
     sectionStudent: 'Étudiant', sectionSignature: 'Signature', sectionNotes: 'Notes personnel', sectionAudit: 'Historique',
     edit: 'Modifier', save: 'Enregistrer', cancel: 'Annuler', saving: 'Enregistrement...',
@@ -268,6 +278,7 @@ const LANG = {
     fEmail: 'Courriel', fPhone: 'Téléphone', fEmgName: 'Urgence (nom)', fEmgPhone: 'Urgence (tél.)',
     fLang: 'Langue', fInstrument: 'Instrument', fLevel: 'Niveau', fTeacher: 'Professeur',
     fAvail: 'Disponibilités', fStart: 'Début souhaité', fNotes: 'Notes',
+    fReturning: 'Déjà étudiant(e) APV',
     piano: 'Piano', violin: 'Violon', theory: 'Théorie musicale',
     beginner: 'Débutant(e)', intermediate: 'Intermédiaire', advanced: 'Avancé(e)',
     langFR: 'FR', langEN: 'EN', langZH: 'ZH',
@@ -286,6 +297,7 @@ const LANG = {
     colRef: 'Ref', colDate: 'Date', colName: 'Name', colEmail: 'Email',
     colPhone: 'Phone', colInstrument: 'Instrument', colLevel: 'Level', colLang: 'Lang', colStart: 'Start',
     loading: 'Loading...', noResults: 'No results.',
+    filterNew: 'New students only',
     countFmt: n => `${n} registration${n!==1?'s':''}`,
     sectionStudent: 'Student', sectionSignature: 'Signature', sectionNotes: 'Staff notes', sectionAudit: 'History',
     edit: 'Edit', save: 'Save', cancel: 'Cancel', saving: 'Saving...',
@@ -293,6 +305,7 @@ const LANG = {
     fEmail: 'Email', fPhone: 'Phone', fEmgName: 'Emergency (name)', fEmgPhone: 'Emergency (phone)',
     fLang: 'Language', fInstrument: 'Instrument', fLevel: 'Level', fTeacher: 'Teacher',
     fAvail: 'Availability', fStart: 'Start preference', fNotes: 'Notes',
+    fReturning: 'Returning APV student',
     piano: 'Piano', violin: 'Violin', theory: 'Music theory',
     beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced',
     langFR: 'FR', langEN: 'EN', langZH: 'ZH',
@@ -311,6 +324,7 @@ const LANG = {
     colRef: '参考', colDate: '日期', colName: '姓名', colEmail: '邮件',
     colPhone: '电话', colInstrument: '乐器', colLevel: '级别', colLang: '语言', colStart: '开始',
     loading: '加载中...', noResults: '无结果。',
+    filterNew: '仅显示新学员',
     countFmt: n => `${n} 条注册`,
     sectionStudent: '学生', sectionSignature: '签名', sectionNotes: '工作人员备注', sectionAudit: '修改历史',
     edit: '编辑', save: '保存', cancel: '取消', saving: '保存中...',
@@ -318,6 +332,7 @@ const LANG = {
     fEmail: '电子邮件', fPhone: '电话', fEmgName: '紧急联系人（名）', fEmgPhone: '紧急联系人（电话）',
     fLang: '语言', fInstrument: '乐器', fLevel: '级别', fTeacher: '教师',
     fAvail: '可用时间', fStart: '期望开始时间', fNotes: '备注',
+    fReturning: '已在APV上过课',
     piano: '钢琴', violin: '小提琴', theory: '乐理',
     beginner: '初学者', intermediate: '中级', advanced: '高级',
     langFR: 'FR', langEN: 'EN', langZH: 'ZH',
@@ -335,6 +350,7 @@ const LANG = {
 let currentLang = 'fr';
 let allRows = [];
 let openRegId = null;
+let filterNewOnly = false;
 
 function t(k) { return typeof LANG[currentLang]?.[k] === 'function' ? LANG[currentLang][k] : (LANG[currentLang]?.[k] ?? k); }
 
@@ -396,12 +412,19 @@ function instrBadge(v) {
   return `<span class="badge ${cls}">${t(key) || v}</span>`;
 }
 
+function toggleNewFilter() {
+  filterNewOnly = !filterNewOnly;
+  document.getElementById('filterNewBtn').classList.toggle('active', filterNewOnly);
+  filterRows();
+}
+
 function filterRows() {
   const q  = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const tb = document.getElementById('tableBody');
-  const filtered = q
+  let filtered = q
     ? allRows.filter(r => JSON.stringify(Object.values(r)).toLowerCase().includes(q))
     : allRows;
+  if (filterNewOnly) filtered = filtered.filter(r => !r.is_returning_student);
 
   document.getElementById('countBadge').textContent = t('countFmt')(filtered.length);
 
@@ -410,7 +433,7 @@ function filterRows() {
     return;
   }
   tb.innerHTML = filtered.map(r => `
-    <tr onclick="openPanel(${r.id})" class="${r.id === openRegId ? 'selected' : ''}">
+    <tr onclick="openPanel(${r.id})" class="${[r.id === openRegId ? 'selected' : '', !r.is_returning_student ? 'row-new' : ''].filter(Boolean).join(' ')}">
       <td style="font-weight:600;color:#0d1f3c">${r.ref_id}</td>
       <td>${fv(r.created_at)}</td>
       <td>${fv(r.student_first_name)} ${fv(r.student_last_name)}</td>
@@ -471,6 +494,7 @@ function buildPanelHtml(r) {
       <div class="info-item"><label>${t('fTeacher')}</label><span>${fv2(r.preferred_teacher)}</span></div>
       <div class="info-item info-full"><label>${t('fAvail')}</label><span style="line-height:1.8">${formatAvail(r.availabilities)}</span></div>
       <div class="info-item info-full"><label>${t('fStart')}</label><span>${fv2(r.start_preference)}</span></div>
+      <div class="info-item"><label>${t('fReturning')}</label><span>${r.is_returning_student ? '✓' : '—'}</span></div>
     </div>
     <div class="edit-form" id="editStudent">
       <div class="edit-row">
@@ -518,6 +542,10 @@ function buildPanelHtml(r) {
         <div class="edit-field"><label>${t('fTeacher')}</label><input id="e_teacher" value="${r.preferred_teacher||''}"></div>
       </div>
       <div class="edit-field"><label>${t('fStart')}</label><input id="e_start" value="${r.start_preference||''}"></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#374151;padding:4px 0;cursor:pointer">
+        <input type="checkbox" id="e_returning" style="width:16px;height:16px"${r.is_returning_student?' checked':''}>
+        ${t('fReturning')}
+      </label>
       <div class="edit-actions">
         <button class="btn-save" onclick="saveStudent(${r.id})">${t('save')}</button>
         <button class="btn-cancel" onclick="toggleEdit('editStudent')">${t('cancel')}</button>
@@ -600,6 +628,7 @@ async function saveStudent(id) {
       level:                   document.getElementById('e_level').value || null,
       preferred_teacher:       document.getElementById('e_teacher').value.trim() || null,
       start_preference:        document.getElementById('e_start').value.trim() || null,
+      is_returning_student:    document.getElementById('e_returning').checked,
     };
     const res = await fetch(apiUrl('UpdateAcademyRegistration'), {
       method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body)
